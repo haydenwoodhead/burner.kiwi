@@ -1,4 +1,4 @@
-package generateEmail
+package generateemail
 
 import (
 	"math/rand"
@@ -8,6 +8,7 @@ import (
 )
 
 const ALPHABET = "abcdefghijklmnopqrstuvwxyz1234567890"
+const RAND_MAX = 99999999
 
 type EmailGenerator struct {
 	hosts []string
@@ -26,7 +27,7 @@ func NewEmailGenerator(hosts []string, salt string, ml int) *EmailGenerator {
 
 // NewRandom generates a new random email address. It is the callers responsibility to check for uniqueness
 func (eg *EmailGenerator) NewRandom() (string, error) {
-	n := rand.Intn(99999999)
+	n := rand.Intn(RAND_MAX)
 	name, err := eg.h.Encode([]int{n})
 
 	if err != nil {
