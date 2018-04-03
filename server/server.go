@@ -2,15 +2,11 @@ package server
 
 import (
 	"fmt"
-	"log"
-	"net/http"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/haydenwoodhead/burnerkiwi/generateemail"
@@ -59,116 +55,6 @@ type Email struct {
 	TTL            int64  `dynamodbav:"ttl"`
 	MGRouteID      string `dynamodbav:"mg_routeid"`
 	FailedToCreate bool   `dynamodbav:"failed_to_create"`
-}
-
-// Index checks to see if a session already exists for the user. If so it redirects them to their page otherwise
-// it generates a new email address for them and then redirects.
-func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
-	sess, _ := s.store.Get(r, "session")
-
-	if !sess.IsNew {
-		id, ok := sess.Values["email_id"].(string)
-
-		if !ok {
-			log.Printf("Index: session id value not a string")
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		http.Redirect(w, r, s.websiteURL+"/inbox/"+id, 302)
-	}
-
-	var e Email
-
-	addr, err := s.eg.NewRandom()
-
-	if err != nil {
-		log.Printf("Index: failed to generate new random email: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	id, err := uuid.NewRandom()
-
-	if err != nil {
-		log.Printf("Index: failed to generate new random id: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	e.Address = addr
-	e.ID = id.String()
-	e.CreatedAt = time.Now().Unix()
-	e.TTL = time.Now().Add(time.Hour * 24).Unix()
-
-	// Create route and save to dynamodb
-	go func(e *Email) {
-		err := s.createRoute(e)
-
-		if err != nil {
-			log.Println(err)
-		}
-
-		err = s.saveEmail(e)
-
-		if err != nil {
-			log.Println(err)
-		}
-	}(&e)
-
-	sess.Values["email_id"] = e.ID
-	sess.Values["email"] = e.Address
-	sess.Values["ttl"] = e.TTL
-	sess.Save(r, w)
-	http.Redirect(w, r, s.websiteURL+"/inbox/"+id.String(), 302)
-}
-
-func (s *Server) IndexJSON(w http.ResponseWriter, r *http.Request) {
-	var e Email
-
-	addr, err := s.eg.NewRandom()
-
-	if err != nil {
-		log.Printf("Index: failed to generate new random email: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	id, err := uuid.NewRandom()
-
-	if err != nil {
-		log.Printf("Index: failed to generate new random id: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	e.Address = addr
-	e.ID = id.String()
-	e.CreatedAt = time.Now().Unix()
-	e.TTL = time.Now().Add(time.Hour * 24).Unix()
-
-	// Create route and save to dynamodb
-	go func(e *Email) {
-		err := s.createRoute(e)
-
-		if err != nil {
-			log.Println(err)
-		}
-
-		err = s.saveEmail(e)
-
-		if err != nil {
-			log.Println(err)
-		}
-	}(&e)
-}
-
-func InboxHTML(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("success"))
-}
-
-func InboxJSON(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("success json"))
 }
 
 // createRoute registers the email route with mailgun
