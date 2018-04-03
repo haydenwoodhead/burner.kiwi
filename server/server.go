@@ -109,7 +109,7 @@ func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 
-		err = s.putToDB(e)
+		err = s.saveEmail(e)
 
 		if err != nil {
 			log.Println(err)
@@ -155,7 +155,7 @@ func (s *Server) IndexJSON(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 
-		err = s.putToDB(e)
+		err = s.saveEmail(e)
 
 		if err != nil {
 			log.Println(err)
@@ -193,12 +193,12 @@ func (s *Server) createRoute(e *Email) error {
 	return nil
 }
 
-// putToDB saves the passed in email to dynamodb
-func (s *Server) putToDB(e *Email) error {
+// saveEmail saves the passed in email to dynamodb
+func (s *Server) saveEmail(e *Email) error {
 	av, err := dynamodbattribute.MarshalMap(e)
 
 	if err != nil {
-		return fmt.Errorf("putToDB: failed to marshal struct to attribute value: %v", err)
+		return fmt.Errorf("putEmailToDB: failed to marshal struct to attribute value: %v", err)
 
 	}
 
@@ -208,7 +208,7 @@ func (s *Server) putToDB(e *Email) error {
 	})
 
 	if err != nil {
-		return fmt.Errorf("putToDB: failed to put to dynamodb: %v", err)
+		return fmt.Errorf("putEmailToDB: failed to put to dynamodb: %v", err)
 	}
 
 	return nil
