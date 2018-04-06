@@ -2,11 +2,13 @@ package server
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/bwmarrin/go-alone"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/haydenwoodhead/burnerkiwi/generateemail"
@@ -21,6 +23,7 @@ type Server struct {
 	mg         mailgun.Mailgun
 	dynDB      *dynamodb.DynamoDB
 	Router     *mux.Router
+	signer     *goalone.Sword
 }
 
 func NewServer(key, url, mgDomain, mgKey string, domains []string) (*Server, error) {
@@ -35,12 +38,14 @@ func NewServer(key, url, mgDomain, mgKey string, domains []string) (*Server, err
 
 	s.eg = generateemail.NewEmailGenerator(domains, key, 8)
 
+	s.signer = goalone.New([]byte(key))
+
 	awsSession := session.Must(session.NewSession())
 	s.dynDB = dynamodb.New(awsSession)
 
 	s.Router = mux.NewRouter()
-	s.Router.HandleFunc("/", s.Index)
-	s.Router.Handle("/.json", alice.New().ThenFunc(s.IndexJSON))
+	s.Router.HandleFunc("/", s.Index).Methods("GET")
+	s.Router.Handle("/api/v1/inbox", alice.New(JSONContentType).ThenFunc(s.IndexJSON)).Methods("GET")
 	//r.HandleFunc("/.json", )
 	//r.HandleFunc("/inbox/{address}", InboxHTML)
 	//r.HandleFunc("/inbox/{address}.json", InboxJSON)
@@ -49,12 +54,21 @@ func NewServer(key, url, mgDomain, mgKey string, domains []string) (*Server, err
 }
 
 type Email struct {
-	Address        string `dynamodbav:"email_address"`
-	ID             string `dynamodbav:"id"`
-	CreatedAt      int64  `dynamodbav:"created_at"`
-	TTL            int64  `dynamodbav:"ttl"`
-	MGRouteID      string `dynamodbav:"mg_routeid"`
-	FailedToCreate bool   `dynamodbav:"failed_to_create"`
+	Address        string `dynamodbav:"email_address" json:"address"`
+	ID             string `dynamodbav:"id" json:"id"`
+	CreatedAt      int64  `dynamodbav:"created_at" json:"created_at"`
+	TTL            int64  `dynamodbav:"ttl" json:"ttl"`
+	MGRouteID      string `dynamodbav:"mg_routeid" json:"-"`
+	FailedToCreate bool   `dynamodbav:"failed_to_create" json:"-"`
+}
+
+// NewEmail returns an email with failed to create and route id set. Upon successful registration of the mailun
+// route we set these as true.
+func NewEmail() Email {
+	return Email{
+		FailedToCreate: true,
+		MGRouteID:      "-",
+	}
 }
 
 // createRoute registers the email route with mailgun
@@ -63,7 +77,7 @@ func (s *Server) createRoute(e *Email) error {
 
 	route, err := s.mg.CreateRoute(mailgun.Route{
 		Priority:    1,
-		Description: "Create route for email: " + e.Address,
+		Description: strconv.FormatInt(e.TTL, 10),
 		Expression:  "match_recipient(\"" + e.Address + "\")",
 		Actions:     []string{"forward(\"" + routeAddr + "\")", "store()", "stop()"},
 	})
@@ -79,8 +93,8 @@ func (s *Server) createRoute(e *Email) error {
 	return nil
 }
 
-// saveEmail saves the passed in email to dynamodb
-func (s *Server) saveEmail(e *Email) error {
+// saveNewEmail saves the passed in email to dynamodb
+func (s *Server) saveNewEmail(e Email) error {
 	av, err := dynamodbattribute.MarshalMap(e)
 
 	if err != nil {
@@ -98,4 +112,64 @@ func (s *Server) saveEmail(e *Email) error {
 	}
 
 	return nil
+}
+
+// emailExists checks to see if the given email address already exists in our db. It will only return
+// false if we can explicitly verify the email doesn't exist.
+func (s *Server) emailExists(a string) (bool, error) {
+	q := &dynamodb.QueryInput{
+		KeyConditionExpression: aws.String("email_address = :e"),
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":e": {
+				S: aws.String(a),
+			},
+		},
+		IndexName: aws.String("email_address-index"),
+		TableName: aws.String("emails"),
+	}
+
+	res, err := s.dynDB.Query(q)
+
+	if err != nil {
+		return false, err
+	}
+
+	if len(res.Items) == 0 {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+// setEmailCreated updates dynamodb and sets the email as created and adds a mailgun route
+func (s *Server) setEmailCreated(e Email) error {
+	u := &dynamodb.UpdateItemInput{
+		ExpressionAttributeNames: map[string]*string{
+			"#F": aws.String("failed_to_create"),
+			"#M": aws.String("mg_routeid"),
+		},
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":f": {
+				BOOL: aws.Bool(false),
+			},
+			":m": {
+				S: aws.String(e.MGRouteID),
+			},
+		},
+		Key: map[string]*dynamodb.AttributeValue{
+			"id": {
+				S: aws.String(e.ID),
+			},
+		},
+		TableName:        aws.String("emails"),
+		UpdateExpression: aws.String("SET #F = :f, #M = :m"),
+	}
+
+	_, err := s.dynDB.UpdateItem(u)
+
+	if err != nil {
+		return fmt.Errorf("setEmailCreated: failed to mark email as created: %v", err)
+	}
+
+	return err
 }
