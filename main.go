@@ -13,7 +13,6 @@ import (
 )
 
 func main() {
-
 	useLambda, err := strconv.ParseBool(os.Getenv("LAMBDA"))
 
 	if err != nil {
