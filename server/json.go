@@ -51,7 +51,7 @@ func (s *Server) IndexJSON(w http.ResponseWriter, r *http.Request) {
 
 		if err != nil {
 			log.Printf("JSON Index: failed to generate new random email: %v", err)
-			return500(w, r, "Failed to generate email")
+			returnJSON500(w, r, "Failed to generate email")
 			return
 		}
 
@@ -59,7 +59,7 @@ func (s *Server) IndexJSON(w http.ResponseWriter, r *http.Request) {
 
 		if err != nil {
 			log.Printf("JSON Index: failed to check if email exists: %v", err)
-			return500(w, r, "Failed to generate email")
+			returnJSON500(w, r, "Failed to generate email")
 			return
 		}
 
@@ -73,7 +73,7 @@ func (s *Server) IndexJSON(w http.ResponseWriter, r *http.Request) {
 		// If we start looping too many times then return 500. Hopefully we shouldn't get here
 		if i > 10 {
 			log.Print("JSON Index: looped > 10 times in order to generate an email")
-			return500(w, r, "Failed to generate email")
+			returnJSON500(w, r, "Failed to generate email")
 			return
 		}
 	}
@@ -82,7 +82,7 @@ func (s *Server) IndexJSON(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Printf("JSON Index: failed to generate new random id: %v", err)
-		return500(w, r, "Failed to generate random id")
+		returnJSON500(w, r, "Failed to generate random id")
 		return
 	}
 
@@ -92,27 +92,13 @@ func (s *Server) IndexJSON(w http.ResponseWriter, r *http.Request) {
 
 	// Mailgun takes a really long time to register a route (sometimes up to 2 seconds) so
 	// we should do this out of the request thread and then update our db with the results
-	go func(e Email) {
-		err = s.createRoute(&e)
-
-		if err != nil {
-			log.Printf("Index JSON: failed to create route: %v", err)
-
-			return
-		}
-
-		err := s.setEmailCreated(e)
-
-		if err != nil {
-			log.Printf("Index JSON: failed to update that route is created: %v", err)
-		}
-	}(e)
+	go s.createRouteAndUpdate(e)
 
 	err = s.saveNewEmail(e)
 
 	if err != nil {
 		log.Printf("JSON Index: failed to save email: %v", err)
-		return500(w, r, "Failed to save email")
+		returnJSON500(w, r, "Failed to save email")
 		return
 	}
 
@@ -133,7 +119,7 @@ func (s *Server) IndexJSON(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Printf("JSON Index: failed to marshal result var: %v", err)
-		return500(w, r, "Failed to marshal response")
+		returnJSON500(w, r, "Failed to marshal response")
 		return
 	}
 
@@ -145,8 +131,8 @@ func InboxJSON(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("success json"))
 }
 
-// return500 returns json with custom error message
-func return500(w http.ResponseWriter, r *http.Request, msg string) {
+// returnJSON500 returns json with custom error message
+func returnJSON500(w http.ResponseWriter, r *http.Request, msg string) {
 	resp := Response{}
 	resp.Success = false
 	resp.Result = nil
@@ -159,7 +145,7 @@ func return500(w http.ResponseWriter, r *http.Request, msg string) {
 	jsonResp, err := json.Marshal(resp)
 
 	if err != nil {
-		log.Println("JSON Index: failed to marshal error response: %v", err)
+		log.Printf("JSON Index: failed to marshal error response: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

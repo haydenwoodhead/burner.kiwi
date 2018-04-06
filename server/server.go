@@ -2,6 +2,8 @@ package server
 
 import (
 	"fmt"
+	"log"
+	"net/http"
 	"strconv"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -44,7 +46,7 @@ func NewServer(key, url, mgDomain, mgKey string, domains []string) (*Server, err
 	s.dynDB = dynamodb.New(awsSession)
 
 	s.Router = mux.NewRouter()
-	s.Router.HandleFunc("/", s.Index).Methods("GET")
+	s.Router.Handle("/", alice.New(s.IsNew(http.HandlerFunc(s.NewEmail))).ThenFunc(s.Index)).Methods("GET")
 	s.Router.Handle("/api/v1/inbox", alice.New(JSONContentType).ThenFunc(s.IndexJSON)).Methods("GET")
 	//r.HandleFunc("/.json", )
 	//r.HandleFunc("/inbox/{address}", InboxHTML)
@@ -172,4 +174,22 @@ func (s *Server) setEmailCreated(e Email) error {
 	}
 
 	return err
+}
+
+//createRouteAndUpdate is intended to be run in a goroutine. It creates a mailgun route and updates dynamodb with
+//the result. Otherwise it fails silently and this failure is picked up in the next request.
+func (s *Server) createRouteAndUpdate(e Email) {
+	err := s.createRoute(&e)
+
+	if err != nil {
+		log.Printf("Index JSON: failed to create route: %v", err)
+
+		return
+	}
+
+	err = s.setEmailCreated(e)
+
+	if err != nil {
+		log.Printf("Index JSON: failed to update that route is created: %v", err)
+	}
 }
