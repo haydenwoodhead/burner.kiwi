@@ -38,7 +38,7 @@ func TestEmailGenerator_NewRandom(t *testing.T) {
 		t.Fatalf("TestEmailGenerator_NewRandom: domain not in given hosts. Expected %v, got %v", H, sections[1])
 	}
 
-	match, err := regexp.Match("[a-zA-Z0-9]*", []byte(sections[0]))
+	match, err := regexp.Match("[a-z0-9]*", []byte(sections[0]))
 
 	if err != nil {
 		t.Fatalf("TestEmailGenerator_NewRandom: err produced: %v", err)
