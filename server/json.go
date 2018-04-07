@@ -41,35 +41,20 @@ func (s *Server) IndexJSON(w http.ResponseWriter, r *http.Request) {
 	e := NewEmail()
 	resp := Response{Meta: GetMeta()}
 
-	// valid email
-	ve := false
+	e.Address = s.eg.NewRandom()
 
-	// loop over our email generation section until we generate an email that's not already in our db
-	// I'm being lazy here. I should really come up with a better email generation technique
-	for i := 0; !ve; i++ {
-		addr := s.eg.NewRandom()
+	exist, err := s.emailExists(e.Address) // while it's VERY unlikely that the email already exists but lets check anyway
 
-		exist, err := s.emailExists(addr)
+	if err != nil {
+		log.Printf("JSON Index: failed to check if email exists: %v", err)
+		returnJSON500(w, r, "Failed to generate email")
+		return
+	}
 
-		if err != nil {
-			log.Printf("JSON Index: failed to check if email exists: %v", err)
-			returnJSON500(w, r, "Failed to generate email")
-			return
-		}
-
-		// i.e our email is all fine
-		if !exist {
-			e.Address = addr
-			ve = true
-			break
-		}
-
-		// If we start looping too many times then return 500. Hopefully we shouldn't get here
-		if i > 10 {
-			log.Print("JSON Index: looped > 10 times in order to generate an email")
-			returnJSON500(w, r, "Failed to generate email")
-			return
-		}
+	if exist {
+		log.Printf("JSON Index: email already exisists: %v", err)
+		returnJSON500(w, r, "Failed to generate email")
+		return
 	}
 
 	id, err := uuid.NewRandom()
