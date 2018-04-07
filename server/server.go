@@ -38,7 +38,7 @@ func NewServer(key, url, mgDomain, mgKey string, domains []string) (*Server, err
 
 	s.mg = mailgun.NewMailgun(mgDomain, mgKey, "")
 
-	s.eg = generateemail.NewEmailGenerator(domains, key, 8)
+	s.eg = generateemail.NewEmailGenerator(domains, 8)
 
 	s.signer = goalone.New([]byte(key))
 

@@ -32,13 +32,7 @@ func (s *Server) NewEmail(w http.ResponseWriter, r *http.Request) {
 	// loop over our email generation section until we generate an email that's not already in our db
 	// I'm being lazy here. I should really come up with a better email generation technique
 	for i := 0; !ve; i++ {
-		addr, err := s.eg.NewRandom()
-
-		if err != nil {
-			log.Printf("NewEmail: failed to generate new random email: %v", err)
-			returnHTML500(w, r, "Failed to generate email")
-			return
-		}
+		addr := s.eg.NewRandom()
 
 		exist, err := s.emailExists(addr)
 

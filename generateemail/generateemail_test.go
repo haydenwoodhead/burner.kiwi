@@ -14,7 +14,7 @@ var H = []string{
 }
 
 func TestNewEmailGenerator(t *testing.T) {
-	g := NewEmailGenerator(H, "testtesttest1234", 8)
+	g := NewEmailGenerator(H, 8)
 
 	if !reflect.DeepEqual(g.hosts, H) {
 		t.Fatalf("TestNewEmailGenerator: hosts not being saved correctly. Expected %v, got %v", H, g.hosts)
@@ -22,13 +22,9 @@ func TestNewEmailGenerator(t *testing.T) {
 }
 
 func TestEmailGenerator_NewRandom(t *testing.T) {
-	g := NewEmailGenerator(H, "testtesttest1234", 8)
+	g := NewEmailGenerator(H, 8)
 
-	s, err := g.NewRandom()
-
-	if err != nil {
-		t.Fatalf("TestEmailGenerator_NewRandom: err produced: %v", err)
-	}
+	s := g.NewRandom()
 
 	sections := strings.Split(s, "@")
 
