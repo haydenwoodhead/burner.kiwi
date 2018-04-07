@@ -81,7 +81,7 @@ func (s *Server) IndexJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token := s.signer.Sign([]byte(e.ID))
+	token := s.tg.NewToken(e.ID)
 
 	res := struct {
 		Email Email  `json:"email"`

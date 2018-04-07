@@ -5,15 +5,16 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
-	"github.com/bwmarrin/go-alone"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/haydenwoodhead/burnerkiwi/generateemail"
+	"github.com/haydenwoodhead/burnerkiwi/token"
 	"github.com/justinas/alice"
 	"gopkg.in/mailgun/mailgun-go.v1"
 )
@@ -25,7 +26,7 @@ type Server struct {
 	mg         mailgun.Mailgun
 	dynDB      *dynamodb.DynamoDB
 	Router     *mux.Router
-	signer     *goalone.Sword
+	tg         *token.Generator
 }
 
 func NewServer(key, url, mgDomain, mgKey string, domains []string) (*Server, error) {
@@ -40,7 +41,7 @@ func NewServer(key, url, mgDomain, mgKey string, domains []string) (*Server, err
 
 	s.eg = generateemail.NewEmailGenerator(domains, 8)
 
-	s.signer = goalone.New([]byte(key))
+	s.tg = token.NewGenerator(key, 24*time.Hour)
 
 	awsSession := session.Must(session.NewSession())
 	s.dynDB = dynamodb.New(awsSession)
