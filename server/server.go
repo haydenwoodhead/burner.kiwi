@@ -53,6 +53,7 @@ func NewServer(key, url, mgDomain, mgKey string, domains []string) (*Server, err
 
 	// JSON API
 	s.Router.Handle("/api/v1/inbox", alice.New(JSONContentType).ThenFunc(s.NewEmailJSON)).Methods(http.MethodGet)
+	s.Router.Handle("/api/v1/inbox/{emailID}", alice.New(JSONContentType, s.CheckPermissionJSON).ThenFunc(s.GetEmailDetailsJSON)).Methods(http.MethodGet)
 
 	// Mailgun Incoming
 	s.Router.HandleFunc("/mg/incoming/{emailID}/", s.MailgunIncoming).Methods(http.MethodPost)

@@ -7,12 +7,13 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 )
 
 // Response is the root response for every api call
 type Response struct {
 	Success bool        `json:"success"`
-	Errors  interface{} `json:"errors"`
+	Errors  Errors      `json:"errors"`
 	Result  interface{} `json:"result"`
 	Meta    Meta        `json:"meta"`
 }
@@ -36,8 +37,8 @@ func GetMeta() Meta {
 	}
 }
 
-// IndexJSON generates a new email address and returns it to the caller
-func (s *Server) IndexJSON(w http.ResponseWriter, r *http.Request) {
+// NewEmailJSON generates a new email address and returns it to the caller
+func (s *Server) NewEmailJSON(w http.ResponseWriter, r *http.Request) {
 	e := NewEmail()
 	resp := Response{Meta: GetMeta()}
 
@@ -106,8 +107,33 @@ func (s *Server) IndexJSON(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonResp)
 }
 
-func InboxJSON(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("success json"))
+func (s *Server) GetEmailDetailsJSON(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["emailID"]
+
+	e, err := s.getEmailByID(id)
+
+	if err != nil {
+		log.Printf("GetEmailDetailsJSON: failed to retrieve email from db: %v", err)
+		returnJSON500(w, r, "Failed to get email details")
+		return
+	}
+
+	res := Response{
+		Success: true,
+		Result:  e,
+		Meta:    GetMeta(),
+	}
+
+	resJSON, err := json.Marshal(res)
+
+	if err != nil {
+		log.Printf("GetEmailDetailsJSON: failed to marhsal json: %v", err)
+		returnJSON500(w, r, "Failed to marshal reponse")
+		return
+	}
+
+	w.Write(resJSON)
 }
 
 // returnJSON500 returns json with custom error message
@@ -130,5 +156,26 @@ func returnJSON500(w http.ResponseWriter, r *http.Request, msg string) {
 	}
 
 	w.WriteHeader(http.StatusInternalServerError)
+	w.Write(jsonResp)
+}
+
+func returnJSONError(w http.ResponseWriter, r *http.Request, status int, msg string) {
+	resp := Response{}
+	resp.Success = false
+	resp.Result = nil
+	resp.Meta = GetMeta()
+	resp.Errors = Errors{
+		Code: status,
+		Msg:  msg,
+	}
+
+	jsonResp, err := json.Marshal(resp)
+
+	if err != nil {
+		returnJSON500(w, r, "Failed to marshal error response")
+		return
+	}
+
+	w.WriteHeader(status)
 	w.Write(jsonResp)
 }
