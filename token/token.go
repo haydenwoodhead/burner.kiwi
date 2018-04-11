@@ -11,7 +11,7 @@ import (
 )
 
 var ErrTokenExpired = errors.New("token: token has expired")
-var ErrInvalidSig = errors.New("token: invalid signature")
+var ErrInvalidToken = errors.New("token: invalid token")
 
 type Generator struct {
 	s      *goalone.Sword
@@ -35,10 +35,8 @@ func (tg *Generator) NewToken(id string) string {
 func (tg *Generator) VerifyToken(t string) (string, error) {
 	tByte, err := tg.s.Unsign([]byte(t))
 
-	if err == goalone.ErrInvalidSignature {
-		return "", ErrInvalidSig
-	} else if err != nil {
-		return "", err
+	if err != nil {
+		return "", ErrInvalidToken
 	}
 
 	parts := strings.Split(string(tByte), ".")

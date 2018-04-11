@@ -35,14 +35,14 @@ func TestTokenGenerator_Parse(t *testing.T) {
 			Time:        time.Hour,
 			ToParse:     "invalid-for-signature.1523080494.dxeP8ibFqKuCDDb28ourLgd88rJfw14JQt8vX0yL0dk",
 			ExpectedRes: "",
-			ExpectedErr: ErrInvalidSig,
+			ExpectedErr: ErrInvalidToken,
 		},
 		{
 			ID:          "dafd5606-8aa8-4724-a2c5-f66110aba536",
 			Time:        time.Hour,
 			ToParse:     "dafd5606-8aa8-4724-a2c5-f66110aba536.invalid-for-signature.dxeP8ibFqKuCDDb28ourLgd88rJfw14JQt8vX0yL0dk",
 			ExpectedRes: "",
-			ExpectedErr: ErrInvalidSig,
+			ExpectedErr: ErrInvalidToken,
 		},
 	}
 
