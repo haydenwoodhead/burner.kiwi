@@ -49,13 +49,13 @@ func NewServer(key, url, mgDomain, mgKey string, domains []string) (*Server, err
 	s.Router = mux.NewRouter()
 
 	// HTML
-	s.Router.Handle("/", alice.New(s.IsNew(http.HandlerFunc(s.NewEmail))).ThenFunc(s.Index)).Methods("GET")
+	s.Router.Handle("/", alice.New(s.IsNew(http.HandlerFunc(s.NewEmail))).ThenFunc(s.Index)).Methods(http.MethodGet)
 
 	// JSON API
-	s.Router.Handle("/api/v1/inbox", alice.New(JSONContentType).ThenFunc(s.IndexJSON)).Methods("GET")
+	s.Router.Handle("/api/v1/inbox", alice.New(JSONContentType).ThenFunc(s.NewEmailJSON)).Methods(http.MethodGet)
 
 	// Mailgun Incoming
-	s.Router.HandleFunc("/mg/incoming/{emailID}/", s.MailgunIncoming).Methods("POST")
+	s.Router.HandleFunc("/mg/incoming/{emailID}/", s.MailgunIncoming).Methods(http.MethodPost)
 
 	return &s, nil
 }
