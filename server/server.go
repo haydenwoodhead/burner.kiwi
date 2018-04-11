@@ -47,11 +47,15 @@ func NewServer(key, url, mgDomain, mgKey string, domains []string) (*Server, err
 	s.dynDB = dynamodb.New(awsSession)
 
 	s.Router = mux.NewRouter()
+
+	// HTML
 	s.Router.Handle("/", alice.New(s.IsNew(http.HandlerFunc(s.NewEmail))).ThenFunc(s.Index)).Methods("GET")
+
+	// JSON API
 	s.Router.Handle("/api/v1/inbox", alice.New(JSONContentType).ThenFunc(s.IndexJSON)).Methods("GET")
-	//r.HandleFunc("/.json", )
-	//r.HandleFunc("/inbox/{address}", InboxHTML)
-	//r.HandleFunc("/inbox/{address}.json", InboxJSON)
+
+	// Mailgun Incoming
+	s.Router.HandleFunc("/mg/incoming/{emailID}/", s.MailgunIncoming).Methods("POST")
 
 	return &s, nil
 }
@@ -74,9 +78,22 @@ func NewEmail() Email {
 	}
 }
 
+type Message struct {
+	EmailID    string `dynamodbav:"email_id"`
+	ID         string `dynamodbav:"message_id"`
+	ReceivedAt int64  `dynamodbav:"received_at"`
+	MGID       string `dynamodbav:"mg_id"`
+	Sender     string `dynamodbav:"sender"`
+	From       string `dynamodbav:"from"`
+	Subject    string `dynamodbav:"subject"`
+	BodyHTML   string `dynamodbav:"body_html"`
+	BodyPlain  string `dynamodbav:"body_plain"`
+	TTL        int64  `dynamodbav:"ttl"`
+}
+
 // createRoute registers the email route with mailgun
 func (s *Server) createRoute(e *Email) error {
-	routeAddr := s.websiteURL + "/inbox/" + e.ID + "/"
+	routeAddr := s.websiteURL + "/mg/incoming/" + e.ID + "/"
 
 	route, err := s.mg.CreateRoute(mailgun.Route{
 		Priority:    1,
@@ -115,6 +132,32 @@ func (s *Server) saveNewEmail(e Email) error {
 	}
 
 	return nil
+}
+
+// getEmailByID gets an email by id
+func (s *Server) getEmailByID(id string) (Email, error) {
+	var e Email
+
+	o, err := s.dynDB.GetItem(&dynamodb.GetItemInput{
+		Key: map[string]*dynamodb.AttributeValue{
+			"id": {
+				S: aws.String(id),
+			},
+		},
+		TableName: aws.String("emails"),
+	})
+
+	if err != nil {
+		return Email{}, err
+	}
+
+	err = dynamodbattribute.UnmarshalMap(o.Item, &e)
+
+	if err != nil {
+		return Email{}, err
+	}
+
+	return e, nil
 }
 
 // emailExists checks to see if the given email address already exists in our db. It will only return
@@ -193,4 +236,24 @@ func (s *Server) createRouteAndUpdate(e Email) {
 	if err != nil {
 		log.Printf("Index JSON: failed to update that route is created: %v", err)
 	}
+}
+
+// saveMessage saves a given message to dynamodb
+func (s *Server) saveNewMessage(m Message) error {
+	mv, err := dynamodbattribute.MarshalMap(m)
+
+	if err != nil {
+		return fmt.Errorf("saveMessage: failed to marshal struct to attribute value: %v", err)
+	}
+
+	_, err = s.dynDB.PutItem(&dynamodb.PutItemInput{
+		TableName: aws.String("messages"),
+		Item:      mv,
+	})
+
+	if err != nil {
+		return fmt.Errorf("saveMessage: failed to put to dynamodb: %v", err)
+	}
+
+	return nil
 }
