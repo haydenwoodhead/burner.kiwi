@@ -109,7 +109,7 @@ func TestServer_CheckPermissionJSON(t *testing.T) {
 		rr := httptest.NewRecorder()
 
 		h := mux.NewRouter()
-		h.Handle("/{emailID}", alice.New(JSONContentType, s.CheckPermissionJSON).ThenFunc(fakeHandler))
+		h.Handle("/{inboxID}", alice.New(JSONContentType, s.CheckPermissionJSON).ThenFunc(fakeHandler))
 
 		r := httptest.NewRequest(http.MethodGet, "/dafd5606-8aa8-4724-a2c5-f66110aba536", nil)
 

@@ -30,6 +30,7 @@ type Meta struct {
 	By      string `json:"by"`
 }
 
+// GetMeta returns meta info for json api responses
 func GetMeta() Meta {
 	return Meta{
 		Version: "0.1 Alpha",
@@ -39,12 +40,12 @@ func GetMeta() Meta {
 
 // NewEmailJSON generates a new email address and returns it to the caller
 func (s *Server) NewEmailJSON(w http.ResponseWriter, r *http.Request) {
-	e := NewEmail()
+	i := NewInbox()
 	resp := Response{Meta: GetMeta()}
 
-	e.Address = s.eg.NewRandom()
+	i.Address = s.eg.NewRandom()
 
-	exist, err := s.emailExists(e.Address) // while it's VERY unlikely that the email already exists but lets check anyway
+	exist, err := s.emailExists(i.Address) // while it's VERY unlikely that the email already exists but lets check anyway
 
 	if err != nil {
 		log.Printf("JSON Index: failed to check if email exists: %v", err)
@@ -66,15 +67,15 @@ func (s *Server) NewEmailJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	e.ID = id.String()
-	e.CreatedAt = time.Now().Unix()
-	e.TTL = time.Now().Add(time.Hour * 24).Unix()
+	i.ID = id.String()
+	i.CreatedAt = time.Now().Unix()
+	i.TTL = time.Now().Add(time.Hour * 24).Unix()
 
 	// Mailgun takes a really long time to register a route (sometimes up to 2 seconds) so
 	// we should do this out of the request thread and then update our db with the results
-	go s.createRouteAndUpdate(e)
+	go s.createRouteAndUpdate(i)
 
-	err = s.saveNewEmail(e)
+	err = s.saveNewInbox(i)
 
 	if err != nil {
 		log.Printf("JSON Index: failed to save email: %v", err)
@@ -82,13 +83,13 @@ func (s *Server) NewEmailJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token := s.tg.NewToken(e.ID)
+	token := s.tg.NewToken(i.ID)
 
 	res := struct {
-		Email Email  `json:"email"`
+		Inbox Inbox  `json:"email"`
 		Token string `json:"token"`
 	}{
-		Email: e,
+		Inbox: i,
 		Token: string(token),
 	}
 
@@ -107,14 +108,15 @@ func (s *Server) NewEmailJSON(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonResp)
 }
 
-func (s *Server) GetEmailDetailsJSON(w http.ResponseWriter, r *http.Request) {
+// GetInboxDetailsJSON returns details on a singular inbox by the given inbox id
+func (s *Server) GetInboxDetailsJSON(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	id := vars["emailID"]
+	id := vars["inboxID"]
 
-	e, err := s.getEmailByID(id)
+	e, err := s.getInboxByID(id)
 
 	if err != nil {
-		log.Printf("GetEmailDetailsJSON: failed to retrieve email from db: %v", err)
+		log.Printf("GetInboxDetailsJSON: failed to retrieve email from db: %v", err)
 		returnJSON500(w, r, "Failed to get email details")
 		return
 	}
@@ -128,7 +130,7 @@ func (s *Server) GetEmailDetailsJSON(w http.ResponseWriter, r *http.Request) {
 	resJSON, err := json.Marshal(res)
 
 	if err != nil {
-		log.Printf("GetEmailDetailsJSON: failed to marhsal json: %v", err)
+		log.Printf("GetInboxDetailsJSON: failed to marhsal json: %v", err)
 		returnJSON500(w, r, "Failed to marshal reponse")
 		return
 	}

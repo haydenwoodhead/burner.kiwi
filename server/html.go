@@ -17,28 +17,29 @@ func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("index"))
 }
 
-func (s *Server) NewEmail(w http.ResponseWriter, r *http.Request) {
-	e := NewEmail()
-	sess, ok := r.Context().Value("sess").(*sessions.Session)
+// NewInbox creates a new inbox and returns details to the user
+func (s *Server) NewInbox(w http.ResponseWriter, r *http.Request) {
+	i := NewInbox()
+	sess, ok := r.Context().Value(sessionKey).(*sessions.Session)
 
 	if !ok {
-		log.Printf("New Email: failed to get sess var. Sess not of type sessions.Session actual type: %v", reflect.TypeOf(sess))
+		log.Printf("New Inbox: failed to get sess var. Sess not of type sessions.Session actual type: %v", reflect.TypeOf(sess))
 		returnHTML500(w, r, "Failed to generate email")
 		return
 	}
 
-	e.Address = s.eg.NewRandom()
+	i.Address = s.eg.NewRandom()
 
-	exist, err := s.emailExists(e.Address) // while it's VERY unlikely that the email already exists but lets check anyway
+	exist, err := s.emailExists(i.Address) // while it's VERY unlikely that the email address already exists but lets check anyway
 
 	if err != nil {
-		log.Printf("New Email: failed to check if email exists: %v", err)
+		log.Printf("New Inbox: failed to check if email exists: %v", err)
 		returnHTML500(w, r, "Failed to generate email")
 		return
 	}
 
 	if exist {
-		log.Printf("New Email: email already exisists: %v", err)
+		log.Printf("New Inbox: email already exisists: %v", err)
 		returnHTML500(w, r, "Failed to generate email")
 		return
 	}
@@ -51,29 +52,25 @@ func (s *Server) NewEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	e.ID = id.String()
-	e.CreatedAt = time.Now().Unix()
-	e.TTL = time.Now().Add(time.Hour * 24).Unix()
+	i.ID = id.String()
+	i.CreatedAt = time.Now().Unix()
+	i.TTL = time.Now().Add(time.Hour * 24).Unix()
 
 	// Mailgun can take a really long time to register a route (sometimes up to 2 seconds) so
 	// we should do this out of the request thread and then update our db with the results
-	go s.createRouteAndUpdate(e)
+	go s.createRouteAndUpdate(i)
 
-	err = s.saveNewEmail(e)
+	err = s.saveNewInbox(i)
 
 	if err != nil {
-		log.Printf("NewEmail: failed to save email: %v", err)
+		log.Printf("NewInbox: failed to save email: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	sess.Values["id"] = e.ID
+	sess.Values["id"] = i.ID
 	sess.Save(r, w)
 	w.Write([]byte("new email"))
-}
-
-func InboxHTML(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("success"))
 }
 
 func returnHTML500(w http.ResponseWriter, r *http.Request, msg string) {

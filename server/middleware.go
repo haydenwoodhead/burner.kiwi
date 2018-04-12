@@ -38,7 +38,7 @@ func (s *Server) CheckPermissionJSON(h http.Handler) http.Handler {
 		}
 
 		vars := mux.Vars(r)
-		urlID := vars["emailID"] // email id in url
+		urlID := vars["inboxID"] // email id in url
 
 		if id != urlID {
 			returnJSONError(w, r, http.StatusForbidden, "Forbidden: you do not have permission to access this resource")
@@ -54,8 +54,8 @@ func (s *Server) CheckPermissionJSON(h http.Handler) http.Handler {
 func (s *Server) IsNew(n http.Handler) alice.Constructor {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			sess, _ := s.store.Get(r, "session")
-			ctx := context.WithValue(r.Context(), "sess", sess)
+			sess, _ := s.store.Get(r, sessionKey)
+			ctx := context.WithValue(r.Context(), sessionKey, sess)
 
 			if sess.IsNew {
 				n.ServeHTTP(w, r.WithContext(ctx))

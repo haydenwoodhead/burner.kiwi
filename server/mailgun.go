@@ -25,25 +25,25 @@ func (s *Server) MailgunIncoming(w http.ResponseWriter, r *http.Request) {
 	}
 
 	vars := mux.Vars(r)
-	id := vars["emailID"]
+	id := vars["inboxID"]
 
-	e, err := s.getEmailByID(id)
+	i, err := s.getInboxByID(id)
 
 	if err != nil {
-		log.Printf("MailgunIncoming: failed to get email: %v", err)
+		log.Printf("MailgunIncoming: failed to get inbox: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	var m Message
 
-	m.EmailID = e.ID
-	m.TTL = e.TTL
+	m.InboxID = i.ID
+	m.TTL = i.TTL
 
 	mID, err := uuid.NewRandom()
 
 	if err != nil {
-		log.Printf("MailgunIncoming: failed to generate uuid for email: %v", err)
+		log.Printf("MailgunIncoming: failed to generate uuid for inbox: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -61,7 +61,7 @@ func (s *Server) MailgunIncoming(w http.ResponseWriter, r *http.Request) {
 	err = s.saveNewMessage(m)
 
 	if err != nil {
-		log.Printf("MailgunIncomig: failed to save message to db: %v", err)
+		log.Printf("MailgunIncoming: failed to save message to db: %v", err)
 	}
 
 	w.WriteHeader(http.StatusOK)
