@@ -14,13 +14,18 @@ import (
 // Index checks to see if a session already exists for the user. If so it redirects them to their page otherwise
 // it generates a new email address for them and then redirects.
 func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("index"))
+	_, err := w.Write([]byte("index"))
+
+	if err != nil {
+		log.Printf("IndexHTML: failed to write response: %v", err)
+		return
+	}
 }
 
 // NewInbox creates a new inbox and returns details to the user
 func (s *Server) NewInbox(w http.ResponseWriter, r *http.Request) {
 	i := NewInbox()
-	sess, ok := r.Context().Value(sessionKey).(*sessions.Session)
+	sess, ok := r.Context().Value(sessionCTXKey).(*sessions.Session)
 
 	if !ok {
 		log.Printf("New Inbox: failed to get sess var. Sess not of type sessions.Session actual type: %v", reflect.TypeOf(sess))
@@ -39,7 +44,7 @@ func (s *Server) NewInbox(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if exist {
-		log.Printf("New Inbox: email already exisists: %v", err)
+		log.Printf("NewInbox: email already exisists: %v", err)
 		returnHTML500(w, r, "Failed to generate email")
 		return
 	}
@@ -69,11 +74,29 @@ func (s *Server) NewInbox(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sess.Values["id"] = i.ID
-	sess.Save(r, w)
-	w.Write([]byte("new email"))
+	err = sess.Save(r, w)
+
+	if err != nil {
+		log.Printf("NewInbox: failed to set session cookie: %v", err)
+		returnHTML500(w, r, "Failed to set session cookie")
+		return
+	}
+
+	_, err = w.Write([]byte("new email"))
+
+	if err != nil {
+		log.Printf("NewInbox: failed to write response: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }
 
 func returnHTML500(w http.ResponseWriter, r *http.Request, msg string) {
 	w.WriteHeader(http.StatusInternalServerError)
-	w.Write([]byte(fmt.Sprintf("Internal Server Error: %v", msg)))
+	_, err := w.Write([]byte(fmt.Sprintf("Internal Server Error: %v", msg)))
+
+	if err != nil {
+		log.Printf("returnHTML500: failed to write response: %v", err)
+		return
+	}
 }

@@ -54,8 +54,8 @@ func (s *Server) CheckPermissionJSON(h http.Handler) http.Handler {
 func (s *Server) IsNew(n http.Handler) alice.Constructor {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			sess, _ := s.store.Get(r, sessionKey)
-			ctx := context.WithValue(r.Context(), sessionKey, sess)
+			sess, _ := s.store.Get(r, sessionStoreKey)
+			ctx := context.WithValue(r.Context(), sessionCTXKey, sess)
 
 			if sess.IsNew {
 				n.ServeHTTP(w, r.WithContext(ctx))

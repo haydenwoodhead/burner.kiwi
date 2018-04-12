@@ -13,7 +13,7 @@ import (
 // ErrTokenExpired is returned when the given token's ttl in the past
 var ErrTokenExpired = errors.New("token: token has expired")
 
-// ErrInvalid is returned when the token has an invalid signature or is otherwise invalid
+// ErrInvalidToken is returned when the token has an invalid signature or is otherwise invalid
 var ErrInvalidToken = errors.New("token: invalid token")
 
 // Generator contains fields needed by NewToken and VerifyToken

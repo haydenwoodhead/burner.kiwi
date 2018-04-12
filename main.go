@@ -45,6 +45,10 @@ func main() {
 
 	s, err := server.NewServer(key, websiteURL, mgDomain, mgKey, []string{"example.com"})
 
+	if err != nil {
+		log.Fatalf("Failed to setup new server: %v", err)
+	}
+
 	if useLambda {
 		log.Fatal(gateway.ListenAndServe("", context.ClearHandler(s.Router))) // wrap mux in ClearHandler as per docs to prevent leaking memory
 	} else {

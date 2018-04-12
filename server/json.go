@@ -38,8 +38,8 @@ func GetMeta() Meta {
 	}
 }
 
-// NewEmailJSON generates a new email address and returns it to the caller
-func (s *Server) NewEmailJSON(w http.ResponseWriter, r *http.Request) {
+// NewInboxJSON generates a new email address and returns it to the caller
+func (s *Server) NewInboxJSON(w http.ResponseWriter, r *http.Request) {
 	i := NewInbox()
 	resp := Response{Meta: GetMeta()}
 
@@ -90,7 +90,7 @@ func (s *Server) NewEmailJSON(w http.ResponseWriter, r *http.Request) {
 		Token string `json:"token"`
 	}{
 		Inbox: i,
-		Token: string(token),
+		Token: token,
 	}
 
 	resp.Success = true
@@ -104,8 +104,15 @@ func (s *Server) NewEmailJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	_, err = w.Write(jsonResp)
+
+	if err != nil {
+		log.Printf("NewInboxJSON: failed to write response: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusAccepted)
-	w.Write(jsonResp)
 }
 
 // GetInboxDetailsJSON returns details on a singular inbox by the given inbox id
@@ -135,7 +142,13 @@ func (s *Server) GetInboxDetailsJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(resJSON)
+	_, err = w.Write(resJSON)
+
+	if err != nil {
+		log.Printf("GetInboxDetailsJSON: failed to write response: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }
 
 // returnJSON500 returns json with custom error message
@@ -158,7 +171,12 @@ func returnJSON500(w http.ResponseWriter, r *http.Request, msg string) {
 	}
 
 	w.WriteHeader(http.StatusInternalServerError)
-	w.Write(jsonResp)
+	_, err = w.Write(jsonResp)
+
+	if err != nil {
+		log.Printf("returnJSON500: failed to write response: %v", err)
+		return
+	}
 }
 
 func returnJSONError(w http.ResponseWriter, r *http.Request, status int, msg string) {
@@ -178,6 +196,13 @@ func returnJSONError(w http.ResponseWriter, r *http.Request, status int, msg str
 		return
 	}
 
+	_, err = w.Write(jsonResp)
+
+	if err != nil {
+		log.Printf("returnJSONError: failed to write response: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(status)
-	w.Write(jsonResp)
 }

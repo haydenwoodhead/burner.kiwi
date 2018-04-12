@@ -19,8 +19,6 @@ import (
 	"gopkg.in/mailgun/mailgun-go.v1"
 )
 
-const sessionKey = "session"
-
 // Server bundles several data types together for dependency injection into http handlers
 type Server struct {
 	store      *sessions.CookieStore
@@ -31,6 +29,14 @@ type Server struct {
 	Router     *mux.Router
 	tg         *token.Generator
 }
+
+const sessionStoreKey = "session"
+
+type key int
+
+const (
+	sessionCTXKey key = iota
+)
 
 // NewServer returns a server with the given settings
 func NewServer(key, url, mgDomain, mgKey string, domains []string) (*Server, error) {
@@ -56,7 +62,7 @@ func NewServer(key, url, mgDomain, mgKey string, domains []string) (*Server, err
 	s.Router.Handle("/", alice.New(s.IsNew(http.HandlerFunc(s.NewInbox))).ThenFunc(s.Index)).Methods(http.MethodGet)
 
 	// JSON API
-	s.Router.Handle("/api/v1/inbox", alice.New(JSONContentType).ThenFunc(s.NewEmailJSON)).Methods(http.MethodGet)
+	s.Router.Handle("/api/v1/inbox", alice.New(JSONContentType).ThenFunc(s.NewInboxJSON)).Methods(http.MethodGet)
 	s.Router.Handle("/api/v1/inbox/{inboxID}", alice.New(JSONContentType, s.CheckPermissionJSON).ThenFunc(s.GetInboxDetailsJSON)).Methods(http.MethodGet)
 
 	// Mailgun Incoming
@@ -109,9 +115,8 @@ func (s *Server) createRoute(i *Inbox) error {
 	})
 
 	if err != nil {
-		err := fmt.Errorf("createRoute: failed to create mailgun route: %v", err)
 		i.FailedToCreate = true
-		return err
+		return fmt.Errorf("createRoute: failed to create mailgun route: %v", err)
 	}
 
 	i.MGRouteID = route.ID

@@ -64,6 +64,11 @@ func (s *Server) MailgunIncoming(w http.ResponseWriter, r *http.Request) {
 		log.Printf("MailgunIncoming: failed to save message to db: %v", err)
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(id))
+	_, err = w.Write([]byte(id))
+
+	if err != nil {
+		log.Printf("MailgunIncoming: failed to write response: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }
