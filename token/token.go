@@ -10,15 +10,19 @@ import (
 	"github.com/pkg/errors"
 )
 
+// ErrTokenExpired is returned when the given token's ttl in the past
 var ErrTokenExpired = errors.New("token: token has expired")
+
+// ErrInvalid is returned when the token has an invalid signature or is otherwise invalid
 var ErrInvalidToken = errors.New("token: invalid token")
 
+// Generator contains fields needed by NewToken and VerifyToken
 type Generator struct {
 	s      *goalone.Sword
 	maxAge time.Duration
 }
 
-// NewTokenGenerator takes a key and a max age for the token then returns a new token generator
+// NewGenerator takes a key and a max age for the token then returns a new token generator
 func NewGenerator(k string, m time.Duration) *Generator {
 	return &Generator{s: goalone.New([]byte(k)), maxAge: m}
 }

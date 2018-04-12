@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-const PARSE_RETURNED = "tk"
+const parseReturned = "tk"
 
 func TestTokenGenerator_Parse(t *testing.T) {
 	tests := []struct {
@@ -19,14 +19,14 @@ func TestTokenGenerator_Parse(t *testing.T) {
 		{
 			ID:          "dafd5606-8aa8-4724-a2c5-f66110aba536",
 			Time:        1 * time.Hour,
-			ToParse:     PARSE_RETURNED,
+			ToParse:     parseReturned,
 			ExpectedRes: "dafd5606-8aa8-4724-a2c5-f66110aba536",
 			ExpectedErr: nil,
 		},
 		{
 			ID:          "f0870b33-03de-4223-8418-f01f2fcacf04",
 			Time:        1 * time.Second,
-			ToParse:     PARSE_RETURNED,
+			ToParse:     parseReturned,
 			ExpectedRes: "",
 			ExpectedErr: ErrTokenExpired,
 		},
@@ -56,7 +56,7 @@ func TestTokenGenerator_Parse(t *testing.T) {
 		var p string
 		var err error
 
-		if strings.Compare(test.ToParse, PARSE_RETURNED) == 0 {
+		if strings.Compare(test.ToParse, parseReturned) == 0 {
 			p, err = tg.VerifyToken(tk)
 		} else {
 			p, err = tg.VerifyToken(test.ToParse)
