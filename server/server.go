@@ -57,15 +57,15 @@ func NewServer(key, url, mgDomain, mgKey string, domains []string) (*Server, err
 	s.dynDB = dynamodb.New(awsSession)
 
 	s.Router = mux.NewRouter()
-	s.Router.StrictSlash(false) // means router will match both "/path" and "/path/"
+	s.Router.StrictSlash(true) // means router will match both "/path" and "/path/"
 
 	// HTML
 	s.Router.Handle("/", alice.New(s.IsNew(http.HandlerFunc(s.NewInbox))).ThenFunc(s.Index)).Methods(http.MethodGet)
 
 	// JSON API
-	s.Router.Handle("/api/v1/inbox", alice.New(JSONContentType).ThenFunc(s.NewInboxJSON)).Methods(http.MethodGet)
-	s.Router.Handle("/api/v1/inbox/{inboxID}", alice.New(JSONContentType, s.CheckPermissionJSON).ThenFunc(s.GetInboxDetailsJSON)).Methods(http.MethodGet)
-	s.Router.Handle("/api/v1/inbox/{inboxID}/messages", alice.New(JSONContentType, s.CheckPermissionJSON).ThenFunc(s.GetAllMessagesJSON)).Methods(http.MethodGet)
+	s.Router.Handle("/api/v1/inbox/", alice.New(JSONContentType).ThenFunc(s.NewInboxJSON)).Methods(http.MethodGet)
+	s.Router.Handle("/api/v1/inbox/{inboxID}/", alice.New(JSONContentType, s.CheckPermissionJSON).ThenFunc(s.GetInboxDetailsJSON)).Methods(http.MethodGet)
+	s.Router.Handle("/api/v1/inbox/{inboxID}/messages/", alice.New(JSONContentType, s.CheckPermissionJSON).ThenFunc(s.GetAllMessagesJSON)).Methods(http.MethodGet)
 
 	// Mailgun Incoming
 	s.Router.HandleFunc("/mg/incoming/{inboxID}/", s.MailgunIncoming).Methods(http.MethodPost)
