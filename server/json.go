@@ -13,7 +13,7 @@ import (
 // Response is the root response for every api call
 type Response struct {
 	Success bool        `json:"success"`
-	Errors  Errors      `json:"errors"`
+	Errors  interface{} `json:"errors"`
 	Result  interface{} `json:"result"`
 	Meta    Meta        `json:"meta"`
 }
@@ -146,6 +146,42 @@ func (s *Server) GetInboxDetailsJSON(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Printf("GetInboxDetailsJSON: failed to write response: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+// GetAllMessagesJSON returns all messages in json
+func (s *Server) GetAllMessagesJSON(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["inboxID"]
+
+	m, err := s.getAllMessagesByInboxID(id)
+
+	if err != nil {
+		log.Printf("GetAllMessagesJSON: failed to get messages with id %v: %v", id, err)
+		returnJSON500(w, r, "Failed to get messages")
+		return
+	}
+
+	res := Response{
+		Success: true,
+		Result:  m,
+		Meta:    GetMeta(),
+	}
+
+	resJSON, err := json.Marshal(res)
+
+	if err != nil {
+		log.Printf("GetAllMessagesJSON: failed to marhsal json: %v", err)
+		returnJSON500(w, r, "Failed to marshal reponse")
+		return
+	}
+
+	_, err = w.Write(resJSON)
+
+	if err != nil {
+		log.Printf("GetAllMessagesJSON: failed to write response: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

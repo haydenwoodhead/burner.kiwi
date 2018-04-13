@@ -134,8 +134,14 @@ func TestServer_CheckPermissionJSON(t *testing.T) {
 				t.Errorf("TestServer_CheckPermissionJSON: %v - Failed to unmarshal json resp: %v", i, err)
 			}
 
-			if strings.Compare(resp.Errors.Msg, test.ExpectedMsg) != 0 {
-				t.Errorf("TestServer_CheckPermissionJSON: %v - Message different. Expected %v, got %v", i, test.ExpectedMsg, resp.Errors.Msg)
+			error, ok := resp.Errors.(Errors)
+
+			if !ok {
+				t.Errorf("TestServer_CheckPermissionJSON: %v - resp.Errors not of type Errors. Actually type: %v", i, reflect.TypeOf(resp.Errors))
+			}
+
+			if strings.Compare(error.Msg, test.ExpectedMsg) != 0 {
+				t.Errorf("TestServer_CheckPermissionJSON: %v - Message different. Expected %v, got %v", i, test.ExpectedMsg, error.Msg)
 			}
 		}
 	}

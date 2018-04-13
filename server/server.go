@@ -57,6 +57,7 @@ func NewServer(key, url, mgDomain, mgKey string, domains []string) (*Server, err
 	s.dynDB = dynamodb.New(awsSession)
 
 	s.Router = mux.NewRouter()
+	s.Router.StrictSlash(false) // means router will match both "/path" and "/path/"
 
 	// HTML
 	s.Router.Handle("/", alice.New(s.IsNew(http.HandlerFunc(s.NewInbox))).ThenFunc(s.Index)).Methods(http.MethodGet)
@@ -64,6 +65,7 @@ func NewServer(key, url, mgDomain, mgKey string, domains []string) (*Server, err
 	// JSON API
 	s.Router.Handle("/api/v1/inbox", alice.New(JSONContentType).ThenFunc(s.NewInboxJSON)).Methods(http.MethodGet)
 	s.Router.Handle("/api/v1/inbox/{inboxID}", alice.New(JSONContentType, s.CheckPermissionJSON).ThenFunc(s.GetInboxDetailsJSON)).Methods(http.MethodGet)
+	s.Router.Handle("/api/v1/inbox/{inboxID}/messages", alice.New(JSONContentType, s.CheckPermissionJSON).ThenFunc(s.GetAllMessagesJSON)).Methods(http.MethodGet)
 
 	// Mailgun Incoming
 	s.Router.HandleFunc("/mg/incoming/{inboxID}/", s.MailgunIncoming).Methods(http.MethodPost)
@@ -91,16 +93,16 @@ func NewInbox() Inbox {
 
 // Message contains details of an individual email message received by the server
 type Message struct {
-	InboxID    string `dynamodbav:"inbox_id"`
-	ID         string `dynamodbav:"message_id"`
-	ReceivedAt int64  `dynamodbav:"received_at"`
-	MGID       string `dynamodbav:"mg_id"`
-	Sender     string `dynamodbav:"sender"`
-	From       string `dynamodbav:"from"`
-	Subject    string `dynamodbav:"subject"`
-	BodyHTML   string `dynamodbav:"body_html"`
-	BodyPlain  string `dynamodbav:"body_plain"`
-	TTL        int64  `dynamodbav:"ttl"`
+	InboxID    string `dynamodbav:"inbox_id" json:"-"`
+	ID         string `dynamodbav:"message_id" json:"id"`
+	ReceivedAt int64  `dynamodbav:"received_at" json:"received_at"`
+	MGID       string `dynamodbav:"mg_id" json:"-"`
+	Sender     string `dynamodbav:"sender" json:"sender"`
+	From       string `dynamodbav:"from" json:"from"`
+	Subject    string `dynamodbav:"subject" json:"subject"`
+	BodyHTML   string `dynamodbav:"body_html" json:"body_html"`
+	BodyPlain  string `dynamodbav:"body_plain" json:"body_plain"`
+	TTL        int64  `dynamodbav:"ttl" json:"ttl"`
 }
 
 // createRoute registers the email route with mailgun
@@ -267,4 +269,33 @@ func (s *Server) saveNewMessage(m Message) error {
 	}
 
 	return nil
+}
+
+//getAllMessagesByInboxID gets all messages in the given inbox
+func (s *Server) getAllMessagesByInboxID(i string) ([]Message, error) {
+	var m []Message
+
+	qi := &dynamodb.QueryInput{
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":id": {
+				S: aws.String(i),
+			},
+		},
+		KeyConditionExpression: aws.String("inbox_id = :id"),
+		TableName:              aws.String("messages"),
+	}
+
+	res, err := s.dynDB.Query(qi)
+
+	if err != nil {
+		return []Message{}, fmt.Errorf("getAllMessagesByInboxID: failed to query dynamodb: %v", err)
+	}
+
+	err = dynamodbattribute.UnmarshalListOfMaps(res.Items, &m)
+
+	if err != nil {
+		return []Message{}, fmt.Errorf("getAllMessagesByInboxID: failed to unmarshal result: %v", err)
+	}
+
+	return m, nil
 }
