@@ -1,0 +1,91 @@
+/*by Hayden Woodhead*/
+
+html, body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.main {
+    flex: 1;
+}
+
+.heading {
+    margin-top: 2%;
+}
+
+.footer {
+    margin-bottom: 2%;
+    text-align: center;
+}
+
+hr {
+    margin: 2.0rem;
+}
+
+a {
+    color: red;
+}
+
+.no-link-color {
+    color: #606c76;
+}
+
+.logo {
+    max-width: 13%;
+    height: auto;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@media (max-width: 40.0rem) {
+    h1 {
+        font-size: 2.3em;
+    }
+}
+
+.email {
+    padding: 1%;
+    background-color: #f4f5f6;
+    border-radius: 5px;
+    margin-bottom: 2%;
+}
+
+.email > .column > p {
+    margin-bottom: 0;
+}
+
+.email > .column {
+    margin-bottom: 1%;
+}
+
+.email:hover {
+    background-color: #d1d1d1;
+    color: black;
+}
+
+.button-red {
+    border-color: red;
+    background-color: red;
+}
+
+.button-red.button-outline {
+    background-color: transparent;
+    color: red;
+}
+
+.button-red.button-outline:hover {
+    color: white;
+    outline-color: red;
+    border: red;
+    background-color: red;
+}
+
+.center {
+    text-align: center;
+}
+
+.middle{
+    align-items: center;
+    justify-content: center;
+}

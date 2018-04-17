@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"strconv"
@@ -19,10 +20,14 @@ import (
 	"gopkg.in/mailgun/mailgun-go.v1"
 )
 
+// Templates
+var indexTemplate = template.Must(template.New("index").ParseFiles("templates/base.html", "templates/index.html"))
+
 // Server bundles several data types together for dependency injection into http handlers
 type Server struct {
 	store      *sessions.CookieStore
 	websiteURL string
+	staticURL  string
 	eg         *generateemail.EmailGenerator
 	mg         mailgun.Mailgun
 	dynDB      *dynamodb.DynamoDB
@@ -39,13 +44,14 @@ const (
 )
 
 // NewServer returns a server with the given settings
-func NewServer(key, url, mgDomain, mgKey string, domains []string) (*Server, error) {
+func NewServer(key, url, static, mgDomain, mgKey string, domains []string) (*Server, error) {
 	s := Server{}
 
 	s.store = sessions.NewCookieStore([]byte(key))
 	s.store.MaxAge(86402) // set max cookie age to 24 hours + 2 seconds
 
 	s.websiteURL = url
+	s.staticURL = static
 
 	s.mg = mailgun.NewMailgun(mgDomain, mgKey, "")
 
@@ -69,6 +75,10 @@ func NewServer(key, url, mgDomain, mgKey string, domains []string) (*Server, err
 
 	// Mailgun Incoming
 	s.Router.HandleFunc("/mg/incoming/{inboxID}/", s.MailgunIncoming).Methods(http.MethodPost)
+
+	// Temp Static
+	fs := http.StripPrefix("/static/", http.FileServer(http.Dir("static/")))
+	s.Router.PathPrefix("/static/").Handler(fs)
 
 	return &s, nil
 }

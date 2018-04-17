@@ -31,6 +31,12 @@ func main() {
 		log.Fatalf("Env var WEBSITE_URL cannot be empty")
 	}
 
+	staticURL := os.Getenv("STATIC_URL")
+
+	if strings.Compare(websiteURL, "") == 0 {
+		log.Fatalf("Env var STATIC_URL cannot be empty")
+	}
+
 	mgKey := os.Getenv("MG_KEY")
 
 	if strings.Compare(mgKey, "") == 0 {
@@ -43,7 +49,7 @@ func main() {
 		log.Fatalf("Env var MG_KEY cannot be empty")
 	}
 
-	s, err := server.NewServer(key, websiteURL, mgDomain, mgKey, []string{"example.com"})
+	s, err := server.NewServer(key, websiteURL, staticURL, mgDomain, mgKey, []string{"rogerin.space"})
 
 	if err != nil {
 		log.Fatalf("Failed to setup new server: %v", err)

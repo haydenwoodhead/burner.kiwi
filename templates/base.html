@@ -1,0 +1,20 @@
+{{define "base"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimal-ui">
+    <title>burner.kiwi - No Bullshit Temporary Emails</title>
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
+    <link rel="stylesheet" href="{{.StaticURL}}/normalize.css">
+    <link rel="stylesheet" href="{{.StaticURL}}/milligram.min.css">
+    <link rel="stylesheet" href="{{.StaticURL}}/custom.css">
+</head>
+<body>
+
+{{ template "content" .}}
+
+
+</body>
+</html>
+{{end}}

@@ -11,6 +11,20 @@ import (
 	"github.com/gorilla/sessions"
 )
 
+// IndexOut contains data to be rendered by the index template
+type IndexOut struct {
+	StaticURL string
+	Messages  []Message
+	Inbox     Inbox
+	Expires   Expires
+}
+
+// Expires contains the number of hours and minutes the inbox is available for
+type Expires struct {
+	Hours   string
+	Minutes string
+}
+
 // Index checks to see if a session already exists for the user. If so it redirects them to their page otherwise
 // it generates a new email address for them and then redirects.
 func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
@@ -82,13 +96,24 @@ func (s *Server) NewInbox(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = w.Write([]byte("new email"))
+	io := IndexOut{
+		StaticURL: s.staticURL,
+		Messages:  nil,
+		Inbox:     i,
+		Expires: Expires{
+			Hours:   "23",
+			Minutes: "59",
+		},
+	}
+
+	err = indexTemplate.ExecuteTemplate(w, "base", io)
 
 	if err != nil {
 		log.Printf("NewInbox: failed to write response: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
 }
 
 func returnHTML500(w http.ResponseWriter, r *http.Request, msg string) {

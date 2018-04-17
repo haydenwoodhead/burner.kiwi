@@ -1,0 +1,64 @@
+{{define "content"}}
+<section class="container heading">
+
+    <div class="row">
+        <div class="column">
+            <h1>{{.Inbox.Address}}</h1>
+            <h4>Expires in {{.Expires.Hours}} hours and {{.Expires.Minutes}} minutes</h4>
+        </div>
+        <div class="column middle">
+            <a class="button button-red button-outline float-right" href="/{{.Inbox.ID}}/delete">Delete Inbox</a>
+        </div>
+    </div>
+    <hr>
+
+</section>
+
+
+<section class="container main">
+    <h3>Inbox:</h3>
+
+    {{range .Messages}}
+        <a href="/{{.Inbox.ID}}/{{.ID}}" class="no-link-color">
+            <div class="row email">
+                <div class="column">
+                    <p><strong>{{.From}}</strong></p>
+                </div>
+                <div class="column">
+                    <p>{{.Subject}}</p>
+                </div>
+                <div class="column">
+                    <em>{{.RecievedAt}}</em>
+                </div>
+            </div>
+        </a>
+    {{else}}
+        <p class="center">No messages...</p>
+    {{end}}
+
+</section>
+
+
+<section class="container footer">
+    <hr>
+
+
+    <img src="{{.StaticURL}}/logo-placeholder.png" class="logo" title="Meet Roger. The pyromaniac kiwi!">
+
+    <h4>burner.kiwi - No Bullshit Temporary Emails</h4>
+
+    <div class="row">
+        <div class="column">
+            <a href="#">Github</a>
+        </div>
+        <div class="column">
+            <a href="#">FAQ</a>
+        </div>
+        <div class="column">
+            <a href="#">API Docs</a>
+        </div>
+    </div>
+
+</section>
+
+{{end}}
