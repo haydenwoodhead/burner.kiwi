@@ -67,6 +67,7 @@ func NewServer(key, url, static, mgDomain, mgKey string, domains []string) (*Ser
 
 	// HTML
 	s.Router.Handle("/", alice.New(s.IsNew(http.HandlerFunc(s.NewInbox))).ThenFunc(s.Index)).Methods(http.MethodGet)
+	s.Router.Handle("/messages/{messageID}/", alice.New(s.CheckCookieExists(returnHTMLError)).ThenFunc(s.IndividualMessage)).Methods(http.MethodGet)
 
 	// JSON API
 	s.Router.Handle("/api/v1/inbox/", alice.New(JSONContentType).ThenFunc(s.NewInboxJSON)).Methods(http.MethodGet)

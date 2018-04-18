@@ -232,6 +232,8 @@ func returnJSONError(w http.ResponseWriter, r *http.Request, status int, msg str
 		return
 	}
 
+	w.WriteHeader(status)
+
 	_, err = w.Write(jsonResp)
 
 	if err != nil {
@@ -239,6 +241,4 @@ func returnJSONError(w http.ResponseWriter, r *http.Request, status int, msg str
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
-	w.WriteHeader(status)
 }

@@ -209,6 +209,11 @@ func (s *Server) NewInbox(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// IndividualMessage returns a singular message
+func (s *Server) IndividualMessage(w http.ResponseWriter, r *http.Request) {
+
+}
+
 func returnHTML500(w http.ResponseWriter, r *http.Request, msg string) {
 	w.WriteHeader(http.StatusInternalServerError)
 	_, err := w.Write([]byte(fmt.Sprintf("Internal Server Error: %v", msg)))
@@ -217,4 +222,11 @@ func returnHTML500(w http.ResponseWriter, r *http.Request, msg string) {
 		log.Printf("returnHTML500: failed to write response: %v", err)
 		return
 	}
+}
+
+// ErrorPrinter are funcs that are used to send specific error messages with codes to users
+type ErrorPrinter func(w http.ResponseWriter, r *http.Request, code int, msg string)
+
+func returnHTMLError(w http.ResponseWriter, r *http.Request, code int, msg string) {
+
 }

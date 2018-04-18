@@ -134,26 +134,145 @@ func TestServer_CheckPermissionJSON(t *testing.T) {
 				t.Errorf("TestServer_CheckPermissionJSON: %v - Failed to unmarshal json resp: %v", i, err)
 			}
 
-			error, ok := resp.Errors.(Errors)
+			errors, ok := resp.Errors.(map[string]interface{})
 
 			if !ok {
-				t.Errorf("TestServer_CheckPermissionJSON: %v - resp.Errors not of type Errors. Actually type: %v", i, reflect.TypeOf(resp.Errors))
+				t.Errorf("TestServer_CheckPermissionJSON: %v - failed to assert that resp.Errors is a map. It's actually: %v", i, reflect.TypeOf(resp.Errors))
 			}
 
-			if strings.Compare(error.Msg, test.ExpectedMsg) != 0 {
-				t.Errorf("TestServer_CheckPermissionJSON: %v - Message different. Expected %v, got %v", i, test.ExpectedMsg, error.Msg)
+			msg, mOK := errors["msg"].(string)
+
+			if !mOK {
+				t.Errorf("TestServer_CheckPermissionJSON: %v - failed to assert that Msg is a string. It's actually: %v", i, reflect.TypeOf(msg))
+			}
+
+			if strings.Compare(msg, test.ExpectedMsg) != 0 {
+				t.Errorf("TestServer_CheckPermissionJSON: %v - Message different. Expected %v, got %v", i, test.ExpectedMsg, msg)
 			}
 		}
 	}
+}
+
+func TestServer_CheckCookieExists(t *testing.T) {
+	s := Server{
+		store: sessions.NewCookieStore([]byte("testtest1234")),
+	}
+
+	cj, _ := cookiejar.New(nil)
+
+	client := &http.Client{
+		Jar: cj,
+	}
+
+	r := mux.NewRouter()
+	r.Handle("/fake", alice.New(s.CheckCookieExists(fakeErrorPrinter)).ThenFunc(fakeHandler))
+	r.HandleFunc("/setcookie", setCookieHandler)
+	r.Handle("/getcookie", alice.New(s.CheckCookieExists(fakeErrorPrinter)).Then(checkCookieHandler(t)))
+
+	server := httptest.NewServer(r)
+
+	// First request - we want this to send us to fakeErrorPrinter
+	resp1, err := client.Get(server.URL + "/fake")
+
+	if err != nil {
+		t.Fatalf("TestServer_CheckCookieExists: failed to perform first request: %v", err)
+	}
+
+	defer resp1.Body.Close()
+	body1, err := ioutil.ReadAll(resp1.Body)
+
+	if err != nil {
+		t.Fatalf("TestServer_CheckCookieExists: Failed to read body1: %v", err)
+	}
+
+	if strings.Compare(string(body1), checkCookieExistsErrorResponse) != 0 {
+		t.Fatalf("TestServer_CheckCookieExists: Body1 not expected. Expected %v, got %v", checkCookieExistsErrorResponse, string(body1))
+	}
+
+	// Second request to setup cookie/session
+	resp2, err := client.Get(server.URL + "/setcookie")
+
+	if err != nil {
+		t.Fatalf("TestServer_CheckCookieExists: failed to perform second request: %v", err)
+	}
+
+	defer resp2.Body.Close()
+	body2, err := ioutil.ReadAll(resp2.Body)
+
+	if err != nil {
+		t.Fatalf("TestServer_CheckCookieExists: Failed to read body2: %v", err)
+	}
+
+	if strings.Compare(string(body2), "success") != 0 {
+		t.Fatalf("TestServer_CheckCookieExists: Body2 not expected. Expected %v, got %v", "success", string(body2))
+	}
+
+	// Third request to check that session ctx is properly set
+	resp3, err := client.Get(server.URL + "/getcookie")
+
+	if err != nil {
+		t.Fatalf("TestServer_CheckCookieExists: failed to perform third request: %v", err)
+	}
+
+	defer resp3.Body.Close()
+	body3, err := ioutil.ReadAll(resp3.Body)
+
+	if err != nil {
+		t.Fatalf("TestServer_CheckCookieExists: Failed to read body3: %v", err)
+	}
+
+	if strings.Compare(string(body3), "success") != 0 {
+		t.Fatalf("TestServer_CheckCookieExists: Body3 not expected. Expected %v, got %v", "success", string(body3))
+	}
+}
+
+// Mock handler implementations
+
+var store = sessions.NewCookieStore([]byte("testtest1234"))
+
+func fakeErrorPrinter(w http.ResponseWriter, r *http.Request, code int, msg string) {
+	w.WriteHeader(code)
+	w.Write([]byte(msg))
 }
 
 func fakeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(FAKEHANDLERRESP))
 }
 
+func setCookieHandler(w http.ResponseWriter, r *http.Request) {
+	sess, _ := store.Get(r, sessionStoreKey)
+
+	sess.Values["id"] = "1234"
+
+	err := sess.Save(r, w)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("failed"))
+	}
+
+	w.Write([]byte("success"))
+}
+
+func checkCookieHandler(t *testing.T) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sess, ok := r.Context().Value(sessionCTXKey).(*sessions.Session)
+
+		if !ok {
+			t.Fatalf("%v - Sess not of type sessions.Session actual type: %v", t.Name(), reflect.TypeOf(sess))
+		}
+
+		if sess.IsNew {
+			t.Errorf("%v failed. Session not set properly", t.Name())
+		}
+
+		w.Write([]byte("success"))
+	})
+}
+
 func newHandler(t *testing.T) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		sess, ok := r.Context().Value("sess").(*sessions.Session)
+		sess, ok := r.Context().Value(sessionCTXKey).(*sessions.Session)
 
 		if !ok {
 			t.Fatalf("Sess not of type sessions.Session actual type: %v", reflect.TypeOf(sess))
