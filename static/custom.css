@@ -38,9 +38,17 @@ a {
     margin-right: auto;
 }
 
+.float-right-large {
+    float: right;
+}
+
 @media (max-width: 40.0rem) {
     h1 {
-        font-size: 2.3em;
+        font-size: 2.2em;
+    }
+
+    .float-right-large {
+        float: left;
     }
 }
 
@@ -83,9 +91,4 @@ a {
 
 .center {
     text-align: center;
-}
-
-.middle{
-    align-items: center;
-    justify-content: center;
 }

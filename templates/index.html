@@ -6,8 +6,8 @@
             <h1>{{.Inbox.Address}}</h1>
             <h4>Expires in {{.Expires.Hours}} hours and {{.Expires.Minutes}} minutes</h4>
         </div>
-        <div class="column middle">
-            <a class="button button-red button-outline float-right" href="/{{.Inbox.ID}}/delete">Delete Inbox</a>
+        <div class="column">
+            <a class="button button-red button-outline float-right-large" href="/{{.Inbox.ID}}/delete">Delete Inbox</a>
         </div>
     </div>
     <hr>
@@ -19,7 +19,7 @@
     <h3>Inbox:</h3>
 
     {{range $i, $m := .Messages}}
-        <a href="/{{$.Inbox.ID}}/messages/{{$m.ID}}" class="no-link-color">
+        <a href="/messages/{{$m.ID}}" class="no-link-color">
             <div class="row email">
                 <div class="column">
                     <p><strong>{{$m.From}}</strong></p>
@@ -28,7 +28,7 @@
                     <p>{{$m.Subject}}</p>
                 </div>
                 <div class="column">
-                    <em>{{index $.ReceivedAt $i}}</em>
+                    <em class="float-right-large">{{index $.ReceivedAt $i}}</em>
                 </div>
             </div>
         </a>
@@ -49,7 +49,7 @@
 
     <div class="row">
         <div class="column">
-            <a href="#">Github</a>
+            <a href="https://github.com/haydenwoodhead/burner.kiwi" target="_blank">Github</a>
         </div>
         <div class="column">
             <a href="#">FAQ</a>
