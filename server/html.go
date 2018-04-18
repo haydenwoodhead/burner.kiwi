@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"reflect"
+	"sort"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -13,25 +15,117 @@ import (
 
 // IndexOut contains data to be rendered by the index template
 type IndexOut struct {
-	StaticURL string
-	Messages  []Message
-	Inbox     Inbox
-	Expires   Expires
+	StaticURL  string
+	Messages   []Message
+	ReceivedAt []string
+	Inbox      Inbox
+	Expires    Expires
 }
 
-// Expires contains the number of hours and minutes the inbox is available for
+// Expires contains a number of hours and minutes for use in displaying time
 type Expires struct {
 	Hours   string
 	Minutes string
 }
 
-// Index checks to see if a session already exists for the user. If so it redirects them to their page otherwise
-// it generates a new email address for them and then redirects.
+// Index returns messages in inbox to user
 func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
-	_, err := w.Write([]byte("index"))
+	sess, ok := r.Context().Value(sessionCTXKey).(*sessions.Session)
+
+	if !ok {
+		log.Printf("Index: failed to get sess var. Sess not of type sessions.Session actual type: %v", reflect.TypeOf(sess))
+		returnHTML500(w, r, "Failed to get session")
+		return
+	}
+
+	id, ok := sess.Values["id"].(string)
+
+	if !ok {
+		log.Printf("Index: failed to get id from session. ID not of type string. ID actual type: %v", reflect.TypeOf(sess.Values["id"]))
+		returnHTML500(w, r, "Failed to get session id")
+		return
+	}
+
+	i, err := s.getInboxByID(id)
 
 	if err != nil {
-		log.Printf("IndexHTML: failed to write response: %v", err)
+		log.Printf("Index: failed to get inbox: %v", err)
+		returnHTML500(w, r, "Failed to get inbox")
+		return
+	}
+
+	// If we failed to register the mailgun route then delete the session cookie
+	if i.FailedToCreate {
+		sess.Options.MaxAge = -1
+		err = sess.Save(r, w)
+
+		if err != nil {
+			log.Printf("Index: failed to delete session cookie: %v", err)
+			returnHTML500(w, r, "Failed to create inbox. Please clear your cookies.")
+			return
+		}
+
+		returnHTML500(w, r, "Failed to create inbox. Please refresh.")
+		return
+	}
+
+	msgs, err := s.getAllMessagesByInboxID(id)
+
+	if err != nil {
+		log.Printf("Index: failed to get all messages from inbox. %v", err)
+		returnHTML500(w, r, "Failed to get messages")
+		return
+	}
+
+	sort.SliceStable(msgs, func(i, j int) bool {
+		return msgs[i].ReceivedAt > msgs[j].ReceivedAt
+	})
+
+	var received []string
+
+	// loop over all messages and calculate how long ago the message was received
+	// then append that string to received to be passed to the template
+	for _, m := range msgs {
+		diff := time.Since(time.Unix(m.ReceivedAt, 0))
+
+		// if we received the email less than 30 seconds ago then write that out
+		// because rounding the duration when less than 30seconds will give us 0 seconds
+		if diff.Seconds() < 30 {
+			received = append(received, fmt.Sprintf("Less than 30s ago"))
+			continue
+		}
+
+		diff = diff.Round(time.Minute) // Round to nearest minute
+
+		h, min := GetHoursAndMinutes(diff)
+
+		if strings.Compare(h, "0") != 0 {
+			received = append(received, fmt.Sprintf("%vh %vm ago", h, min))
+			continue
+		}
+
+		received = append(received, fmt.Sprintf("%vm ago", min))
+	}
+
+	expiration := time.Until(time.Unix(i.TTL, 0))
+	h, m := GetHoursAndMinutes(expiration)
+
+	io := IndexOut{
+		StaticURL:  s.staticURL,
+		Messages:   msgs,
+		Inbox:      i,
+		ReceivedAt: received,
+		Expires: Expires{
+			Hours:   h,
+			Minutes: m,
+		},
+	}
+
+	err = indexTemplate.ExecuteTemplate(w, "base", io)
+
+	if err != nil {
+		log.Printf("Index: failed to write response: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 }
@@ -113,7 +207,6 @@ func (s *Server) NewInbox(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
 }
 
 func returnHTML500(w http.ResponseWriter, r *http.Request, msg string) {

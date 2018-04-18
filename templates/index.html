@@ -18,17 +18,17 @@
 <section class="container main">
     <h3>Inbox:</h3>
 
-    {{range .Messages}}
-        <a href="/{{.Inbox.ID}}/{{.ID}}" class="no-link-color">
+    {{range $i, $m := .Messages}}
+        <a href="/{{$.Inbox.ID}}/messages/{{$m.ID}}" class="no-link-color">
             <div class="row email">
                 <div class="column">
-                    <p><strong>{{.From}}</strong></p>
+                    <p><strong>{{$m.From}}</strong></p>
                 </div>
                 <div class="column">
-                    <p>{{.Subject}}</p>
+                    <p>{{$m.Subject}}</p>
                 </div>
                 <div class="column">
-                    <em>{{.RecievedAt}}</em>
+                    <em>{{index $.ReceivedAt $i}}</em>
                 </div>
             </div>
         </a>
