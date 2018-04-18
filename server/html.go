@@ -81,31 +81,7 @@ func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
 		return msgs[i].ReceivedAt > msgs[j].ReceivedAt
 	})
 
-	var received []string
-
-	// loop over all messages and calculate how long ago the message was received
-	// then append that string to received to be passed to the template
-	for _, m := range msgs {
-		diff := time.Since(time.Unix(m.ReceivedAt, 0))
-
-		// if we received the email less than 30 seconds ago then write that out
-		// because rounding the duration when less than 30seconds will give us 0 seconds
-		if diff.Seconds() < 30 {
-			received = append(received, fmt.Sprintf("Less than 30s ago"))
-			continue
-		}
-
-		diff = diff.Round(time.Minute) // Round to nearest minute
-
-		h, min := GetHoursAndMinutes(diff)
-
-		if strings.Compare(h, "0") != 0 {
-			received = append(received, fmt.Sprintf("%vh %vm ago", h, min))
-			continue
-		}
-
-		received = append(received, fmt.Sprintf("%vm ago", min))
-	}
+	received := getReceivedDetails(msgs)
 
 	expiration := time.Until(time.Unix(i.TTL, 0))
 	h, m := GetHoursAndMinutes(expiration)
@@ -229,4 +205,36 @@ type ErrorPrinter func(w http.ResponseWriter, r *http.Request, code int, msg str
 
 func returnHTMLError(w http.ResponseWriter, r *http.Request, code int, msg string) {
 
+}
+
+//getReceivedDetails takes a slice of Message and returns a slice with a string corresponding to each msg
+// with the details on when that message was received
+func getReceivedDetails(msgs []Message) []string {
+	var received []string
+
+	// loop over all messages and calculate how long ago the message was received
+	// then append that string to received to be passed to the template
+	for _, m := range msgs {
+		diff := time.Since(time.Unix(m.ReceivedAt, 0))
+
+		// if we received the email less than 30 seconds ago then write that out
+		// because rounding the duration when less than 30seconds will give us 0 seconds
+		if diff.Seconds() < 30 {
+			received = append(received, fmt.Sprintf("Less than 30s ago"))
+			continue
+		}
+
+		diff = diff.Round(time.Minute) // Round to nearest minute
+
+		h, min := GetHoursAndMinutes(diff)
+
+		if strings.Compare(h, "0") != 0 {
+			received = append(received, fmt.Sprintf("%vh %vm ago", h, min))
+			continue
+		}
+
+		received = append(received, fmt.Sprintf("%vm ago", min))
+	}
+
+	return received
 }
