@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -95,6 +96,28 @@ func (s *Server) IsNew(n http.Handler) alice.Constructor {
 			}
 
 			h.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
+
+//CacheControl sets the Cache-Control header
+func CacheControl(sec int) alice.Constructor {
+	return func(h http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v", sec))
+
+			h.ServeHTTP(w, r)
+		})
+	}
+}
+
+//Refresh sets how often the page should refresh
+func Refresh(sec int) alice.Constructor {
+	return func(h http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Refresh", fmt.Sprintf("%v", sec))
+
+			h.ServeHTTP(w, r)
 		})
 	}
 }

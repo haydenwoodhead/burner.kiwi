@@ -71,8 +71,8 @@ func NewServer(key, url, static, mgDomain, mgKey string, domains []string) (*Ser
 	s.Router.StrictSlash(true) // means router will match both "/path" and "/path/"
 
 	// HTML
-	s.Router.Handle("/", alice.New(s.IsNew(http.HandlerFunc(s.NewInbox))).ThenFunc(s.Index)).Methods(http.MethodGet)
-	s.Router.Handle("/messages/{messageID}/", alice.New(s.CheckCookieExists(returnHTMLError)).ThenFunc(s.IndividualMessage)).Methods(http.MethodGet)
+	s.Router.Handle("/", alice.New(s.IsNew(http.HandlerFunc(s.NewInbox)), Refresh(20), CacheControl(14)).ThenFunc(s.Index)).Methods(http.MethodGet)
+	s.Router.Handle("/messages/{messageID}/", alice.New(s.CheckCookieExists(returnHTMLError), CacheControl(3600)).ThenFunc(s.IndividualMessage)).Methods(http.MethodGet)
 	s.Router.Handle("/delete", alice.New(s.CheckCookieExists(returnHTMLError)).ThenFunc(s.DeleteInbox)).Methods(http.MethodGet)
 	s.Router.Handle("/delete", alice.New(s.CheckCookieExists(returnHTMLError)).ThenFunc(s.ConfirmDeleteInbox)).Methods(http.MethodPost)
 
