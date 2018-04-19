@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/haydenwoodhead/burnerkiwi/token"
@@ -120,4 +121,28 @@ func Refresh(sec int) alice.Constructor {
 			h.ServeHTTP(w, r)
 		})
 	}
+}
+
+//SecurityHeaders sets a whole bunch of headers to secure the site
+func (s *Server) SecurityHeaders(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// check to see if https is disabled before forcing strict transport
+		if !s.disableHTTPS {
+			w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+		}
+
+		// If we are serving the static assets from the binary then use default src
+		if strings.Compare(s.staticURL, "/static") == 0 {
+			w.Header().Set("Content-Security-Policy", "script-src 'none'; font-src https://fonts.gstatic.com/; style-src 'self' http://fonts.googleapis.com/; default-src 'self'")
+		} else {
+			w.Header().Set("Content-Security-Policy", fmt.Sprintf("script-src 'none'; font-src https://fonts.gstatic.com/; style-src %v http://fonts.googleapis.com/; img-src %v; default-src 'self'", s.staticURL, s.staticURL))
+		}
+
+		w.Header().Set("X-Frame-Options", "DENY")
+		w.Header().Set("X-XSS-Protection", "1")
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set("Referrer-Policy", "no-referrer")
+
+		h.ServeHTTP(w, r)
+	})
 }

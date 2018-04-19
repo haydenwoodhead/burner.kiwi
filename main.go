@@ -49,7 +49,21 @@ func main() {
 		log.Fatalf("Env var MG_KEY cannot be empty")
 	}
 
-	s, err := server.NewServer(key, websiteURL, staticURL, mgDomain, mgKey, []string{"rogerin.space"})
+	var disableHTTPS bool
+
+	disableHTTPSENV := os.Getenv("DISABLE_HTTPS")
+
+	if strings.Compare(mgKey, "") == 0 {
+		disableHTTPS = false
+	} else {
+		disableHTTPS, err = strconv.ParseBool(disableHTTPSENV)
+
+		if err != nil {
+			log.Fatalf("Failed to parse disable https: %v", err)
+		}
+	}
+
+	s, err := server.NewServer(key, websiteURL, staticURL, mgDomain, mgKey, []string{"rogerin.space"}, disableHTTPS)
 
 	if err != nil {
 		log.Fatalf("Failed to setup new server: %v", err)

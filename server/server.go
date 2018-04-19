@@ -30,14 +30,15 @@ var deleteTemplate = template.Must(template.New("delete").ParseFiles("templates/
 
 // Server bundles several data types together for dependency injection into http handlers
 type Server struct {
-	store      *sessions.CookieStore
-	websiteURL string
-	staticURL  string
-	eg         *generateemail.EmailGenerator
-	mg         mailgun.Mailgun
-	dynDB      *dynamodb.DynamoDB
-	Router     *mux.Router
-	tg         *token.Generator
+	store        *sessions.CookieStore
+	websiteURL   string
+	staticURL    string
+	eg           *generateemail.EmailGenerator
+	mg           mailgun.Mailgun
+	dynDB        *dynamodb.DynamoDB
+	Router       *mux.Router
+	tg           *token.Generator
+	disableHTTPS bool
 }
 
 const sessionStoreKey = "session"
@@ -49,7 +50,7 @@ const (
 )
 
 // NewServer returns a server with the given settings
-func NewServer(key, url, static, mgDomain, mgKey string, domains []string) (*Server, error) {
+func NewServer(key, url, static, mgDomain, mgKey string, domains []string, disableHTTPS bool) (*Server, error) {
 	s := Server{}
 
 	s.store = sessions.NewCookieStore([]byte(key))
@@ -57,6 +58,8 @@ func NewServer(key, url, static, mgDomain, mgKey string, domains []string) (*Ser
 
 	s.websiteURL = url
 	s.staticURL = static
+
+	s.disableHTTPS = disableHTTPS
 
 	s.mg = mailgun.NewMailgun(mgDomain, mgKey, "")
 
@@ -71,10 +74,10 @@ func NewServer(key, url, static, mgDomain, mgKey string, domains []string) (*Ser
 	s.Router.StrictSlash(true) // means router will match both "/path" and "/path/"
 
 	// HTML
-	s.Router.Handle("/", alice.New(s.IsNew(http.HandlerFunc(s.NewInbox)), Refresh(20), CacheControl(14)).ThenFunc(s.Index)).Methods(http.MethodGet)
-	s.Router.Handle("/messages/{messageID}/", alice.New(s.CheckCookieExists(returnHTMLError), CacheControl(3600)).ThenFunc(s.IndividualMessage)).Methods(http.MethodGet)
-	s.Router.Handle("/delete", alice.New(s.CheckCookieExists(returnHTMLError)).ThenFunc(s.DeleteInbox)).Methods(http.MethodGet)
-	s.Router.Handle("/delete", alice.New(s.CheckCookieExists(returnHTMLError)).ThenFunc(s.ConfirmDeleteInbox)).Methods(http.MethodPost)
+	s.Router.Handle("/", alice.New(s.IsNew(http.HandlerFunc(s.NewInbox)), Refresh(20), CacheControl(14), s.SecurityHeaders).ThenFunc(s.Index)).Methods(http.MethodGet)
+	s.Router.Handle("/messages/{messageID}/", alice.New(s.CheckCookieExists(returnHTMLError), CacheControl(3600), s.SecurityHeaders).ThenFunc(s.IndividualMessage)).Methods(http.MethodGet)
+	s.Router.Handle("/delete", alice.New(s.CheckCookieExists(returnHTMLError), s.SecurityHeaders).ThenFunc(s.DeleteInbox)).Methods(http.MethodGet)
+	s.Router.Handle("/delete", alice.New(s.CheckCookieExists(returnHTMLError), s.SecurityHeaders).ThenFunc(s.ConfirmDeleteInbox)).Methods(http.MethodPost)
 
 	// JSON API
 	s.Router.Handle("/api/v1/inbox/", alice.New(JSONContentType).ThenFunc(s.NewInboxJSON)).Methods(http.MethodGet)
