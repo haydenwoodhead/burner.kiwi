@@ -15,9 +15,29 @@ import (
 	"github.com/gorilla/sessions"
 )
 
+//StaticDetails contains the names of the static files used in the project
+type StaticDetails struct {
+	URL       string
+	Milligram string
+	Logo      string
+	Normalize string
+	Custom    string
+}
+
+//getStaticDetails returns current static details
+func (s *Server) getStaticDetails() StaticDetails {
+	return StaticDetails{
+		URL:       s.staticURL,
+		Milligram: Milligram,
+		Logo:      Logo,
+		Normalize: Normalize,
+		Custom:    Custom,
+	}
+}
+
 // IndexOut contains data to be rendered by the index template
 type IndexOut struct {
-	StaticURL  string
+	Static     StaticDetails
 	Messages   []Message
 	ReceivedAt []string
 	Inbox      Inbox
@@ -32,7 +52,7 @@ type Expires struct {
 
 // MessageOut contains data to be rendered by message template
 type MessageOut struct {
-	StaticURL        string
+	Static           StaticDetails
 	ReceivedTimeDiff string
 	ReceivedAt       string
 	Message          Message
@@ -97,7 +117,7 @@ func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
 	h, m := GetHoursAndMinutes(expiration)
 
 	io := IndexOut{
-		StaticURL:  s.staticURL,
+		Static:     s.getStaticDetails(),
 		Messages:   msgs,
 		Inbox:      i,
 		ReceivedAt: received,
@@ -177,9 +197,9 @@ func (s *Server) NewInbox(w http.ResponseWriter, r *http.Request) {
 	}
 
 	io := IndexOut{
-		StaticURL: s.staticURL,
-		Messages:  nil,
-		Inbox:     i,
+		Static:   s.getStaticDetails(),
+		Messages: nil,
+		Inbox:    i,
 		Expires: Expires{
 			Hours:   "23",
 			Minutes: "59",
@@ -234,7 +254,7 @@ func (s *Server) IndividualMessage(w http.ResponseWriter, r *http.Request) {
 	ras := ra.Format("Mon Jan 2 15:04:05")
 
 	mo := MessageOut{
-		StaticURL:        s.staticURL,
+		Static:           s.getStaticDetails(),
 		ReceivedTimeDiff: rtd[0],
 		ReceivedAt:       ras,
 		Message:          m,
@@ -263,9 +283,9 @@ func (s *Server) IndividualMessage(w http.ResponseWriter, r *http.Request) {
 //DeleteInbox prompts for a confirmation to delete from the user
 func (s *Server) DeleteInbox(w http.ResponseWriter, r *http.Request) {
 	err := deleteTemplate.ExecuteTemplate(w, "base", struct {
-		StaticURL string
+		Static StaticDetails
 	}{
-		StaticURL: s.staticURL,
+		Static: s.getStaticDetails(),
 	})
 
 	if err != nil {

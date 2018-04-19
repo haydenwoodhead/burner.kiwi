@@ -28,6 +28,15 @@ var messageHTMLTemplate = template.Must(template.New("message-html").ParseFiles(
 var messagePlainTemplate = template.Must(template.New("message-plain").ParseFiles("templates/base.html", "templates/message-plain.html"))
 var deleteTemplate = template.Must(template.New("delete").ParseFiles("templates/base.html", "templates/delete.html"))
 
+// Static asset vars - these are overridden at build time to inject a file w/ version info
+const Milligram = "milligram.css"
+const Logo = "logo-placeholder.png"
+const Normalize = "normalize.css"
+const Custom = "custom.css"
+
+// Version number - this is also overridden at build time to inject the commit hash
+const Version = "dev"
+
 // Server bundles several data types together for dependency injection into http handlers
 type Server struct {
 	store        *sessions.CookieStore

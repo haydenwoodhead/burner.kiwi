@@ -33,7 +33,7 @@ type Meta struct {
 // GetMeta returns meta info for json api responses
 func GetMeta() Meta {
 	return Meta{
-		Version: "0.1 Alpha",
+		Version: Version,
 		By:      "Hayden Woodhead",
 	}
 }
