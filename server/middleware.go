@@ -150,7 +150,7 @@ func (s *Server) SecurityHeaders(h http.Handler) http.Handler {
 //SetVersionHeader adds a header with the current version
 func SetVersionHeader(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("X-Burner-Kiwi-Version", Version)
+		w.Header().Set("X-Burner-Kiwi-version", version)
 
 		h.ServeHTTP(w, r)
 	})

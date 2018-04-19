@@ -28,10 +28,10 @@ type staticDetails struct {
 func (s *Server) getStaticDetails() staticDetails {
 	return staticDetails{
 		URL:       s.staticURL,
-		Milligram: Milligram,
-		Logo:      Logo,
-		Normalize: Normalize,
-		Custom:    Custom,
+		Milligram: milligram,
+		Logo:      logo,
+		Normalize: normalize,
+		Custom:    custom,
 	}
 }
 
