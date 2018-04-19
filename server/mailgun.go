@@ -3,8 +3,10 @@ package server
 import (
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
@@ -55,8 +57,38 @@ func (s *Server) MailgunIncoming(w http.ResponseWriter, r *http.Request) {
 	m.Sender = r.FormValue("sender")
 	m.From = r.FormValue("from")
 	m.Subject = r.FormValue("subject")
-	m.BodyHTML = r.FormValue("body-html")
 	m.BodyPlain = r.FormValue("body-plain")
+
+	html := r.FormValue("body-html")
+
+	// Check to see if there is anything in html before we modify it. Otherwise we end up setting a blank html doc
+	// on all plaintext emails preventing them from being displayed.
+	if strings.Compare(html, "") != 0 {
+		sr := strings.NewReader(html)
+
+		doc, err := goquery.NewDocumentFromReader(sr)
+
+		if err != nil {
+			log.Printf("MailgunIncoming: failed to create goquery doc: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		// Find all a tags and add a target="_blank" attr to them so they open links in a new tab rather than in the iframe
+		doc.Find("a").Each(func(i int, s *goquery.Selection) {
+			s.SetAttr("target", "_blank")
+		})
+
+		modifiedHTML, err := doc.Html()
+
+		if err != nil {
+			log.Printf("MailgunIncoming: failed to get html doc: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		m.BodyHTML = modifiedHTML
+	}
 
 	err = s.saveNewMessage(m)
 
