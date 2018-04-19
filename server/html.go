@@ -15,8 +15,8 @@ import (
 	"github.com/gorilla/sessions"
 )
 
-//StaticDetails contains the names of the static files used in the project
-type StaticDetails struct {
+//staticDetails contains the names of the static files used in the project
+type staticDetails struct {
 	URL       string
 	Milligram string
 	Logo      string
@@ -25,8 +25,8 @@ type StaticDetails struct {
 }
 
 //getStaticDetails returns current static details
-func (s *Server) getStaticDetails() StaticDetails {
-	return StaticDetails{
+func (s *Server) getStaticDetails() staticDetails {
+	return staticDetails{
 		URL:       s.staticURL,
 		Milligram: Milligram,
 		Logo:      Logo,
@@ -35,24 +35,24 @@ func (s *Server) getStaticDetails() StaticDetails {
 	}
 }
 
-// IndexOut contains data to be rendered by the index template
-type IndexOut struct {
-	Static     StaticDetails
+// indexOut contains data to be rendered by the index template
+type indexOut struct {
+	Static     staticDetails
 	Messages   []Message
 	ReceivedAt []string
 	Inbox      Inbox
-	Expires    Expires
+	Expires    expires
 }
 
-// Expires contains a number of hours and minutes for use in displaying time
-type Expires struct {
+// expires contains a number of hours and minutes for use in displaying time
+type expires struct {
 	Hours   string
 	Minutes string
 }
 
-// MessageOut contains data to be rendered by message template
-type MessageOut struct {
-	Static           StaticDetails
+// messageOut contains data to be rendered by message template
+type messageOut struct {
+	Static           staticDetails
 	ReceivedTimeDiff string
 	ReceivedAt       string
 	Message          Message
@@ -116,12 +116,12 @@ func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
 	expiration := time.Until(time.Unix(i.TTL, 0))
 	h, m := GetHoursAndMinutes(expiration)
 
-	io := IndexOut{
+	io := indexOut{
 		Static:     s.getStaticDetails(),
 		Messages:   msgs,
 		Inbox:      i,
 		ReceivedAt: received,
-		Expires: Expires{
+		Expires: expires{
 			Hours:   h,
 			Minutes: m,
 		},
@@ -196,11 +196,11 @@ func (s *Server) NewInbox(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	io := IndexOut{
+	io := indexOut{
 		Static:   s.getStaticDetails(),
 		Messages: nil,
 		Inbox:    i,
-		Expires: Expires{
+		Expires: expires{
 			Hours:   "23",
 			Minutes: "59",
 		},
@@ -253,7 +253,7 @@ func (s *Server) IndividualMessage(w http.ResponseWriter, r *http.Request) {
 
 	ras := ra.Format("Mon Jan 2 15:04:05")
 
-	mo := MessageOut{
+	mo := messageOut{
 		Static:           s.getStaticDetails(),
 		ReceivedTimeDiff: rtd[0],
 		ReceivedAt:       ras,
@@ -283,7 +283,7 @@ func (s *Server) IndividualMessage(w http.ResponseWriter, r *http.Request) {
 //DeleteInbox prompts for a confirmation to delete from the user
 func (s *Server) DeleteInbox(w http.ResponseWriter, r *http.Request) {
 	err := deleteTemplate.ExecuteTemplate(w, "base", struct {
-		Static StaticDetails
+		Static staticDetails
 	}{
 		Static: s.getStaticDetails(),
 	})

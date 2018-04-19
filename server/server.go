@@ -50,6 +50,7 @@ type Server struct {
 	disableHTTPS bool
 }
 
+// Session Related constants
 const sessionStoreKey = "session"
 
 type key int
