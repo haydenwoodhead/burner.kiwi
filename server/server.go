@@ -83,11 +83,41 @@ func NewServer(key, url, static, mgDomain, mgKey string, domains []string, disab
 	s.Router = mux.NewRouter()
 	s.Router.StrictSlash(true) // means router will match both "/path" and "/path/"
 
-	// HTML
-	s.Router.Handle("/", alice.New(s.IsNew(http.HandlerFunc(s.NewInbox)), Refresh(20), CacheControl(14), s.SecurityHeaders).ThenFunc(s.Index)).Methods(http.MethodGet)
-	s.Router.Handle("/messages/{messageID}/", alice.New(s.CheckCookieExists(returnHTMLError), CacheControl(3600), s.SecurityHeaders).ThenFunc(s.IndividualMessage)).Methods(http.MethodGet)
-	s.Router.Handle("/delete", alice.New(s.CheckCookieExists(returnHTMLError), s.SecurityHeaders).ThenFunc(s.DeleteInbox)).Methods(http.MethodGet)
-	s.Router.Handle("/delete", alice.New(s.CheckCookieExists(returnHTMLError), s.SecurityHeaders).ThenFunc(s.ConfirmDeleteInbox)).Methods(http.MethodPost)
+	// HTML - trying to make middleware flow/handler declaration a little more readable
+	s.Router.Handle("/",
+		alice.New( //Middleware below
+			s.IsNew(http.HandlerFunc(s.NewInbox)),
+			Refresh(20),
+			CacheControl(14),
+			SetVersionHeader,
+			s.SecurityHeaders,
+		).ThenFunc(s.Index),
+	).Methods(http.MethodGet)
+
+	s.Router.Handle("/messages/{messageID}/",
+		alice.New(
+			s.CheckCookieExists(returnHTMLError),
+			CacheControl(3600),
+			SetVersionHeader,
+			s.SecurityHeaders,
+		).ThenFunc(s.IndividualMessage),
+	).Methods(http.MethodGet)
+
+	s.Router.Handle("/delete",
+		alice.New(
+			s.CheckCookieExists(returnHTMLError),
+			SetVersionHeader,
+			s.SecurityHeaders,
+		).ThenFunc(s.DeleteInbox),
+	).Methods(http.MethodGet)
+
+	s.Router.Handle("/delete",
+		alice.New(
+			s.CheckCookieExists(returnHTMLError),
+			SetVersionHeader,
+			s.SecurityHeaders,
+		).ThenFunc(s.ConfirmDeleteInbox),
+	).Methods(http.MethodPost)
 
 	// JSON API
 	s.Router.Handle("/api/v1/inbox/", alice.New(JSONContentType).ThenFunc(s.NewInboxJSON)).Methods(http.MethodGet)
