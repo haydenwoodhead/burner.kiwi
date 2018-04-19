@@ -92,3 +92,16 @@ a {
 .center {
     text-align: center;
 }
+
+.no-format {
+    background: white;
+    border: none;
+    padding-left: 2rem;
+}
+
+iframe {
+    border: none;
+    width: 100%;
+    height: 50vh;
+    margin-bottom: 3%;
+}

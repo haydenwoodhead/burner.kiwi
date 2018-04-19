@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 )
 
@@ -26,6 +27,14 @@ type IndexOut struct {
 type Expires struct {
 	Hours   string
 	Minutes string
+}
+
+// MessageOut contains data to be rendered by message template
+type MessageOut struct {
+	StaticURL        string
+	ReceivedTimeDiff string
+	ReceivedAt       string
+	Message          Message
 }
 
 // Index returns messages in inbox to user
@@ -185,9 +194,66 @@ func (s *Server) NewInbox(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// IndividualMessage returns a singular message
+// IndividualMessage returns a singular message to the user
 func (s *Server) IndividualMessage(w http.ResponseWriter, r *http.Request) {
+	sess, ok := r.Context().Value(sessionCTXKey).(*sessions.Session)
 
+	if !ok {
+		log.Printf("IndividualMessage: failed to get sess var. Sess not of type *sessions.Session actual type: %v", reflect.TypeOf(sess))
+		returnHTML500(w, r, "Failed to get email")
+		return
+	}
+
+	vars := mux.Vars(r)
+	mID := vars["messageID"]
+
+	iID, ok := sess.Values["id"].(string)
+
+	if !ok {
+		log.Printf("IndividualMessage: failed to get inbox id. Id not of type string. Actual type: %v", reflect.TypeOf(iID))
+		returnHTML500(w, r, "Failed to get message")
+		return
+	}
+
+	m, err := s.getMessageByID(iID, mID)
+
+	if err != nil {
+		log.Printf("IndividualMessage: failed to get message. Error: %v", err)
+		returnHTML500(w, r, "Failed to get message")
+		return
+	}
+
+	rtd := getReceivedDetails([]Message{m})
+
+	ra := time.Unix(m.ReceivedAt, 0)
+
+	ras := ra.Format("Mon Jan 2 15:04:05")
+
+	mo := MessageOut{
+		StaticURL:        s.staticURL,
+		ReceivedTimeDiff: rtd[0],
+		ReceivedAt:       ras,
+		Message:          m,
+	}
+
+	// If our html doesn't contain anything then render the plaintext version
+	if strings.Compare(m.BodyHTML, "") == 0 {
+		err = messagePlainTemplate.ExecuteTemplate(w, "base", mo)
+
+		if err != nil {
+			log.Printf("IndividualMessage: failed to execute template: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+
+		return
+	}
+
+	err = messageHTMLTemplate.ExecuteTemplate(w, "base", mo)
+
+	if err != nil {
+		log.Printf("IndividualMessage: failed to execute template: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
 
 func returnHTML500(w http.ResponseWriter, r *http.Request, msg string) {

@@ -22,6 +22,8 @@ import (
 
 // Templates
 var indexTemplate = template.Must(template.New("index").ParseFiles("templates/base.html", "templates/index.html"))
+var messageHTMLTemplate = template.Must(template.New("message-html").ParseFiles("templates/base.html", "templates/message-html.html"))
+var messagePlainTemplate = template.Must(template.New("message-plain").ParseFiles("templates/base.html", "templates/message-plain.html"))
 
 // Server bundles several data types together for dependency injection into http handlers
 type Server struct {
@@ -309,4 +311,33 @@ func (s *Server) getAllMessagesByInboxID(i string) ([]Message, error) {
 	}
 
 	return m, nil
+}
+
+//getSingularMessage gets a single message by the given inbox and message id
+func (s *Server) getMessageByID(i, m string) (Message, error) {
+	var msg Message
+
+	o, err := s.dynDB.GetItem(&dynamodb.GetItemInput{
+		Key: map[string]*dynamodb.AttributeValue{
+			"inbox_id": {
+				S: aws.String(i),
+			},
+			"message_id": {
+				S: aws.String(m),
+			},
+		},
+		TableName: aws.String("messages"),
+	})
+
+	if err != nil {
+		return Message{}, fmt.Errorf("getMessageByID: failed to get message: %v", err)
+	}
+
+	err = dynamodbattribute.UnmarshalMap(o.Item, &msg)
+
+	if err != nil {
+		return Message{}, fmt.Errorf("getMessageByID: failed to unmarshal message: %v", err)
+	}
+
+	return msg, nil
 }

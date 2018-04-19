@@ -1,0 +1,27 @@
+{{define "content"}}
+<section class="container heading">
+
+    <a href="/"><--- Return to inbox</a>
+    <hr>
+
+</section>
+
+
+<section class="container">
+
+    <div class="row">
+        <div class="column">
+            <h3>{{.Message.Subject}}</h3>
+            <h4>{{.Message.From}}</h4>
+            <p>Received {{.ReceivedTimeDiff}} at {{.ReceivedAt}} UTC</p>
+        </div>
+    </div>
+
+    <h4>Message: </h4>
+
+    <div class="row">
+        <pre class="no-format">{{.Message.BodyPlain}}</pre>
+    </div>
+
+</section>
+{{end}}
