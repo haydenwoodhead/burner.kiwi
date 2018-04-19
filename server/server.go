@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -17,6 +18,7 @@ import (
 	"github.com/haydenwoodhead/burnerkiwi/generateemail"
 	"github.com/haydenwoodhead/burnerkiwi/token"
 	"github.com/justinas/alice"
+	"github.com/pkg/errors"
 	"gopkg.in/mailgun/mailgun-go.v1"
 )
 
@@ -313,6 +315,8 @@ func (s *Server) getAllMessagesByInboxID(i string) ([]Message, error) {
 	return m, nil
 }
 
+var errMessageDoesntExist = errors.New("Error: message doesn't exist")
+
 //getSingularMessage gets a single message by the given inbox and message id
 func (s *Server) getMessageByID(i, m string) (Message, error) {
 	var msg Message
@@ -337,6 +341,10 @@ func (s *Server) getMessageByID(i, m string) (Message, error) {
 
 	if err != nil {
 		return Message{}, fmt.Errorf("getMessageByID: failed to unmarshal message: %v", err)
+	}
+
+	if strings.Compare(msg.ID, "") == 0 {
+		return Message{}, errMessageDoesntExist
 	}
 
 	return msg, nil

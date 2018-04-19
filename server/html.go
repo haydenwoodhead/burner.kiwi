@@ -217,7 +217,10 @@ func (s *Server) IndividualMessage(w http.ResponseWriter, r *http.Request) {
 
 	m, err := s.getMessageByID(iID, mID)
 
-	if err != nil {
+	if err == errMessageDoesntExist {
+		returnHTMLError(w, r, http.StatusNotFound, "Message not found on server")
+		return
+	} else if err != nil {
 		log.Printf("IndividualMessage: failed to get message. Error: %v", err)
 		returnHTML500(w, r, "Failed to get message")
 		return
@@ -256,6 +259,7 @@ func (s *Server) IndividualMessage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// TODO: refactor to remove duplicate functions returnHTML500 and returnHTML error and do the same for json
 func returnHTML500(w http.ResponseWriter, r *http.Request, msg string) {
 	w.WriteHeader(http.StatusInternalServerError)
 	_, err := w.Write([]byte(fmt.Sprintf("Internal Server Error: %v", msg)))
@@ -270,7 +274,13 @@ func returnHTML500(w http.ResponseWriter, r *http.Request, msg string) {
 type ErrorPrinter func(w http.ResponseWriter, r *http.Request, code int, msg string)
 
 func returnHTMLError(w http.ResponseWriter, r *http.Request, code int, msg string) {
+	w.WriteHeader(code)
+	_, err := w.Write([]byte(msg))
 
+	if err != nil {
+		log.Printf("returnHTML500: failed to write response: %v", err)
+		return
+	}
 }
 
 //getReceivedDetails takes a slice of Message and returns a slice with a string corresponding to each msg
