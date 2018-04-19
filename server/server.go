@@ -26,6 +26,7 @@ import (
 var indexTemplate = template.Must(template.New("index").ParseFiles("templates/base.html", "templates/index.html"))
 var messageHTMLTemplate = template.Must(template.New("message-html").ParseFiles("templates/base.html", "templates/message-html.html"))
 var messagePlainTemplate = template.Must(template.New("message-plain").ParseFiles("templates/base.html", "templates/message-plain.html"))
+var deleteTemplate = template.Must(template.New("delete").ParseFiles("templates/base.html", "templates/delete.html"))
 
 // Server bundles several data types together for dependency injection into http handlers
 type Server struct {
@@ -72,6 +73,8 @@ func NewServer(key, url, static, mgDomain, mgKey string, domains []string) (*Ser
 	// HTML
 	s.Router.Handle("/", alice.New(s.IsNew(http.HandlerFunc(s.NewInbox))).ThenFunc(s.Index)).Methods(http.MethodGet)
 	s.Router.Handle("/messages/{messageID}/", alice.New(s.CheckCookieExists(returnHTMLError)).ThenFunc(s.IndividualMessage)).Methods(http.MethodGet)
+	s.Router.Handle("/delete", alice.New(s.CheckCookieExists(returnHTMLError)).ThenFunc(s.DeleteInbox)).Methods(http.MethodGet)
+	s.Router.Handle("/delete", alice.New(s.CheckCookieExists(returnHTMLError)).ThenFunc(s.ConfirmDeleteInbox)).Methods(http.MethodPost)
 
 	// JSON API
 	s.Router.Handle("/api/v1/inbox/", alice.New(JSONContentType).ThenFunc(s.NewInboxJSON)).Methods(http.MethodGet)

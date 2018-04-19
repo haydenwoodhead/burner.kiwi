@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"reflect"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -257,6 +258,62 @@ func (s *Server) IndividualMessage(w http.ResponseWriter, r *http.Request) {
 		log.Printf("IndividualMessage: failed to execute template: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+}
+
+//DeleteInbox prompts for a confirmation to delete from the user
+func (s *Server) DeleteInbox(w http.ResponseWriter, r *http.Request) {
+	err := deleteTemplate.ExecuteTemplate(w, "base", struct {
+		StaticURL string
+	}{
+		StaticURL: s.staticURL,
+	})
+
+	if err != nil {
+		log.Printf("DeleteInbox: failed to execute template: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+//ConfirmDeleteInbox removes the user session cookie
+func (s *Server) ConfirmDeleteInbox(w http.ResponseWriter, r *http.Request) {
+	sess, ok := r.Context().Value(sessionCTXKey).(*sessions.Session)
+
+	if !ok {
+		log.Printf("ConfirmDeleteInbox: failed to get sess var. Sess not of type *sessions.Session actual type: %v", reflect.TypeOf(sess))
+		returnHTML500(w, r, "Failed to get user session")
+		return
+	}
+
+	err := r.ParseForm()
+
+	if err != nil {
+		log.Printf("ConfirmDeleteInbox: failed to parse form %v", err)
+		returnHTML500(w, r, "Failed to parse form")
+		return
+	}
+
+	delete, err := strconv.ParseBool(r.FormValue("really-delete"))
+
+	if err != nil {
+		log.Printf("ConfirmDeleteInbox: failed to parse really-delete %v", err)
+		returnHTML500(w, r, "Failed to parse form")
+		return
+	}
+
+	if !delete {
+		http.Redirect(w, r, "/", http.StatusFound)
+	}
+
+	sess.Options.MaxAge = -1
+	err = sess.Save(r, w)
+
+	if err != nil {
+		log.Printf("ConfirmDeleteInbox: failed to delete user session %v", err)
+		returnHTML500(w, r, "Failed to delete user session")
+		return
+	}
+
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 // TODO: refactor to remove duplicate functions returnHTML500 and returnHTML error and do the same for json

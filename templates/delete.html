@@ -1,0 +1,18 @@
+{{define "content"}}
+<section class="container heading">
+
+    <a href="/"><--- Return to inbox</a>
+    <hr>
+
+</section>
+
+<section class="container">
+    <h2>Really delete?</h2>
+    <p>If you delete this inbox you will no longer be able to access any emails you may have received.</p>
+
+    <form action="/delete" method="post">
+        <input type="hidden" value="true" name="really-delete">
+        <button type="submit" class="button button-red">Confirm Delete</button>
+    </form>
+</section>
+{{end}}
