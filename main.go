@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"net/http"
 	"os"
@@ -12,16 +13,46 @@ import (
 	"github.com/haydenwoodhead/burnerkiwi/server"
 )
 
+var runDelete bool
+
+func init() {
+	flag.BoolVar(&runDelete, "delete-old-routes", false, "when true will not run the server only delete old routes")
+	flag.Parse()
+}
+
 func main() {
 	useLambda := mustParseBoolVar("LAMBDA")
-	key := mustParseStringVar("KEY")
-	websiteURL := mustParseStringVar("WEBSITE_URL")
-	staticURL := mustParseStringVar("STATIC_URL")
-	mgKey := mustParseStringVar("MG_KEY")
-	mgDomain := mustParseStringVar("MG_DOMAIN")
-	developing := mustParseBoolVar("DEVELOPING")
 
-	s, err := server.NewServer(key, websiteURL, staticURL, mgDomain, mgKey, []string{"rogerin.space"}, developing)
+	nsi := server.NewServerInput{
+		Key:        mustParseStringVar("KEY"),
+		URL:        mustParseStringVar("WEBSITE_URL"),
+		StaticURL:  mustParseStringVar("STATIC_URL"),
+		MGKey:      mustParseStringVar("MG_KEY"),
+		MGDomain:   mustParseStringVar("MG_DOMAIN"),
+		Developing: mustParseBoolVar("DEVELOPING"),
+		DeleteKey:  mustParseStringVar("DELETE_KEY"),
+		Domains: []string{
+			"rogerin.space",
+		},
+	}
+
+	s, err := server.NewServer(nsi)
+
+	if runDelete {
+		routes, err := s.DeleteOldRoutes()
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for _, route := range routes {
+			log.Printf("Failed to process route id: %v; email: %v; desc: %v", route.ID, route.Expression, route.Description)
+		}
+
+		log.Printf("Delete finished.")
+
+		return
+	}
 
 	if err != nil {
 		log.Fatalf("Failed to setup new server: %v", err)

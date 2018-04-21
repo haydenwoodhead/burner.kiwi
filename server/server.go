@@ -49,25 +49,39 @@ type Server struct {
 	Router     *mux.Router
 	tg         *token.Generator
 	developing bool
+	deleteKey  string
+}
+
+type NewServerInput struct {
+	Key        string
+	URL        string
+	StaticURL  string
+	MGDomain   string
+	MGKey      string
+	DeleteKey  string
+	Domains    []string
+	Developing bool
 }
 
 // NewServer returns a server with the given settings
-func NewServer(key, url, static, mgDomain, mgKey string, domains []string, developing bool) (*Server, error) {
+func NewServer(n NewServerInput) (*Server, error) {
 	s := Server{}
 
-	s.store = sessions.NewCookieStore([]byte(key))
+	s.store = sessions.NewCookieStore([]byte(n.Key))
 	s.store.MaxAge(86402) // set max cookie age to 24 hours + 2 seconds
 
-	s.websiteURL = url
-	s.staticURL = static
+	s.websiteURL = n.URL
+	s.staticURL = n.StaticURL
 
-	s.developing = developing
+	s.developing = n.Developing
 
-	s.mg = mailgun.NewMailgun(mgDomain, mgKey, "")
+	s.mg = mailgun.NewMailgun(n.MGDomain, n.MGKey, "")
 
-	s.eg = generateemail.NewEmailGenerator(domains, 8)
+	s.eg = generateemail.NewEmailGenerator(n.Domains, 8)
 
-	s.tg = token.NewGenerator(key, 24*time.Hour)
+	s.tg = token.NewGenerator(n.Key, 24*time.Hour)
+
+	s.deleteKey = n.DeleteKey
 
 	awsSession := session.Must(session.NewSession())
 	s.dynDB = dynamodb.New(awsSession)
@@ -119,10 +133,13 @@ func NewServer(key, url, static, mgDomain, mgKey string, domains []string, devel
 	// Mailgun Incoming
 	s.Router.HandleFunc("/mg/incoming/{inboxID}/", s.MailgunIncoming).Methods(http.MethodPost)
 
+	// Delete Old Routes Endpoint
+	s.Router.HandleFunc("/bk/deleteoldroutes/", s.DeleteOldRoutesEndpoint)
+
 	// Static File Serving w/ Packr
 	fs := http.StripPrefix("/static/", http.FileServer(staticFS))
 
-	if developing {
+	if n.Developing {
 		s.Router.PathPrefix("/static/").Handler(alice.New(CacheControl(0)).Then(fs))
 	} else {
 		s.Router.PathPrefix("/static/").Handler(alice.New(CacheControl(15778463)).Then(fs))
@@ -177,6 +194,40 @@ func (s *Server) createRouteAndUpdate(i Inbox) {
 	if err != nil {
 		log.Printf("Index JSON: failed to update that route is created: %v", err)
 	}
+}
+
+//deleteOldRoutes deletes routes older than 24 hours
+func (s *Server) DeleteOldRoutes() ([]mailgun.Route, error) {
+	_, rs, err := s.mg.GetRoutes(1000, 0)
+
+	if err != nil {
+		return []mailgun.Route{}, fmt.Errorf("deleteOldRoutes: failed to get routes: %v", err)
+	}
+
+	var failed []mailgun.Route
+
+	for _, r := range rs {
+		tInt, err := strconv.ParseInt(r.Description, 10, 64)
+
+		if err != nil {
+			failed = append(failed, r)
+			continue
+		}
+
+		t := time.Unix(tInt, 0)
+
+		// if our routes was created before 24 hours ago then it is expired and should be deleted
+		if t.Before(time.Now().Add(-24 * time.Hour)) {
+			err := s.mg.DeleteRoute(r.ID)
+
+			if err != nil {
+				failed = append(failed, r)
+				continue
+			}
+		}
+	}
+
+	return failed, nil
 }
 
 //MustParseTemplates parses string templates into one template
