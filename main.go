@@ -13,55 +13,13 @@ import (
 )
 
 func main() {
-	useLambda, err := strconv.ParseBool(os.Getenv("LAMBDA"))
-
-	if err != nil {
-		log.Fatalf("Failed to parse LAMBDA env var. Err = %v", err)
-	}
-
-	key := os.Getenv("KEY")
-
-	if strings.Compare(key, "") == 0 {
-		log.Fatalf("Env var key cannot be empty")
-	}
-
-	websiteURL := os.Getenv("WEBSITE_URL")
-
-	if strings.Compare(websiteURL, "") == 0 {
-		log.Fatalf("Env var WEBSITE_URL cannot be empty")
-	}
-
-	staticURL := os.Getenv("STATIC_URL")
-
-	if strings.Compare(websiteURL, "") == 0 {
-		log.Fatalf("Env var STATIC_URL cannot be empty")
-	}
-
-	mgKey := os.Getenv("MG_KEY")
-
-	if strings.Compare(mgKey, "") == 0 {
-		log.Fatalf("Env var MG_KEY cannot be empty")
-	}
-
-	mgDomain := os.Getenv("MG_DOMAIN")
-
-	if strings.Compare(mgKey, "") == 0 {
-		log.Fatalf("Env var MG_KEY cannot be empty")
-	}
-
-	var developing bool
-
-	debuggingENV := os.Getenv("DEBUGGING")
-
-	if strings.Compare(mgKey, "") == 0 {
-		developing = false
-	} else {
-		developing, err = strconv.ParseBool(debuggingENV)
-
-		if err != nil {
-			log.Fatalf("Failed to parse debugging: %v", err)
-		}
-	}
+	useLambda := mustParseBoolVar("LAMBDA")
+	key := mustParseStringVar("KEY")
+	websiteURL := mustParseStringVar("WEBSITE_URL")
+	staticURL := mustParseStringVar("STATIC_URL")
+	mgKey := mustParseStringVar("MG_KEY")
+	mgDomain := mustParseStringVar("MG_DOMAIN")
+	developing := mustParseBoolVar("DEVELOPING")
 
 	s, err := server.NewServer(key, websiteURL, staticURL, mgDomain, mgKey, []string{"rogerin.space"}, developing)
 
@@ -74,4 +32,26 @@ func main() {
 	} else {
 		log.Fatal(http.ListenAndServe(":8080", context.ClearHandler(s.Router)))
 	}
+}
+
+func mustParseStringVar(key string) (v string) {
+	v = os.Getenv(key)
+
+	if strings.Compare(v, "") == 0 {
+		log.Fatalf("Env var %v cannot be empty", key)
+	}
+
+	return
+}
+
+func mustParseBoolVar(key string) (v bool) {
+	val := mustParseStringVar(key)
+
+	v, err := strconv.ParseBool(val)
+
+	if err != nil {
+		log.Fatalf("Failed to parse %v. It must be either true or false", key)
+	}
+
+	return
 }
