@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"reflect"
@@ -14,6 +15,18 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 )
+
+// Templates
+var indexTemplate = template.Must(template.New("index").ParseFiles("templates/base.html", "templates/index.html"))
+var messageHTMLTemplate = template.Must(template.New("message-html").ParseFiles("templates/base.html", "templates/message-html.html"))
+var messagePlainTemplate = template.Must(template.New("message-plain").ParseFiles("templates/base.html", "templates/message-plain.html"))
+var deleteTemplate = template.Must(template.New("delete").ParseFiles("templates/base.html", "templates/delete.html"))
+
+// Static asset vars - these are overridden at build time to inject a file w/ version info
+const milligram = "milligram.css"
+const logo = "logo-placeholder.png"
+const normalize = "normalize.css"
+const custom = "custom.css"
 
 //staticDetails contains the names of the static files used in the project
 type staticDetails struct {
@@ -358,36 +371,4 @@ func returnHTMLError(w http.ResponseWriter, r *http.Request, code int, msg strin
 		log.Printf("returnHTML500: failed to write response: %v", err)
 		return
 	}
-}
-
-//getReceivedDetails takes a slice of Message and returns a slice with a string corresponding to each msg
-// with the details on when that message was received
-func getReceivedDetails(msgs []Message) []string {
-	var received []string
-
-	// loop over all messages and calculate how long ago the message was received
-	// then append that string to received to be passed to the template
-	for _, m := range msgs {
-		diff := time.Since(time.Unix(m.ReceivedAt, 0))
-
-		// if we received the email less than 30 seconds ago then write that out
-		// because rounding the duration when less than 30seconds will give us 0 seconds
-		if diff.Seconds() < 30 {
-			received = append(received, fmt.Sprintf("Less than 30s ago"))
-			continue
-		}
-
-		diff = diff.Round(time.Minute) // Round to nearest minute
-
-		h, min := GetHoursAndMinutes(diff)
-
-		if strings.Compare(h, "0") != 0 {
-			received = append(received, fmt.Sprintf("%vh %vm ago", h, min))
-			continue
-		}
-
-		received = append(received, fmt.Sprintf("%vm ago", min))
-	}
-
-	return received
 }
