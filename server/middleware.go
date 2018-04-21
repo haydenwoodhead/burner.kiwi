@@ -126,8 +126,8 @@ func Refresh(sec int) alice.Constructor {
 //SecurityHeaders sets a whole bunch of headers to secure the site
 func (s *Server) SecurityHeaders(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// check to see if https is disabled before forcing strict transport
-		if !s.disableHTTPS {
+		// check to see if we are developing before forcing strict transport
+		if !s.developing {
 			w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
 		}
 

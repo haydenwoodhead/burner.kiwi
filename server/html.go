@@ -2,7 +2,6 @@ package server
 
 import (
 	"fmt"
-	"html/template"
 	"log"
 	"net/http"
 	"reflect"
@@ -15,18 +14,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 )
-
-// Templates
-var indexTemplate = template.Must(template.New("index").ParseFiles("templates/base.html", "templates/index.html"))
-var messageHTMLTemplate = template.Must(template.New("message-html").ParseFiles("templates/base.html", "templates/message-html.html"))
-var messagePlainTemplate = template.Must(template.New("message-plain").ParseFiles("templates/base.html", "templates/message-plain.html"))
-var deleteTemplate = template.Must(template.New("delete").ParseFiles("templates/base.html", "templates/delete.html"))
-
-// Static asset vars - these are overridden at build time to inject a file w/ version info
-const milligram = "milligram.css"
-const logo = "logo-placeholder.png"
-const normalize = "normalize.css"
-const custom = "custom.css"
 
 //staticDetails contains the names of the static files used in the project
 type staticDetails struct {

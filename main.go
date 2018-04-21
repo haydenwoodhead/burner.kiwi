@@ -49,21 +49,21 @@ func main() {
 		log.Fatalf("Env var MG_KEY cannot be empty")
 	}
 
-	var disableHTTPS bool
+	var developing bool
 
-	disableHTTPSENV := os.Getenv("DISABLE_HTTPS")
+	debuggingENV := os.Getenv("DEBUGGING")
 
 	if strings.Compare(mgKey, "") == 0 {
-		disableHTTPS = false
+		developing = false
 	} else {
-		disableHTTPS, err = strconv.ParseBool(disableHTTPSENV)
+		developing, err = strconv.ParseBool(debuggingENV)
 
 		if err != nil {
-			log.Fatalf("Failed to parse disable https: %v", err)
+			log.Fatalf("Failed to parse debugging: %v", err)
 		}
 	}
 
-	s, err := server.NewServer(key, websiteURL, staticURL, mgDomain, mgKey, []string{"rogerin.space"}, disableHTTPS)
+	s, err := server.NewServer(key, websiteURL, staticURL, mgDomain, mgKey, []string{"rogerin.space"}, developing)
 
 	if err != nil {
 		log.Fatalf("Failed to setup new server: %v", err)

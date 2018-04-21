@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"strconv"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/gobuffalo/packr"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/haydenwoodhead/burnerkiwi/generateemail"
@@ -17,24 +19,40 @@ import (
 	"gopkg.in/mailgun/mailgun-go.v1"
 )
 
+// Packr boxes for static templates and assets
+var templates = packr.NewBox("../templates")
+var staticFS = packr.NewBox("../static")
+
+// Templates
+var indexTemplate = MustParseTemplates(templates.String("base.html"), templates.String("index.html"))
+var messageHTMLTemplate = MustParseTemplates(templates.String("base.html"), templates.String("message-html.html"))
+var messagePlainTemplate = MustParseTemplates(templates.String("base.html"), templates.String("message-plain.html"))
+var deleteTemplate = MustParseTemplates(templates.String("base.html"), templates.String("delete.html"))
+
+// Static asset vars - these are overridden at build time to inject a file w/ version info
+const milligram = "milligram.css"
+const logo = "logo-placeholder.png"
+const normalize = "normalize.css"
+const custom = "custom.css"
+
 // version number - this is also overridden at build time to inject the commit hash
 const version = "dev"
 
 // Server bundles several data types together for dependency injection into http handlers
 type Server struct {
-	store        *sessions.CookieStore
-	websiteURL   string
-	staticURL    string
-	eg           *generateemail.EmailGenerator
-	mg           mailgun.Mailgun
-	dynDB        *dynamodb.DynamoDB
-	Router       *mux.Router
-	tg           *token.Generator
-	disableHTTPS bool
+	store      *sessions.CookieStore
+	websiteURL string
+	staticURL  string
+	eg         *generateemail.EmailGenerator
+	mg         mailgun.Mailgun
+	dynDB      *dynamodb.DynamoDB
+	Router     *mux.Router
+	tg         *token.Generator
+	developing bool
 }
 
 // NewServer returns a server with the given settings
-func NewServer(key, url, static, mgDomain, mgKey string, domains []string, disableHTTPS bool) (*Server, error) {
+func NewServer(key, url, static, mgDomain, mgKey string, domains []string, developing bool) (*Server, error) {
 	s := Server{}
 
 	s.store = sessions.NewCookieStore([]byte(key))
@@ -43,7 +61,7 @@ func NewServer(key, url, static, mgDomain, mgKey string, domains []string, disab
 	s.websiteURL = url
 	s.staticURL = static
 
-	s.disableHTTPS = disableHTTPS
+	s.developing = developing
 
 	s.mg = mailgun.NewMailgun(mgDomain, mgKey, "")
 
@@ -101,9 +119,14 @@ func NewServer(key, url, static, mgDomain, mgKey string, domains []string, disab
 	// Mailgun Incoming
 	s.Router.HandleFunc("/mg/incoming/{inboxID}/", s.MailgunIncoming).Methods(http.MethodPost)
 
-	// Temp Static
-	fs := http.StripPrefix("/static/", http.FileServer(http.Dir("static/")))
-	s.Router.PathPrefix("/static/").Handler(fs)
+	// Static File Serving w/ Packr
+	fs := http.StripPrefix("/static/", http.FileServer(staticFS))
+
+	if developing {
+		s.Router.PathPrefix("/static/").Handler(alice.New(CacheControl(0)).Then(fs))
+	} else {
+		s.Router.PathPrefix("/static/").Handler(alice.New(CacheControl(15778463)).Then(fs))
+	}
 
 	return &s, nil
 }
@@ -154,4 +177,21 @@ func (s *Server) createRouteAndUpdate(i Inbox) {
 	if err != nil {
 		log.Printf("Index JSON: failed to update that route is created: %v", err)
 	}
+}
+
+//MustParseTemplates parses string templates into one template
+// Function modified from: https://stackoverflow.com/questions/41856021/how-to-parse-multiple-strings-into-a-template-with-go
+func MustParseTemplates(templs ...string) *template.Template {
+	t := template.New("templ")
+
+	for i, templ := range templs {
+		_, err := t.New(fmt.Sprintf("%v", i)).Parse(templ)
+
+		if err != nil {
+			panic(err)
+		}
+
+	}
+
+	return t
 }
