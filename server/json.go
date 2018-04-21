@@ -45,7 +45,7 @@ func (s *Server) NewInboxJSON(w http.ResponseWriter, r *http.Request) {
 
 	i.Address = s.eg.NewRandom()
 
-	exist, err := s.emailExists(i.Address) // while it's VERY unlikely that the email already exists but lets check anyway
+	exist, err := s.db.EmailAddressExists(i.Address) // while it's VERY unlikely that the email already exists but lets check anyway
 
 	if err != nil {
 		log.Printf("JSON Index: failed to check if email exists: %v", err)
@@ -75,7 +75,7 @@ func (s *Server) NewInboxJSON(w http.ResponseWriter, r *http.Request) {
 	// we should do this out of the request thread and then update our db with the results
 	go s.createRouteAndUpdate(i)
 
-	err = s.saveNewInbox(i)
+	err = s.db.SaveNewInbox(i)
 
 	if err != nil {
 		log.Printf("JSON Index: failed to save email: %v", err)
@@ -120,7 +120,7 @@ func (s *Server) GetInboxDetailsJSON(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["inboxID"]
 
-	e, err := s.getInboxByID(id)
+	e, err := s.db.GetInboxByID(id)
 
 	if err != nil {
 		log.Printf("GetInboxDetailsJSON: failed to retrieve email from db: %v", err)
@@ -156,7 +156,7 @@ func (s *Server) GetAllMessagesJSON(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["inboxID"]
 
-	m, err := s.getAllMessagesByInboxID(id)
+	m, err := s.db.GetMessagesByInboxID(id)
 
 	if err != nil {
 		log.Printf("GetAllMessagesJSON: failed to get messages with id %v: %v", id, err)

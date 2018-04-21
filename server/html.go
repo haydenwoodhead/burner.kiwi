@@ -76,7 +76,7 @@ func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	i, err := s.getInboxByID(id)
+	i, err := s.db.GetInboxByID(id)
 
 	if err != nil {
 		log.Printf("Index: failed to get inbox: %v", err)
@@ -99,7 +99,7 @@ func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	msgs, err := s.getAllMessagesByInboxID(id)
+	msgs, err := s.db.GetMessagesByInboxID(id)
 
 	if err != nil {
 		log.Printf("Index: failed to get all messages from inbox. %v", err)
@@ -149,7 +149,7 @@ func (s *Server) NewInbox(w http.ResponseWriter, r *http.Request) {
 
 	i.Address = s.eg.NewRandom()
 
-	exist, err := s.emailExists(i.Address) // while it's VERY unlikely that the email address already exists but lets check anyway
+	exist, err := s.db.EmailAddressExists(i.Address) // while it's VERY unlikely that the email address already exists but lets check anyway
 
 	if err != nil {
 		log.Printf("New Inbox: failed to check if email exists: %v", err)
@@ -179,7 +179,7 @@ func (s *Server) NewInbox(w http.ResponseWriter, r *http.Request) {
 	// we should do this out of the request thread and then update our db with the results
 	go s.createRouteAndUpdate(i)
 
-	err = s.saveNewInbox(i)
+	err = s.db.SaveNewInbox(i)
 
 	if err != nil {
 		log.Printf("NewInbox: failed to save email: %v", err)
@@ -236,9 +236,9 @@ func (s *Server) IndividualMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	m, err := s.getMessageByID(iID, mID)
+	m, err := s.db.GetMessageByID(iID, mID)
 
-	if err == errMessageDoesntExist {
+	if err == ErrMessageDoesntExist {
 		returnHTMLError(w, r, http.StatusNotFound, "Message not found on server")
 		return
 	} else if err != nil {

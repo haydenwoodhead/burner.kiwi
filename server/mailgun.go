@@ -29,7 +29,7 @@ func (s *Server) MailgunIncoming(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["inboxID"]
 
-	i, err := s.getInboxByID(id)
+	i, err := s.db.GetInboxByID(id)
 
 	if err != nil {
 		log.Printf("MailgunIncoming: failed to get inbox: %v", err)
@@ -90,7 +90,7 @@ func (s *Server) MailgunIncoming(w http.ResponseWriter, r *http.Request) {
 		m.BodyHTML = modifiedHTML
 	}
 
-	err = s.saveNewMessage(m)
+	err = s.db.SaveNewMessage(m)
 
 	if err != nil {
 		log.Printf("MailgunIncoming: failed to save message to db: %v", err)

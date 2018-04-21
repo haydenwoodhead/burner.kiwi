@@ -8,8 +8,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/gobuffalo/packr"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
@@ -45,7 +43,7 @@ type Server struct {
 	staticURL  string
 	eg         *generateemail.EmailGenerator
 	mg         mailgun.Mailgun
-	dynDB      *dynamodb.DynamoDB
+	db         Database
 	Router     *mux.Router
 	tg         *token.Generator
 	developing bool
@@ -61,6 +59,7 @@ type NewServerInput struct {
 	DeleteKey  string
 	Domains    []string
 	Developing bool
+	Database   Database
 }
 
 // NewServer returns a server with the given settings
@@ -83,8 +82,7 @@ func NewServer(n NewServerInput) (*Server, error) {
 
 	s.deleteKey = n.DeleteKey
 
-	awsSession := session.Must(session.NewSession())
-	s.dynDB = dynamodb.New(awsSession)
+	s.db = n.Database
 
 	s.Router = mux.NewRouter()
 	s.Router.StrictSlash(true) // means router will match both "/path" and "/path/"
@@ -189,7 +187,7 @@ func (s *Server) createRouteAndUpdate(i Inbox) {
 		return
 	}
 
-	err = s.setInboxCreated(i)
+	err = s.db.SetInboxCreated(i)
 
 	if err != nil {
 		log.Printf("Index JSON: failed to update that route is created: %v", err)

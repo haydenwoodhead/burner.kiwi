@@ -10,6 +10,7 @@ import (
 
 	"github.com/apex/gateway"
 	"github.com/gorilla/context"
+	"github.com/haydenwoodhead/burnerkiwi/database/dynamodb"
 	"github.com/haydenwoodhead/burnerkiwi/server"
 )
 
@@ -34,6 +35,7 @@ func main() {
 		Domains: []string{
 			"rogerin.space",
 		},
+		Database: dynamodb.GetNewDynamoDB(),
 	}
 
 	s, err := server.NewServer(nsi)
