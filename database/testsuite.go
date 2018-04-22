@@ -300,4 +300,15 @@ func TestGetMessagesByInboxID(t *testing.T, db server.Database) {
 			}
 		}
 	}
+
+	// Test that it returns an empty messages slice if there are no messages
+	empty, err := db.GetMessagesByInboxID("doesntexist")
+
+	if err != nil {
+		t.Errorf("%v - TestGetMessagesByInboxID: get empty inbox: %v", reflect.TypeOf(db), err)
+	}
+
+	if len(empty) != 0 {
+		t.Errorf("%v - TestGetMessagesByInboxID: returned messages for a non existant key", reflect.TypeOf(db))
+	}
 }
