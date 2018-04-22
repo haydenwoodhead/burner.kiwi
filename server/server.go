@@ -214,8 +214,8 @@ func (s *Server) DeleteOldRoutes() ([]mailgun.Route, error) {
 
 		t := time.Unix(tInt, 0)
 
-		// if our routes was created before 24 hours ago then it is expired and should be deleted
-		if t.Before(time.Now().Add(-24 * time.Hour)) {
+		// if our route's ttl (expiration time) is before now... then delete it
+		if t.Before(time.Now()) {
 			err := s.mg.DeleteRoute(r.ID)
 
 			if err != nil {
