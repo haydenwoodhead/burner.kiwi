@@ -28,13 +28,13 @@ var messagePlainTemplate = MustParseTemplates(templates.String("base.html"), tem
 var deleteTemplate = MustParseTemplates(templates.String("base.html"), templates.String("delete.html"))
 
 // Static asset vars - these are overridden at build time to inject a file w/ version info
-const milligram = "milligram.css"
-const logo = "logo-placeholder.png"
-const normalize = "normalize.css"
-const custom = "custom.css"
+var milligram = "milligram.css"
+var logo = "logo-placeholder.png"
+var normalize = "normalize.css"
+var custom = "custom.css"
 
 // version number - this is also overridden at build time to inject the commit hash
-const version = "dev"
+var version = "dev"
 
 // Server bundles several data types together for dependency injection into http handlers
 type Server struct {
