@@ -66,7 +66,8 @@ func (s *Server) MailgunIncoming(w http.ResponseWriter, r *http.Request) {
 	if strings.Compare(html, "") != 0 {
 		sr := strings.NewReader(html)
 
-		doc, err := goquery.NewDocumentFromReader(sr)
+		var doc *goquery.Document
+		doc, err = goquery.NewDocumentFromReader(sr)
 
 		if err != nil {
 			log.Printf("MailgunIncoming: failed to create goquery doc: %v", err)
@@ -79,7 +80,8 @@ func (s *Server) MailgunIncoming(w http.ResponseWriter, r *http.Request) {
 			s.SetAttr("target", "_blank")
 		})
 
-		modifiedHTML, err := doc.Html()
+		var modifiedHTML string
+		modifiedHTML, err = doc.Html()
 
 		if err != nil {
 			log.Printf("MailgunIncoming: failed to get html doc: %v", err)

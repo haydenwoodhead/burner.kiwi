@@ -50,6 +50,7 @@ type Server struct {
 	deleteKey  string
 }
 
+//NewServerInput contains key configuration parameters to be passed to NewServer()
 type NewServerInput struct {
 	Key        string
 	URL        string
@@ -194,7 +195,7 @@ func (s *Server) createRouteAndUpdate(i Inbox) {
 	}
 }
 
-//deleteOldRoutes deletes routes older than 24 hours
+//DeleteOldRoutes deletes routes older than 24 hours
 func (s *Server) DeleteOldRoutes() ([]mailgun.Route, error) {
 	_, rs, err := s.mg.GetRoutes(1000, 0)
 

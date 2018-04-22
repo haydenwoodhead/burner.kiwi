@@ -127,7 +127,7 @@ func (im *InMemory) SaveNewMessage(m server.Message) error {
 	return nil
 }
 
-//GetAllMessagesByInboxID returns all messages in a given inbox
+//GetMessagesByInboxID returns all messages in a given inbox
 func (im *InMemory) GetMessagesByInboxID(id string) ([]server.Message, error) {
 	im.m.Lock()
 	defer im.m.Unlock()

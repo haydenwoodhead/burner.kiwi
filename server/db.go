@@ -2,6 +2,7 @@ package server
 
 import "errors"
 
+// ErrMessageDoesntExist is returned by GetMessagesByID when it cant find that specific message
 var ErrMessageDoesntExist = errors.New("message doesn't exist")
 
 // Database lists methods needed to implement a db

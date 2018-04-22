@@ -1,12 +1,12 @@
 package server
 
 import (
+	"fmt"
 	"strings"
-	"time"
 )
 
 // GetHoursAndMinutes extracts only the hours and minutes from a duration as strings
-func GetHoursAndMinutes(d time.Duration) (string, string) {
+func GetHoursAndMinutes(d fmt.Stringer) (string, string) {
 	var gotHour bool
 
 	var hour []byte

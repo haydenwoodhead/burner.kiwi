@@ -159,7 +159,7 @@ func (d *DynamoDB) SaveNewMessage(m server.Message) error {
 	return nil
 }
 
-//GetAllMessagesByInboxID returns all messages in a given inbox
+//GetMessagesByInboxID returns all messages in a given inbox
 func (d *DynamoDB) GetMessagesByInboxID(i string) ([]server.Message, error) {
 	var m []server.Message
 
