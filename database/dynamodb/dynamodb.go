@@ -220,3 +220,90 @@ func (d *DynamoDB) GetMessageByID(i, m string) (server.Message, error) {
 
 	return msg, nil
 }
+
+//createDatabase creates a new database for testing
+func (d *DynamoDB) createDatabase() error {
+	emails := &dynamodb.CreateTableInput{
+		AttributeDefinitions: []*dynamodb.AttributeDefinition{
+			{
+				AttributeName: aws.String("id"),
+				AttributeType: aws.String("S"),
+			},
+			{
+				AttributeName: aws.String("email_address"),
+				AttributeType: aws.String("S"),
+			},
+		},
+		KeySchema: []*dynamodb.KeySchemaElement{
+			{
+				AttributeName: aws.String("id"),
+				KeyType:       aws.String("HASH"),
+			},
+		},
+		GlobalSecondaryIndexes: []*dynamodb.GlobalSecondaryIndex{
+			{
+				IndexName: aws.String(d.emailAddressIndexName),
+				KeySchema: []*dynamodb.KeySchemaElement{
+					{
+						AttributeName: aws.String("email_address"),
+						KeyType:       aws.String("HASH"),
+					},
+				},
+				Projection: &dynamodb.Projection{
+					ProjectionType: aws.String(dynamodb.ProjectionTypeKeysOnly),
+				},
+				ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
+					ReadCapacityUnits:  aws.Int64(5),
+					WriteCapacityUnits: aws.Int64(5),
+				},
+			},
+		},
+		ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
+			ReadCapacityUnits:  aws.Int64(5),
+			WriteCapacityUnits: aws.Int64(5),
+		},
+		TableName: aws.String(d.emailsTableName),
+	}
+
+	_, err := d.dynDB.CreateTable(emails)
+
+	if err != nil {
+		return err
+	}
+
+	messages := &dynamodb.CreateTableInput{
+		AttributeDefinitions: []*dynamodb.AttributeDefinition{
+			{
+				AttributeName: aws.String("inbox_id"),
+				AttributeType: aws.String("S"),
+			},
+			{
+				AttributeName: aws.String("message_id"),
+				AttributeType: aws.String("S"),
+			},
+		},
+		KeySchema: []*dynamodb.KeySchemaElement{
+			{
+				AttributeName: aws.String("inbox_id"),
+				KeyType:       aws.String("HASH"),
+			},
+			{
+				AttributeName: aws.String("message_id"),
+				KeyType:       aws.String("RANGE"),
+			},
+		},
+		ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
+			ReadCapacityUnits:  aws.Int64(5),
+			WriteCapacityUnits: aws.Int64(5),
+		},
+		TableName: aws.String(d.messagesTableName),
+	}
+
+	_, err = d.dynDB.CreateTable(messages)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
