@@ -32,10 +32,8 @@ func main() {
 		MGDomain:   mustParseStringVar("MG_DOMAIN"),
 		Developing: mustParseBoolVar("DEVELOPING"),
 		DeleteKey:  mustParseStringVar("DELETE_KEY"),
-		Domains: []string{
-			"rogerin.space",
-		},
-		Database: dynamodb.GetNewDynamoDB(),
+		Domains:    mustParseSliceVar("DOMAINS"),
+		Database:   dynamodb.GetNewDynamoDB(),
 	}
 
 	s, err := server.NewServer(nsi)
@@ -84,6 +82,17 @@ func mustParseBoolVar(key string) (v bool) {
 
 	if err != nil {
 		log.Fatalf("Failed to parse %v. It must be either true or false", key)
+	}
+
+	return
+}
+
+func mustParseSliceVar(key string) (v []string) {
+	val := mustParseStringVar(key)
+	split := strings.Split(val, ",")
+
+	for _, s := range split {
+		v = append(v, strings.TrimSpace(s))
 	}
 
 	return
