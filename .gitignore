@@ -1,2 +1,8 @@
 #ignore idea files
 .idea/
+
+#ignore build res
+buildres/
+
+#ignore packr files
+*-packr.go
