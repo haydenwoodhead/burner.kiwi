@@ -47,7 +47,6 @@ type Server struct {
 	Router     *mux.Router
 	tg         *token.Generator
 	developing bool
-	deleteKey  string
 }
 
 //NewServerInput contains key configuration parameters to be passed to NewServer()
@@ -57,7 +56,6 @@ type NewServerInput struct {
 	StaticURL  string
 	MGDomain   string
 	MGKey      string
-	DeleteKey  string
 	Domains    []string
 	Developing bool
 	Database   Database
@@ -80,8 +78,6 @@ func NewServer(n NewServerInput) (*Server, error) {
 	s.eg = generateemail.NewEmailGenerator(n.Domains, 8)
 
 	s.tg = token.NewGenerator(n.Key, 24*time.Hour)
-
-	s.deleteKey = n.DeleteKey
 
 	s.db = n.Database
 
@@ -131,9 +127,6 @@ func NewServer(n NewServerInput) (*Server, error) {
 
 	// Mailgun Incoming
 	s.Router.HandleFunc("/mg/incoming/{inboxID}/", s.MailgunIncoming).Methods(http.MethodPost)
-
-	// Delete Old Routes Endpoint
-	s.Router.HandleFunc("/bk/deleteoldroutes/", s.DeleteOldRoutesEndpoint)
 
 	// Static File Serving w/ Packr
 	fs := http.StripPrefix("/static/", http.FileServer(staticFS))

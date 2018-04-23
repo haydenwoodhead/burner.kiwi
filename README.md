@@ -49,7 +49,6 @@ KEY | String | Key used to sign cookies and keys. Make this something strong!
 WEBSITE_URL | String | The url where the binary is being hosted. This must be internet reachable as it is the destination for mailgun routes
 STATIC_URL | String | The url where static content is being hosted. Set to `/static` to have the binary serve it. Otherwise set to a full domain name with protocol e.g https://static.example.com
 DEVELOPING | Boolean | Set to `true` to disable HSTS and set `Cache-Control` to zero. 
-DELETE_KEY | String | Key used to secure the delete old routes endpoint. Set this to something strong but different than `KEY`
 DOMAINS | []String | Comma separated list of domains connected to mailgun account and able to receive email
 MG_KEY | String | Mailgun private api key
 MG_DOMAIN | String | One of the domains setup on your mailgun account
@@ -68,9 +67,10 @@ AWS_REGION | String | The AWS region containing the DynamoDB table. Use the appr
 If you do decide to deploy this yourself not using the cloudformation template you will need to setup some form of cron 
 to tell burner.kiwi to delete old mailgun routes.
 
-If you are deployed on lambda: check out the `deletehelper` sub folder
+If you are deployed on lambda: if you used the cloudformation template you're sweet. Otherwise setup a cloudformation event
+to call the lambda func every 6 hours or so. 
 
-If you are deployed on a normal machine: setup a cron to run the binary like so `burnerkiwi -delete-old-routes`. You 
+If you are deployed on a normal machine: setup a cron to run the binary every 6 hours or so like so `burnerkiwi -delete-old-routes`. You 
 will need to ensure the binary can still access the environment variables. 
 
 These will both trigger the removal of old routes from mailgun.

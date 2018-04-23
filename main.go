@@ -31,27 +31,20 @@ func main() {
 		MGKey:      mustParseStringVar("MG_KEY"),
 		MGDomain:   mustParseStringVar("MG_DOMAIN"),
 		Developing: mustParseBoolVar("DEVELOPING"),
-		DeleteKey:  mustParseStringVar("DELETE_KEY"),
 		Domains:    mustParseSliceVar("DOMAINS"),
 		Database:   dynamodb.GetNewDynamoDB(),
 	}
 
 	s, err := server.NewServer(nsi)
 
+	// if we are just running route delete then do so and return. Otherwise run runDeleteFunc in a goroutine
 	if runDelete {
-		routes, err := s.DeleteOldRoutes()
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		for _, route := range routes {
-			log.Printf("Failed to process route id: %v; email: %v; desc: %v", route.ID, route.Expression, route.Description)
-		}
-
-		log.Printf("Delete finished.")
-
+		runDeleteFunc(s)
 		return
+	} else {
+		go func(s *server.Server) {
+			runDeleteFunc(s)
+		}(s)
 	}
 
 	if err != nil {
@@ -94,6 +87,22 @@ func mustParseSliceVar(key string) (v []string) {
 	for _, s := range split {
 		v = append(v, strings.TrimSpace(s))
 	}
+
+	return
+}
+
+func runDeleteFunc(s *server.Server) {
+	routes, err := s.DeleteOldRoutes()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, route := range routes {
+		log.Printf("Failed to process route id: %v; email: %v; desc: %v", route.ID, route.Expression, route.Description)
+	}
+
+	log.Printf("Route Delete finished.")
 
 	return
 }
