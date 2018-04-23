@@ -16,7 +16,7 @@ Configuration still needs some work.
 
 Deploy your own straight to AWS lambda and DynamoDB. Use this button or the included cloudformation template.
 
-Otherwise grab a binary from the releases page, setup with the configuration parameters detailed below and run it.
+Or run it on your own server. Go build a binary, setup with the configuration parameters detailed below and run it.
 
 You will also need to:
 1. Buy at least one domain
@@ -53,7 +53,6 @@ DOMAINS | []String | Comma separated list of domains connected to mailgun accoun
 MG_KEY | String | Mailgun private api key
 MG_DOMAIN | String | One of the domains setup on your mailgun account
 
-
 If you are using DynamoDB a non AWS environment you need to set these. If you are on AWS you should of course should use IAM roles.
 
 Parameter | Type | Description
@@ -89,7 +88,7 @@ Create an issue and outline your plans or bugs.
 * Better configuration
 * Noob friendly setup tutorial
 
-Again if you think you can help create an issue and outline your plans.
+Again, if you think you can help then create an issue and outline your plans.
 
 ## License
 
