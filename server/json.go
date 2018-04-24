@@ -138,7 +138,7 @@ func (s *Server) GetInboxDetailsJSON(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Printf("GetInboxDetailsJSON: failed to marhsal json: %v", err)
-		returnJSON500(w, r, "Failed to marshal reponse")
+		returnJSON500(w, r, "Failed to marshal response")
 		return
 	}
 
@@ -174,7 +174,7 @@ func (s *Server) GetAllMessagesJSON(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Printf("GetAllMessagesJSON: failed to marhsal json: %v", err)
-		returnJSON500(w, r, "Failed to marshal reponse")
+		returnJSON500(w, r, "Failed to marshal response")
 		return
 	}
 

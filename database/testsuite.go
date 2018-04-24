@@ -47,7 +47,7 @@ func TestSaveNewInbox(t *testing.T, db server.Database) {
 	}
 
 	if !reflect.DeepEqual(i, ri) {
-		t.Errorf("%v - TestSaveNewInbox: inbox not the same after retireve. Expected %v got %v", reflect.TypeOf(db), i, ri)
+		t.Errorf("%v - TestSaveNewInbox: inbox not the same after retrieve. Expected %v got %v", reflect.TypeOf(db), i, ri)
 	}
 }
 
@@ -75,7 +75,7 @@ func TestGetInboxByID(t *testing.T, db server.Database) {
 	}
 
 	if !reflect.DeepEqual(i, ri) {
-		t.Errorf("%v - TestGetInboxByID: inbox not the same after retireve. Expected %v got %v", reflect.TypeOf(db), i, ri)
+		t.Errorf("%v - TestGetInboxByID: inbox not the same after retrieve. Expected %v got %v", reflect.TypeOf(db), i, ri)
 	}
 }
 
@@ -309,6 +309,6 @@ func TestGetMessagesByInboxID(t *testing.T, db server.Database) {
 	}
 
 	if len(empty) != 0 {
-		t.Errorf("%v - TestGetMessagesByInboxID: returned messages for a non existant key", reflect.TypeOf(db))
+		t.Errorf("%v - TestGetMessagesByInboxID: returned messages for a non existent key", reflect.TypeOf(db))
 	}
 }

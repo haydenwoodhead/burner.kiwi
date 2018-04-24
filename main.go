@@ -41,11 +41,11 @@ func main() {
 	if runDelete {
 		runDeleteFunc(s)
 		return
-	} else {
-		go func(s *server.Server) {
-			runDeleteFunc(s)
-		}(s)
 	}
+
+	go func(s *server.Server) {
+		runDeleteFunc(s)
+	}(s)
 
 	if err != nil {
 		log.Fatalf("Failed to setup new server: %v", err)
@@ -103,6 +103,4 @@ func runDeleteFunc(s *server.Server) {
 	}
 
 	log.Printf("Route Delete finished.")
-
-	return
 }
