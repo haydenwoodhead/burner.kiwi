@@ -26,9 +26,9 @@ func GetNewDynamoDB() *DynamoDB {
 
 	return &DynamoDB{
 		dynDB:                 dynDB,
-		emailsTableName:       "emails",
+		emailsTableName:       "bk-emails",
 		emailAddressIndexName: "email_address-index",
-		messagesTableName:     "messages",
+		messagesTableName:     "bk-messages",
 	}
 }
 

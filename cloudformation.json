@@ -1,0 +1,210 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+  "Description" : "Deploy burner.kiwi to lambda the easy way",
+  "Transform": "AWS::Serverless-2016-10-31",
+  "Parameters" : {
+    "Key" : {
+      "Type" : "String",
+      "Description" : "Key used to sign cookies and keys. Make this something strong!",
+      "NoEcho": "true"
+    },
+    "WebsiteURL" : {
+      "Type" : "String",
+      "Description" : "The url where the binary is being hosted. This must be internet reachable as it is the destination for mailgun routes. If you plan on using the returned cloudfront domain you will need to updated this value after stack creation."
+    },
+    "StaticURL": {
+      "Type": "String",
+      "Description": "The url where static content is being hosted. Set to /static to have the binary serve it. Otherwise set to a full domain name with protocol e.g https://static.example.com"
+    },
+    "Domains": {
+      "Type": "String",
+      "Description": "Comma separated list of domains connected to mailgun account and able to receive email"
+    },
+    "MGKey": {
+      "Type":"String",
+      "Description": "Mailgun private api key",
+      "NoEcho": "true"
+    },
+    "MGDomain": {
+      "Type": "String",
+      "Description": "One of the domains setup on your mailgun account"
+    },
+    "MemorySize": {
+      "Type": "Number",
+      "Description": "Memory allocated to function"
+    }
+  },
+  "Mappings" : {
+    "RegionToBucket" : {
+      "us-east-1" : { "Bucket" : "burner-kiwi-us-east-1"},
+      "ap-southeast-2" : {"Bucket" : "burner-kiwi-ap-southeast-2"},
+      "eu-west-1" : { "Bucket" : "burner-kiwi-eu-west-1"}
+    }
+  },
+  "Resources" : {
+    "BurnerKiwiLambda" : {
+      "Type" : "AWS::Serverless::Function",
+      "Properties" : {
+        "Handler" : "burnerkiwi",
+        "Runtime" : "go1.x",
+        "CodeUri" : {
+          "Bucket": { "Fn::FindInMap" : [ "RegionToBucket", { "Ref" : "AWS::Region" }, "Bucket"]},
+          "Key": "burnerkiwi.zip"
+        },
+        "FunctionName" : "burner-kiwi-main",
+        "Description" : "Burner.kiwi main lambda func",
+        "MemorySize" : {"Ref": "MemorySize"},
+        "Timeout" : 20,
+        "Policies": [
+          "AmazonDynamoDBFullAccess"
+        ],
+        "Environment" : {
+          "Variables" : {
+            "LAMBDA":"true",
+            "KEY":{ "Ref" : "Key" },
+            "WEBSITE_URL": {"Ref": "WebsiteURL"},
+            "STATIC_URL": {"Ref": "StaticURL"},
+            "DEVELOPING": "false",
+            "DOMAINS": {"Ref": "Domains"},
+            "MG_KEY": {"Ref": "MGKey"},
+            "MG_DOMAIN": {"Ref": "MGDomain"}
+          }
+        },
+        "Tags" : {
+          "Name": "burner.kiw lambda func",
+          "Burner-Kiwi": "true"
+        },
+        "Events": {
+          "APIGatewayRoot" : {
+            "Type": "Api",
+            "Properties" : {
+              "Method": "ANY",
+              "Path" : "/"
+            }
+          },
+          "APIGatewayProxy" : {
+            "Type": "Api",
+            "Properties" : {
+              "Method": "ANY",
+              "Path" : "/{proxy+}"
+            }
+          },
+          "DeleteOldRoutesSchedule" : {
+            "Type": "Schedule",
+            "Properties" : {
+              "Schedule": "rate(6 hours)"
+            }
+          }
+        }
+      }
+    },
+    "EmailsTable" : {
+      "Type" : "AWS::DynamoDB::Table",
+      "Properties" : {
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "id",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "email_address",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "id",
+            "KeyType": "HASH"
+          }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName" : "email_address-index",
+            "KeySchema" : [
+              {
+                "AttributeName": "email_address",
+                "KeyType": "HASH"
+              }
+            ],
+            "Projection" : {
+              "ProjectionType": "KEYS_ONLY"
+            },
+            "ProvisionedThroughput" : {
+              "ReadCapacityUnits" : 2,
+              "WriteCapacityUnits" : 2
+            }
+          }
+        ],
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits" : 2,
+          "WriteCapacityUnits" : 2
+        },
+        "TableName": "bk-emails",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "Burner Kiwi Emails Table"
+          },
+          {
+            "Key": "Burner-Kiwi",
+            "Value": "true"
+          }
+        ],
+        "TimeToLiveSpecification": {
+          "AttributeName" : "TTL",
+          "Enabled" : "true"
+        }
+      }
+    },
+    "MessagesTable" : {
+      "Type" : "AWS::DynamoDB::Table",
+      "Properties" : {
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "inbox_id",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "message_id",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "inbox_id",
+            "KeyType": "HASH"
+          },
+          {
+            "AttributeName": "message_id",
+            "KeyType": "RANGE"
+          }
+        ],
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits" : 2,
+          "WriteCapacityUnits" : 2
+        },
+        "TableName": "bk-messages",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "Burner Kiwi Messages Table"
+          },
+          {
+            "Key": "Burner-Kiwi",
+            "Value": "true"
+          }
+        ],
+        "TimeToLiveSpecification": {
+          "AttributeName" : "TTL",
+          "Enabled" : "true"
+        }
+      }
+    }
+  },
+  "Outputs" : {
+    "APIGatewayURL" : {
+      "Description" : "API Gateway URL",
+      "Value": {"Fn::Join": ["", ["https://", {"Ref": "ServerlessRestApi"}, ".execute-api.", {"Ref": "AWS::Region"}, ".amazonaws.com"]]}
+    }
+  }
+}
