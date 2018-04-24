@@ -20,6 +20,14 @@ func JSONContentType(h http.Handler) http.Handler {
 	})
 }
 
+// HTMLContentType sets content type of request to json
+func HTMLContentType(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		h.ServeHTTP(w, r)
+	})
+}
+
 // CheckPermissionJSON checks whether or not the user has permission to call a url
 func (s *Server) CheckPermissionJSON(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

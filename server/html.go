@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -176,8 +177,17 @@ func (s *Server) NewInbox(w http.ResponseWriter, r *http.Request) {
 	i.TTL = time.Now().Add(time.Hour * 24).Unix()
 
 	// Mailgun can take a really long time to register a route (sometimes up to 2 seconds) so
-	// we should do this out of the request thread and then update our db with the results
-	go s.createRouteAndUpdate(i)
+	// we should do this out of the request thread and then update our db with the results. However if we're using
+	// lambda we need to make the request wait for this operation to finish. Otherwise the route will never
+	// get created.
+	var wg sync.WaitGroup
+
+	if s.usingLambda {
+		wg.Add(1)
+		go s.lambdaCreateRouteAndUpdate(&wg, i)
+	} else {
+		go s.createRouteAndUpdate(i)
+	}
 
 	err = s.db.SaveNewInbox(i)
 
@@ -212,6 +222,12 @@ func (s *Server) NewInbox(w http.ResponseWriter, r *http.Request) {
 		log.Printf("NewInbox: failed to write response: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
+	}
+
+	// if we're using lambda then wait for our create route and update goroutine to finish before exiting the
+	// func and therefore returning a response
+	if s.usingLambda {
+		wg.Wait()
 	}
 }
 

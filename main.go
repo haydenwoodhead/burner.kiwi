@@ -25,14 +25,15 @@ func main() {
 	useLambda := mustParseBoolVar("LAMBDA")
 
 	nsi := server.NewServerInput{
-		Key:        mustParseStringVar("KEY"),
-		URL:        mustParseStringVar("WEBSITE_URL"),
-		StaticURL:  mustParseStringVar("STATIC_URL"),
-		MGKey:      mustParseStringVar("MG_KEY"),
-		MGDomain:   mustParseStringVar("MG_DOMAIN"),
-		Developing: mustParseBoolVar("DEVELOPING"),
-		Domains:    mustParseSliceVar("DOMAINS"),
-		Database:   dynamodb.GetNewDynamoDB(),
+		Key:         mustParseStringVar("KEY"),
+		URL:         mustParseStringVar("WEBSITE_URL"),
+		StaticURL:   mustParseStringVar("STATIC_URL"),
+		MGKey:       mustParseStringVar("MG_KEY"),
+		MGDomain:    mustParseStringVar("MG_DOMAIN"),
+		Developing:  mustParseBoolVar("DEVELOPING"),
+		Domains:     mustParseSliceVar("DOMAINS"),
+		UsingLambda: useLambda,
+		Database:    dynamodb.GetNewDynamoDB(),
 	}
 
 	s, err := server.NewServer(nsi)

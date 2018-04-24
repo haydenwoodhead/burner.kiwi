@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/gobuffalo/packr"
@@ -38,27 +39,29 @@ var version = "dev"
 
 // Server bundles several data types together for dependency injection into http handlers
 type Server struct {
-	store      *sessions.CookieStore
-	websiteURL string
-	staticURL  string
-	eg         *generateemail.EmailGenerator
-	mg         mailgun.Mailgun
-	db         Database
-	Router     *mux.Router
-	tg         *token.Generator
-	developing bool
+	store       *sessions.CookieStore
+	websiteURL  string
+	staticURL   string
+	eg          *generateemail.EmailGenerator
+	mg          mailgun.Mailgun
+	db          Database
+	Router      *mux.Router
+	tg          *token.Generator
+	developing  bool
+	usingLambda bool
 }
 
 //NewServerInput contains key configuration parameters to be passed to NewServer()
 type NewServerInput struct {
-	Key        string
-	URL        string
-	StaticURL  string
-	MGDomain   string
-	MGKey      string
-	Domains    []string
-	Developing bool
-	Database   Database
+	Key         string
+	URL         string
+	StaticURL   string
+	MGDomain    string
+	MGKey       string
+	Domains     []string
+	Developing  bool
+	UsingLambda bool
+	Database    Database
 }
 
 // NewServer returns a server with the given settings
@@ -79,6 +82,8 @@ func NewServer(n NewServerInput) (*Server, error) {
 
 	s.developing = n.Developing
 
+	s.usingLambda = n.UsingLambda
+
 	s.mg = mailgun.NewMailgun(n.MGDomain, n.MGKey, "")
 
 	s.eg = generateemail.NewEmailGenerator(n.Domains, 8)
@@ -93,16 +98,18 @@ func NewServer(n NewServerInput) (*Server, error) {
 	// HTML - trying to make middleware flow/handler declaration a little more readable
 	s.Router.Handle("/",
 		alice.New( //Middleware below
-			s.IsNew(http.HandlerFunc(s.NewInbox)),
+			HTMLContentType,
 			Refresh(20),
 			CacheControl(14),
 			SetVersionHeader,
 			s.SecurityHeaders,
+			s.IsNew(http.HandlerFunc(s.NewInbox)),
 		).ThenFunc(s.Index),
 	).Methods(http.MethodGet)
 
 	s.Router.Handle("/messages/{messageID}/",
 		alice.New(
+			HTMLContentType,
 			s.CheckCookieExists(returnHTMLError),
 			CacheControl(3600),
 			SetVersionHeader,
@@ -112,6 +119,7 @@ func NewServer(n NewServerInput) (*Server, error) {
 
 	s.Router.Handle("/delete",
 		alice.New(
+			HTMLContentType,
 			s.CheckCookieExists(returnHTMLError),
 			SetVersionHeader,
 			s.SecurityHeaders,
@@ -120,6 +128,7 @@ func NewServer(n NewServerInput) (*Server, error) {
 
 	s.Router.Handle("/delete",
 		alice.New(
+			HTMLContentType,
 			s.CheckCookieExists(returnHTMLError),
 			SetVersionHeader,
 			s.SecurityHeaders,
@@ -186,7 +195,6 @@ func (s *Server) createRouteAndUpdate(i Inbox) {
 
 	if err != nil {
 		log.Printf("Index JSON: failed to create route: %v", err)
-
 		return
 	}
 
@@ -195,6 +203,14 @@ func (s *Server) createRouteAndUpdate(i Inbox) {
 	if err != nil {
 		log.Printf("Index JSON: failed to update that route is created: %v", err)
 	}
+}
+
+//lambdaCreateRouteAndUpdate makes use of the waitgroup then calls createRouteAndUpdate. This is because lambda
+//will exit as soon as we return the response so we must make it wait
+func (s *Server) lambdaCreateRouteAndUpdate(wg *sync.WaitGroup, i Inbox) {
+	wg.Add(1)
+	s.createRouteAndUpdate(i)
+	wg.Done()
 }
 
 //DeleteOldRoutes deletes routes older than 24 hours
