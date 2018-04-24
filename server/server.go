@@ -22,10 +22,10 @@ var templates = packr.NewBox("../templates")
 var staticFS = packr.NewBox("../static")
 
 // Templates
-var indexTemplate = MustParseTemplates(templates.String("base.html"), templates.String("index.html"))
-var messageHTMLTemplate = MustParseTemplates(templates.String("base.html"), templates.String("message-html.html"))
-var messagePlainTemplate = MustParseTemplates(templates.String("base.html"), templates.String("message-plain.html"))
-var deleteTemplate = MustParseTemplates(templates.String("base.html"), templates.String("delete.html"))
+var indexTemplate *template.Template
+var messageHTMLTemplate *template.Template
+var messagePlainTemplate *template.Template
+var deleteTemplate *template.Template
 
 // Static asset vars - these are overridden at build time to inject a file w/ version info
 var milligram = "milligram.css"
@@ -64,6 +64,12 @@ type NewServerInput struct {
 // NewServer returns a server with the given settings
 func NewServer(n NewServerInput) (*Server, error) {
 	s := Server{}
+
+	// Setup Templates
+	indexTemplate = MustParseTemplates(templates.String("base.html"), templates.String("index.html"))
+	messageHTMLTemplate = MustParseTemplates(templates.String("base.html"), templates.String("message-html.html"))
+	messagePlainTemplate = MustParseTemplates(templates.String("base.html"), templates.String("message-plain.html"))
+	deleteTemplate = MustParseTemplates(templates.String("base.html"), templates.String("delete.html"))
 
 	s.store = sessions.NewCookieStore([]byte(n.Key))
 	s.store.MaxAge(86402) // set max cookie age to 24 hours + 2 seconds
@@ -136,6 +142,9 @@ func NewServer(n NewServerInput) (*Server, error) {
 	} else {
 		s.Router.PathPrefix("/static/").Handler(alice.New(CacheControl(15778463)).Then(fs))
 	}
+
+	fs2 := http.StripPrefix("/templates/", http.FileServer(templates))
+	s.Router.PathPrefix("/templates/").Handler(alice.New(CacheControl(0)).Then(fs2))
 
 	return &s, nil
 }
