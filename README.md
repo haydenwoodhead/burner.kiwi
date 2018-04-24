@@ -1,4 +1,5 @@
 # Burner.kiwi
+[![Go Report Card](https://goreportcard.com/badge/github.com/haydenwoodhead/burner.kiwi)](https://goreportcard.com/report/github.com/haydenwoodhead/burner.kiwi)
 
 A temporary email service and api built in golang. No javascript. No tracking. No analytics. No bullshit.
 
