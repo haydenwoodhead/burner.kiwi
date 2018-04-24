@@ -102,7 +102,7 @@ func NewServer(n NewServerInput) (*Server, error) {
 			Refresh(20),
 			CacheControl(14),
 			SetVersionHeader,
-			s.SecurityHeaders,
+			s.SecurityHeaders(false),
 			s.IsNew(http.HandlerFunc(s.NewInbox)),
 		).ThenFunc(s.Index),
 	).Methods(http.MethodGet)
@@ -113,7 +113,7 @@ func NewServer(n NewServerInput) (*Server, error) {
 			s.CheckCookieExists(returnHTMLError),
 			CacheControl(3600),
 			SetVersionHeader,
-			s.SecurityHeaders,
+			s.SecurityHeaders(true),
 		).ThenFunc(s.IndividualMessage),
 	).Methods(http.MethodGet)
 
@@ -122,7 +122,7 @@ func NewServer(n NewServerInput) (*Server, error) {
 			HTMLContentType,
 			s.CheckCookieExists(returnHTMLError),
 			SetVersionHeader,
-			s.SecurityHeaders,
+			s.SecurityHeaders(false),
 		).ThenFunc(s.DeleteInbox),
 	).Methods(http.MethodGet)
 
@@ -131,7 +131,7 @@ func NewServer(n NewServerInput) (*Server, error) {
 			HTMLContentType,
 			s.CheckCookieExists(returnHTMLError),
 			SetVersionHeader,
-			s.SecurityHeaders,
+			s.SecurityHeaders(false),
 		).ThenFunc(s.ConfirmDeleteInbox),
 	).Methods(http.MethodPost)
 

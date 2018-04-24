@@ -132,27 +132,47 @@ func Refresh(sec int) alice.Constructor {
 }
 
 //SecurityHeaders sets a whole bunch of headers to secure the site
-func (s *Server) SecurityHeaders(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// check to see if we are developing before forcing strict transport
-		if !s.developing {
-			w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
-		}
+func (s *Server) SecurityHeaders(extStyle bool) alice.Constructor {
+	return func(h http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// check to see if we are developing before forcing strict transport
+			if !s.developing {
+				w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+			}
 
-		// If we are serving the static assets from the binary then use default src
-		if strings.Compare(s.staticURL, "/static") == 0 {
-			w.Header().Set("Content-Security-Policy", "script-src 'none'; font-src https://fonts.gstatic.com/; style-src 'self' http://fonts.googleapis.com/; default-src 'self'")
-		} else {
-			w.Header().Set("Content-Security-Policy", fmt.Sprintf("script-src 'none'; font-src https://fonts.gstatic.com/; style-src %v http://fonts.googleapis.com/; img-src %v; default-src 'self'", s.staticURL, s.staticURL))
-		}
+			var styleSrc string
+			var imgSrc string
+			var fntSrc string
 
-		w.Header().Set("X-Frame-Options", "DENY")
-		w.Header().Set("X-XSS-Protection", "1")
-		w.Header().Set("X-Content-Type-Options", "nosniff")
-		w.Header().Set("Referrer-Policy", "no-referrer")
+			if strings.Compare(s.staticURL, "/static") == 0 {
+				styleSrc = "'self'"
+				imgSrc = "'self'"
+				fntSrc = "'self'"
+			} else {
+				styleSrc = s.staticURL
+				imgSrc = s.staticURL
+				fntSrc = s.staticURL
+			}
 
-		h.ServeHTTP(w, r)
-	})
+			// if we're allowing external styles then override then csp
+			if extStyle {
+				styleSrc = "* 'unsafe-inline'"
+				imgSrc = "*"
+				fntSrc = "*"
+			}
+
+			csp := fmt.Sprintf("script-src 'none'; font-src %v https://fonts.gstatic.com/; style-src %v http://fonts.googleapis.com/; img-src %v; default-src 'self'", fntSrc, styleSrc, imgSrc)
+
+			w.Header().Set("Content-Security-Policy", csp)
+
+			w.Header().Set("X-Frame-Options", "DENY")
+			w.Header().Set("X-XSS-Protection", "1")
+			w.Header().Set("X-Content-Type-Options", "nosniff")
+			w.Header().Set("Referrer-Policy", "no-referrer")
+
+			h.ServeHTTP(w, r)
+		})
+	}
 }
 
 //SetVersionHeader adds a header with the current version
