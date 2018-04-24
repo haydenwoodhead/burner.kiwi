@@ -96,7 +96,7 @@ func runDeleteFunc(s *server.Server) {
 	routes, err := s.DeleteOldRoutes()
 
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("Failed to call deleteOldRoutes: %v", err)
 	}
 
 	for _, route := range routes {
