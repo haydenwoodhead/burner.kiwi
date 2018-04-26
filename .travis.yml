@@ -15,10 +15,16 @@ before_script:
   - gometalinter.v2 --install
   - go get github.com/tdewolff/minify/cmd/minify
   - go get -u github.com/gobuffalo/packr/...
+  - go get golang.org/x/tools/cmd/cover
+  - go get github.com/mattn/goveralls
 
 script:
   - gometalinter.v2 --vendor ./...
   - go test -v -race ./...
+  - go test -v -covermode=count -coverprofile=coverage.out
+
+after_success:
+  - goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
 
 before_deploy:
   - pip install --user awscli
