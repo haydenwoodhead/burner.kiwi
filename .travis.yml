@@ -20,7 +20,7 @@ before_script:
   - tar -xzf /tmp/dynamodb_local_latest.tar.gz -C /tmp
   - java -Djava.library.path=/tmp/DynamoDBLocal_lib -jar /tmp/DynamoDBLocal.jar -inMemory &
   - go get -u gopkg.in/alecthomas/gometalinter.v2
-  - gometalinter --install
+  - gometalinter.v2 --install
   - go get github.com/tdewolff/minify/cmd/minify
   - go get -u github.com/gobuffalo/packr/...
 
