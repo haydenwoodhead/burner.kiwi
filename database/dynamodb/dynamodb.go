@@ -268,7 +268,9 @@ func (d *DynamoDB) createDatabase() error {
 	_, err := d.dynDB.CreateTable(emails)
 
 	if err != nil {
-		return err
+		if !strings.Contains(err.Error(), dynamodb.ErrCodeResourceInUseException) {
+			return err
+		}
 	}
 
 	messages := &dynamodb.CreateTableInput{
@@ -301,5 +303,11 @@ func (d *DynamoDB) createDatabase() error {
 
 	_, err = d.dynDB.CreateTable(messages)
 
-	return err
+	if err != nil {
+		if !strings.Contains(err.Error(), dynamodb.ErrCodeResourceInUseException) {
+			return err
+		}
+	}
+
+	return nil
 }

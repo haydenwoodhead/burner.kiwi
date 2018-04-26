@@ -21,7 +21,6 @@ before_script:
 script:
   - gometalinter.v2 --vendor ./...
   - go test -v -race ./...
-  - go test -v -covermode=count -coverprofile=coverage.out
   - goveralls -service=travis-ci || echo "Push to coveralls failed"
 
 before_deploy:
