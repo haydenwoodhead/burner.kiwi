@@ -22,8 +22,6 @@ script:
   - gometalinter.v2 --vendor ./...
   - go test -v -race ./...
   - go test -v -covermode=count -coverprofile=coverage.out
-
-after_success:
   - goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
 
 before_deploy:
