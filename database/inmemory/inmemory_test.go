@@ -3,7 +3,7 @@ package inmemory
 import (
 	"testing"
 
-	"github.com/haydenwoodhead/burnerkiwi/database"
+	"github.com/haydenwoodhead/burner.kiwi/database"
 )
 
 func TestInMemoryDB(t *testing.T) {

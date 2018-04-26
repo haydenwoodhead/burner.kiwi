@@ -8,7 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
-	"github.com/haydenwoodhead/burnerkiwi/server"
+	"github.com/haydenwoodhead/burner.kiwi/server"
 )
 
 // DynamoDB implements the db interface

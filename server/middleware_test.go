@@ -13,7 +13,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
-	"github.com/haydenwoodhead/burnerkiwi/token"
+	"github.com/haydenwoodhead/burner.kiwi/token"
 	"github.com/justinas/alice"
 )
 

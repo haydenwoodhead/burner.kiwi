@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/haydenwoodhead/burnerkiwi/database"
+	"github.com/haydenwoodhead/burner.kiwi/database"
 )
 
 func TestDynamoDB(t *testing.T) {

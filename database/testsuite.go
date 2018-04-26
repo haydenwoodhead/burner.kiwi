@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/haydenwoodhead/burnerkiwi/server"
+	"github.com/haydenwoodhead/burner.kiwi/server"
 )
 
 // TestFunction is the signature for a testing function

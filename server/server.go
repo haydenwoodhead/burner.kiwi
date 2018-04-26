@@ -12,8 +12,8 @@ import (
 	"github.com/gobuffalo/packr"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
-	"github.com/haydenwoodhead/burnerkiwi/generateemail"
-	"github.com/haydenwoodhead/burnerkiwi/token"
+	"github.com/haydenwoodhead/burner.kiwi/generateemail"
+	"github.com/haydenwoodhead/burner.kiwi/token"
 	"github.com/justinas/alice"
 	"gopkg.in/mailgun/mailgun-go.v1"
 )

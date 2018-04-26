@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/haydenwoodhead/burnerkiwi/server"
+	"github.com/haydenwoodhead/burner.kiwi/server"
 )
 
 // InMemory implements an in memory database

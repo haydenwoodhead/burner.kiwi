@@ -10,8 +10,8 @@ import (
 
 	"github.com/apex/gateway"
 	"github.com/gorilla/context"
-	"github.com/haydenwoodhead/burnerkiwi/database/dynamodb"
-	"github.com/haydenwoodhead/burnerkiwi/server"
+	"github.com/haydenwoodhead/burner.kiwi/database/dynamodb"
+	"github.com/haydenwoodhead/burner.kiwi/server"
 )
 
 var runDelete bool
