@@ -21,7 +21,8 @@ before_script:
 script:
   - gometalinter.v2 --vendor ./...
   - go test -v -race ./...
-  - goveralls -service=travis-ci || echo "Push to coveralls failed"
+  - go test -covermode=count -coverprofile=profile.cov ./...
+  - goveralls -service=travis-ci -coverprofile=profile.cov || echo "Push to coveralls failed"
 
 before_deploy:
   - pip install --user awscli
