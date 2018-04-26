@@ -4,7 +4,12 @@
 mkdir ./buildres/cloudformation
 mkdir ./buildres/static
 
-zip ./buildres/cloudformation/burnerkiwi.zip ./buildres/burnerkiwi
+cp ./buildres/burnerkiwi ./buildres/cloudformation
+cd ./buildres/cloudformation
+zip burnerkiwi.zip burnerkiwi
+rm burnerkiwi
+cd ../
+cd ../
 cp cloudformation.json ./buildres/cloudformation/
 
 mv ./buildres/*min.css ./buildres/static

@@ -34,7 +34,7 @@ minify -o "./static/$normalize_name" ./static/normalize.css
 git_commit=`git rev-parse --short HEAD`
 
 # Build the go binary with build flags to override vars
-packr build -ldflags "-X github.com/haydenwoodhead/burner.kiwi/server.version=${git_commit} -X github.com/haydenwoodhead/burner.kiwi/server.milligram=${milligram_name} -X github.com/haydenwoodhead/burner.kiwi/server.custom=${custom_name} -X github.com/haydenwoodhead/burner.kiwi/server.normalize=${normalize_name}" -o "./buildres/burner.kiwi"
+packr build -ldflags "-X github.com/haydenwoodhead/burner.kiwi/server.version=${git_commit} -X github.com/haydenwoodhead/burner.kiwi/server.milligram=${milligram_name} -X github.com/haydenwoodhead/burner.kiwi/server.custom=${custom_name} -X github.com/haydenwoodhead/burner.kiwi/server.normalize=${normalize_name}" -o "./buildres/burnerkiwi"
 
 # Move css files to build result
 mv "./static/$custom_name" ./buildres/
