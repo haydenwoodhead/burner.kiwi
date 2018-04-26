@@ -1,0 +1,76 @@
+language: go
+
+go:
+  - 1.8
+  - 1.9
+  - 1.10
+  - master
+
+# skip install to grab dependencies from /vendor
+install: true
+
+matrix:
+  allow_failures:
+    - go: master
+  fast_finish: true
+
+# grab dynamodb local, gometalinter, minify and packr
+before_script:
+  - wget https://s3-us-west-2.amazonaws.com/dynamodb-local/dynamodb_local_latest.tar.gz -O /tmp/dynamodb_local_latest.tar.gz
+  - tar -xzf /tmp/dynamodb_local_latest.tar.gz -C /tmp
+  - java -Djava.library.path=/tmp/DynamoDBLocal_lib -jar /tmp/DynamoDBLocal.jar -inMemory &
+  - go get -u gopkg.in/alecthomas/gometalinter.v2
+  - gometalinter --install
+  - go get github.com/tdewolff/minify/cmd/minify
+  - go get -u github.com/gobuffalo/packr/...
+
+script:
+  - gometalinter --vendor ./...
+  - go test -v -race ./...
+
+before_deploy:
+  - ./build.sh
+  - ./before_deploy.sh
+
+deploy:
+  # Deploy to ap-southeast-2 cloudformation bucket
+  - provider: s3
+    access_key_id: $AWS_ACCESS_KEY_ID
+    secret_access_key: $AWS_SECRET_ACCESS_KEY
+    skip_cleanup: true
+    bucket: burner-kiwi-ap-southeast-2
+    region: ap-southeast-2
+    local_dir: buildres/cloudformation
+  # Deploy to eu-west-1 cloudformation bucket
+  - provider: s3
+    access_key_id: $AWS_ACCESS_KEY_ID
+    secret_access_key: $AWS_SECRET_ACCESS_KEY
+    skip_cleanup: true
+    bucket: burner-kiwi-eu-west-1
+    region: eu-west-1
+    local_dir: buildres/cloudformation
+  # Deploy to us-east-1 cloudformation bucket
+  - provider: s3
+    access_key_id: $AWS_ACCESS_KEY_ID
+    secret_access_key: $AWS_SECRET_ACCESS_KEY
+    skip_cleanup: true
+    bucket: burner-kiwi-us-east-1
+    region: us-east-1
+    local_dir: buildres/cloudformation
+  # Deploy static assets
+  - provider: s3
+    access_key_id: $AWS_ACCESS_KEY_ID
+    secret_access_key: $AWS_SECRET_ACCESS_KEY
+    skip_cleanup: true
+    bucket: static.burner.kiwi
+    region: ap-southeast-2
+    local_dir: buildres/cloudformation
+  # Deploy lambda func
+  - provider: lambda
+    function_name: "burner-kiwi-main"
+    region: "ap-southeast-2"
+    role: $LAMBDA_ROLE
+    runtime: "go1.x"
+    handler_name: "burnerkiwi"
+    zip: buildres/cloudformation/burnerkiwi.zip
+    skip_cleanup: true
