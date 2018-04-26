@@ -22,7 +22,7 @@ script:
   - gometalinter.v2 --vendor ./...
   - go test -v -race ./...
   - go test -v -covermode=count -coverprofile=coverage.out
-  - goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
+  - goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN || echo "Push to coveralls failed"
 
 before_deploy:
   - pip install --user awscli
