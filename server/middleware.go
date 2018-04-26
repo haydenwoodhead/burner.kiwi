@@ -131,6 +131,8 @@ func Refresh(sec int) alice.Constructor {
 	}
 }
 
+const self = "'self'"
+
 //SecurityHeaders sets a whole bunch of headers to secure the site
 func (s *Server) SecurityHeaders(extStyle bool) alice.Constructor {
 	return func(h http.Handler) http.Handler {
@@ -145,9 +147,9 @@ func (s *Server) SecurityHeaders(extStyle bool) alice.Constructor {
 			var fntSrc string
 
 			if strings.Compare(s.staticURL, "/static") == 0 {
-				styleSrc = "'self'"
-				imgSrc = "'self'"
-				fntSrc = "'self'"
+				styleSrc = self
+				imgSrc = self
+				fntSrc = self
 			} else {
 				styleSrc = s.staticURL
 				imgSrc = s.staticURL

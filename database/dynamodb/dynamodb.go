@@ -301,9 +301,5 @@ func (d *DynamoDB) createDatabase() error {
 
 	_, err = d.dynDB.CreateTable(messages)
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
