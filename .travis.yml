@@ -28,7 +28,6 @@ script:
   - gometalinter.v2 --vendor ./...
   - go test -v -race ./...
 
-#
 before_deploy:
   - pip install --user awscli
   - ./build.sh
@@ -70,4 +69,5 @@ deploy:
   # Deploy lambda func - do this via a script and the aws cli because travis resets everything to the settings
   # specified here. Why would I want that... Also pipe the output to /dev/null so we don't expose environment vars
   - provider: script
+    skip_cleanup: true
     script: aws lambda update-function-code --zip-file=fileb://buildres/cloudformation/burnerkiwi.zip --region=ap-southeast-2 --function-name=burner-kiwi-main >/dev/null
