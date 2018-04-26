@@ -8,7 +8,7 @@ import (
 )
 
 func TestMustParseTemplates(t *testing.T) {
-	indexFile := template.Must(template.New("index").ParseFiles("templates/base.html", "templates/index.html"))
+	indexFile := template.Must(template.New("index").ParseFiles("../templates/base.html", "../templates/index.html"))
 	indexPackr := MustParseTemplates(templates.String("base.html"), templates.String("index.html"))
 
 	out := indexOut{}
