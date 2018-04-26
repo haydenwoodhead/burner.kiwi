@@ -1,18 +1,10 @@
 language: go
 
 go:
-  - "1.8"
-  - "1.9"
   - "1.10"
-  - master
 
 # skip install to grab dependencies from /vendor
 install: true
-
-matrix:
-  allow_failures:
-    - go: master
-  fast_finish: true
 
 # grab dynamodb local, gometalinter, minify and packr
 before_script:
