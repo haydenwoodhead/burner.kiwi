@@ -15,7 +15,21 @@ Configuration still needs some work.
 
 ## Deploy Your Own!
 
-Deploy your own straight to AWS lambda and DynamoDB. Use this button or the included cloudformation template.
+Deploy your own straight to AWS lambda and DynamoDB. 
+
+Deploy to ap-southeast-2 (Sydney):
+
+[![Deploy](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home?region=ap-southeast-2#/stacks/new?stackName=burnerkiwi&templateURL=https://s3-ap-southeast-2.amazonaws.com/burner-kiwi-ap-southeast-2/cloudformation.json)
+
+Deploy to us-east-1 (N. Virginia):
+
+[![Deploy](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?stackName=burnerkiwi&templateURL=https://s3.amazonaws.com/burner-kiwi-us-east-1/cloudformation.json)
+
+Deploy to eu-west-1 (Ireland):
+
+[![Deploy](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=burnerkiwi&templateURL=https://s3-eu-west-1.amazonaws.com/burner-kiwi-eu-west-1/cloudformation.json)
+
+If you want to deploy to another AWS region you will need to use the provided cloudformation.json template and upload your code to a bucket in that region.
 
 Or run it on your own server. Go build a binary, setup with the configuration parameters detailed below and run it.
 
