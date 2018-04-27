@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.3.0/milligram.min.css">
+    <title>burner.kiwi - FAQ</title>
+    <style>
+        body {
+            margin: 3% auto;
+            max-width: 85%;
+        }
+
+        a {
+            color: red;
+        }
+
+        .logo {
+            max-width: 15%;
+            height: auto;
+        }
+
+        pre {
+            border-color: red;
+        }
+    </style>
+</head>
+<body>
+<img src="../logo-placeholder.png" class="logo" title="Meet Roger. The pyromaniac kiwi!">
+
+<h1>burner.kiwi - API Documentation</h1>
+<hr>
+
+<h3>Base URL</h3>
+
+The base url for v1 is:
+
+<pre> https://burner.kiwi/api/v1</pre>
+
+<h3>Authentication</h3>
+
+<p>Calls to authenticated endpoints must set the HTTP header <code>X-Burner-Key</code> to the <code>token</code> returned by the <code> GET /inbox</code> endpoint.</p>
+
+
+<h3>Create an Inbox</h3>
+
+<pre> GET /inbox </pre>
+
+<p>Returns a new inbox and token. The returned token must be set as a header in subsequent api calls related to this inbox.
+You must save this token as it will not be returned to you again.
+</p>
+
+<h4>Response: 201 - Status Accepted</h4>
+
+<pre><code class="json">{
+    "success": true,
+    "errors": null,
+    "result": {
+        "email": {
+            "address": "881is60i@rogerin.space",
+            "id": "6bf737d2-90ab-487a-bb72-52cfa7ee81g0",
+            "created_at": 1524804051,
+            "ttl": 1524890451
+        },
+        "token": "6bf737d2-90ab-487a-bb72-52cfa7ee81g0.1524890451.p3fJghFADrvtA05NdT8gaCpPSjhP3c6Q_u-SrbPgNDA"
+    },
+    "meta": {
+        "version": "dev",
+        "by": "Hayden Woodhead"
+    }
+}</code></pre>
+
+<h3>Get an Inbox</h3>
+<p><b>Authenticated Endpoint</b></p>
+
+<pre> GET /inbox/$id </pre>
+
+<p>Returns an inbox's details.</p>
+
+<h4>Response: 200 - Status Ok</h4>
+
+<pre><code class="json">{
+    "success": true,
+    "errors": null,
+    "result": {
+        "address": "881is60i@rogerin.space",
+        "id": "6bf737d2-90ab-487a-bb72-52cfa7ee8116",
+        "created_at": 1524804051,
+        "ttl": 1524890451
+    },
+    "meta": {
+        "version": "dev",
+        "by": "Hayden Woodhead"
+    }
+}</code></pre>
+
+<h3>Get an Inbox's Messages</h3>
+<p><b>Authenticated Endpoint</b></p>
+
+<pre> GET /inbox/$id/messages </pre>
+
+<p>Returns an inbox's messages. <b>Note: these messages have not been sanitized for XSS or any other nasty vulnerability.</b>
+It is the responsibility of the caller to ensure the message body is displayed in a suitable way. These messages have only
+    had <code>target="_blank"</code> added to any <code>a</code> tags.
+</p>
+
+<h4>Response: 200 - Status Ok</h4>
+
+<pre><code class="json">{
+    "success": true,
+    "errors": null,
+    "result": [
+        {
+            "id": "7d86c90e-ecb3-4656-b742-07abfa33954d",
+            "received_at": 1524805729,
+            "sender": "bobby@example.com",
+            "from": "Bobby Tables &lt;bobby@example.com&gt;",
+            "subject": "Fwd: Hello there!",
+            "body_html": "&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;div dir=\&quot;ltr\&quot;&gt;&lt;div class=\&quot;gmail_quote\&quot;&gt;&lt;div dir=\&quot;ltr\&quot;&gt;Why hello there. How are you doing today?&lt;br/&gt;&lt;br/&gt;Regards&lt;br/&gt;Bobby Tables&lt;/div&gt;\n&lt;/div&gt;&lt;br/&gt;&lt;/div&gt;\n&lt;/body&gt;&lt;/html&gt;",
+            "body_plain": "Why hello there. How are you doing today?\r\n\r\nRegards\r\nBobby Tables\r\n",
+            "ttl": 1524890451
+        }
+    ],
+    "meta": {
+        "version": "dev",
+        "by": "Hayden Woodhead"
+    }
+}</code></pre>
+
+<h3>Errors</h3>
+
+<p>In the event of an error the <code>success</code> will be <code>false</code>, <code>errors</code> will be non <code>null</code> and <code>result</code> will be <code>null</code>.</p>
+
+<p>For example:</p>
+
+<pre><code class="json">{
+    "success": false,
+    "errors": {
+        "code": 401,
+        "msg": "Unauthorized: given auth key invalid"
+    },
+    "result": null,
+    "meta": {
+        "version": "dev",
+        "by": "Hayden Woodhead"
+    }
+}</code></pre>
+
+<h3>Notes</h3>
+
+<p>While I will make my best effort to ensure correctness/uptime/api stability I make no guarantees. If you require the use
+of this api for any business related/critical purposes I suggest hosting your own version. Check out how to <a target="_blank" href="https://github.com/haydenwoodhead/burner.kiwi">here</a>.</p>
+
+</body>
+</html>

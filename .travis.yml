@@ -62,6 +62,14 @@ deploy:
     bucket: static.burner.kiwi
     region: ap-southeast-2
     local_dir: buildres/cloudformation
+  # Deploy about.burner.kiwi assets
+  - provider: s3
+    access_key_id: $AWS_ACCESS_KEY_ID
+    secret_access_key: $AWS_SECRET_ACCESS_KEY
+    skip_cleanup: true
+    bucket: about.burner.kiwi
+    region: ap-southeast-2
+    local_dir: about.burner.kiwi
   # Deploy lambda func - do this via a script and the aws cli because travis resets everything to the settings
   # specified here. Why would I want that... Also pipe the output to /dev/null so we don't expose environment vars
   - provider: script
