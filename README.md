@@ -1,7 +1,7 @@
 # Burner.kiwi
 [![Build Status](https://travis-ci.org/haydenwoodhead/burner.kiwi.svg?branch=master)](https://travis-ci.org/haydenwoodhead/burner.kiwi) [![Go Report Card](https://goreportcard.com/badge/github.com/haydenwoodhead/burner.kiwi)](https://goreportcard.com/report/github.com/haydenwoodhead/burner.kiwi) [![Coverage Status](https://coveralls.io/repos/github/haydenwoodhead/burner.kiwi/badge.svg)](https://coveralls.io/github/haydenwoodhead/burner.kiwi)
 
-A temporary email service and api built in golang. No javascript. No tracking. No analytics. No bullshit.
+A temporary email service and api built in go. No javascript. No tracking. No analytics. No bullshit.
 
 Check it out here: https://burner.kiwi
 
@@ -10,10 +10,20 @@ Check it out here: https://burner.kiwi
 Burner.kiwi is designed to be able to run on both AWS lambda and normal machines. The __goal__ is to have several backing 
 database implementations and flexible configuration.
 
-At this point it's working on normal machines and in lambda. There are two database implementations - DynamoDB and InMemory.
-Configuration still needs some work. 
+At this point it's working on normal machines and in lambda. There is one production ready database implementation - DynamoDB 
+and a dev/testing implementation - InMemory.
+
+This is definitely still a work in progress, see the todo section.
 
 ## Deploy Your Own!
+
+You will need to:
+1. Buy at least one domain
+2. Sign up for a mailgun account
+3. Add your new domain(s) to your mailgun account
+4. Ensure you can receive email through mailgun on that domain
+
+### AWS Lambda
 
 Deploy your own straight to AWS lambda and DynamoDB. 
 
@@ -29,15 +39,11 @@ Deploy to eu-west-1 (Ireland):
 
 [![Deploy](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=burnerkiwi&templateURL=https://s3-eu-west-1.amazonaws.com/burner-kiwi-eu-west-1/cloudformation.json)
 
-If you want to deploy to another AWS region you will need to use the provided cloudformation.json template and upload your code to a bucket in that region.
+If you want to deploy to another AWS region you will modify the provided cloudformation.json template and upload your code to a bucket in that region.
 
-Or run it on your own server. Go build a binary, setup with the configuration parameters detailed below and run it.
+### Other
 
-You will also need to:
-1. Buy at least one domain
-2. Sign up for a mailgun account
-3. Add your new domain(s) to your mailgun account
-4. Ensure you can receive email through mailgun on that domain
+Or run it on your own server. Build a binary, setup with the configuration parameters detailed below and run it.
 
 ## Build
 
@@ -47,11 +53,11 @@ To build for development just run `go build` nothing special here.
 
 ### Production
 
-Building for production is a different beast. We need to give assets cache friendly names and minify them and add build time
-variables to the binary. Check out the included `build.sh` file.
+Building for production is a different beast. We need to give assets cache friendly names, minify them and add their 
+new names to the binary. Check out the included `build.sh` file.
 
 To build run `./build.sh` from the root of the project. This will create and populate a `buildres` directory
-containing the binary file and minified and rename static assets.
+containing the binary file and minified/renamed static assets.
 
 ## Configuration Parameters
 
@@ -78,16 +84,19 @@ AWS_REGION | String | The AWS region containing the DynamoDB table. Use the appr
 
 ## Deleting Old Routes
 
-If you do decide to deploy this yourself not using the cloudformation template you will need to setup some form of cron 
-to tell burner.kiwi to delete old mailgun routes.
+Burner.kiwi creates a new mailgun route for every inbox and email address. This allows us to delete these routes once the
+inbox expires and prevents the server being unnecessarily burdened by webhooks for inboxes that don't exist anymore. 
 
-If you are deployed on lambda: if you used the cloudformation template you're sweet. Otherwise setup a cloudformation event
-to call the lambda func every 6 hours or so. 
+Old routes are deleted in the background every time the binary is started. In a lambda context this means every time we 
+have a cold start. The cloudformation template sets up a cloudwatch event to call the handler every 6 hours. However, because
+of the fact burner.kiwi is designed to be platform agnostic we cant differentiate between these cloudwatch events and 
+normal http requests. This means if the cloudwatch event hits a frozen container rather than causing a new container to
+be spawned we wont trigger the deletion of old routes. Hopefully a normal http request or cloudwatch event will cause 
+a new container to be spawned often enough that old routes are cleared out. 
 
-If you are deployed on a normal machine: setup a cron to run the binary every 6 hours or so like so `burnerkiwi -delete-old-routes`. You 
-will need to ensure the binary can still access the environment variables. 
-
-These will both trigger the removal of old routes from mailgun.
+If you are deployed on a normal machine you can explicitly cause deletion of old routes without starting the http server. 
+You can setup a cron to run the binary every 6 hours like so `burnerkiwi -delete-old-routes`. You will need to ensure
+the binary can still access the environment variables. 
 
 ## Contributing
 
@@ -96,10 +105,10 @@ Create an issue and outline your plans or bugs.
 
 ## Todo
 
+* More tests for server package
 * More database implementations (PSQL, SQLite, etc)
 * Night theme
 * Print html errors rather than just plain text
-* More tests for http handlers
 * Better configuration
 * Noob friendly setup tutorial
 
