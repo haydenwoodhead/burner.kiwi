@@ -1,31 +1,31 @@
 # Burner.kiwi
 [![Build Status](https://travis-ci.org/haydenwoodhead/burner.kiwi.svg?branch=master)](https://travis-ci.org/haydenwoodhead/burner.kiwi) [![Go Report Card](https://goreportcard.com/badge/github.com/haydenwoodhead/burner.kiwi)](https://goreportcard.com/report/github.com/haydenwoodhead/burner.kiwi) [![Coverage Status](https://coveralls.io/repos/github/haydenwoodhead/burner.kiwi/badge.svg)](https://coveralls.io/github/haydenwoodhead/burner.kiwi)
 
-A temporary email service and api built in go. No javascript. No tracking. No analytics. No bullshit.
+A temporary email service and API built in Go. No JavaScript. No tracking. No analytics. No bullshit.
 
 Check it out here: https://burner.kiwi
 
 ## About
 
-Burner.kiwi is designed to be able to run on both AWS lambda and normal machines. The __goal__ is to have several backing 
+Burner.kiwi is designed to be able to run on both AWS Lambda and normal machines. The __goal__ is to have several backing 
 database implementations and flexible configuration.
 
-At this point it's working on normal machines and in lambda. There is one production ready database implementation - DynamoDB 
+At this point it's working on normal machines and in Lambda. There is one production-ready database implementation - DynamoDB 
 and a dev/testing implementation - InMemory.
 
-This is definitely still a work in progress, see the todo section.
+This is definitely still a work in progress, see the To Do section.
 
 ## Deploy Your Own!
 
 You will need to:
 1. Buy at least one domain
-2. Sign up for a mailgun account
-3. Add your new domain(s) to your mailgun account
-4. Ensure you can receive email through mailgun on that domain
+2. Sign up for a Mailgun account
+3. Add your new domain(s) to your Mailgun account
+4. Ensure you can receive email through Mailgun on that domain
 
 ### AWS Lambda
 
-Deploy your own straight to AWS lambda and DynamoDB. 
+Deploy your own straight to AWS Lambda and DynamoDB. 
 
 Deploy to ap-southeast-2 (Sydney):
 
@@ -43,13 +43,13 @@ If you want to deploy to another AWS region you will modify the provided cloudfo
 
 ### Other
 
-Or run it on your own server. Build a binary, setup with the configuration parameters detailed below and run it.
+Or run it on your own server. Build a binary, set up with the configuration parameters detailed below and run it.
 
 ## Build
 
 ### Development
 
-To build for development just run `go build` nothing special here.
+To build for development just run `go build` - nothing special here.
 
 ### Production
 
@@ -67,43 +67,43 @@ Parameter | Type | Description
 ----------|------|-------------
 LAMBDA | Boolean | Whether or not the binary is being hosted on AWS Lambda
 KEY | String | Key used to sign cookies and keys. Make this something strong!
-WEBSITE_URL | String | The url where the binary is being hosted. This must be internet reachable as it is the destination for mailgun routes
+WEBSITE_URL | String | The url where the binary is being hosted. This must be internet reachable as it is the destination for Mailgun routes
 STATIC_URL | String | The url where static content is being hosted. Set to `/static` to have the binary serve it. Otherwise set to a full domain name with protocol e.g https://static.example.com
 DEVELOPING | Boolean | Set to `true` to disable HSTS and set `Cache-Control` to zero. 
-DOMAINS | []String | Comma separated list of domains connected to mailgun account and able to receive email
-MG_KEY | String | Mailgun private api key
-MG_DOMAIN | String | One of the domains setup on your mailgun account
+DOMAINS | []String | Comma separated list of domains connected to Mailgun account and able to receive email
+MG_KEY | String | Mailgun private API key
+MG_DOMAIN | String | One of the domains set up on your Mailgun account
 
-If you are using DynamoDB a non AWS environment you need to set these. If you are on AWS you should of course should use IAM roles.
+If you are using DynamoDB a non AWS environment you need to set these. If you are on AWS you should, of course, should use IAM roles.
 
 Parameter | Type | Description
 ----------|------|-------------
 AWS_ACCESS_KEY_ID | String | Your AWS access key ID corresponding to an IAM role with permission to use DynamoDB
-AWS_SECRET_ACCESS_KEY | String | AWS secret access key corresponding to your access key id
+AWS_SECRET_ACCESS_KEY | String | AWS secret access key corresponding to your access key ID
 AWS_REGION | String | The AWS region containing the DynamoDB table. Use the appropriate value from the Region column [here](https://docs.aws.amazon.com/general/latest/gr/rande.html#ddb_region).
 
 ## Deleting Old Routes
 
-Burner.kiwi creates a new mailgun route for every inbox and email address. This allows us to delete these routes once the
+Burner.kiwi creates a new Mailgun route for every inbox and email address. This allows us to delete these routes once the
 inbox expires and prevents the server being unnecessarily burdened by webhooks for inboxes that don't exist anymore. 
 
-Old routes are deleted in the background every time the binary is started. In a lambda context this means every time we 
-have a cold start. The cloudformation template sets up a cloudwatch event to call the handler every 6 hours. However, because
-of the fact burner.kiwi is designed to be platform agnostic we cant differentiate between these cloudwatch events and 
-normal http requests. This means if the cloudwatch event hits a frozen container rather than causing a new container to
-be spawned we wont trigger the deletion of old routes. Hopefully a normal http request or cloudwatch event will cause 
+Old routes are deleted in the background every time the binary is started. In a Lambda context this means every time we 
+have a cold start, the CloudFormation template sets up a CloudWatch event to call the handler every 6 hours. However, because
+of the fact that burner.kiwi is designed to be platform agnostic we can't differentiate between these CloudWatch events and 
+normal http requests. This means if the CloudWatch event hits a frozen container rather than causing a new container to
+be spawned, we wont trigger the deletion of old routes. Hopefully, a normal http request or CloudWatch event will cause 
 a new container to be spawned often enough that old routes are cleared out. 
 
 If you are deployed on a normal machine you can explicitly cause deletion of old routes without starting the http server. 
-You can setup a cron to run the binary every 6 hours like so `burnerkiwi -delete-old-routes`. You will need to ensure
+You can set up a cron to run the binary every 6 hours, like so: `burnerkiwi -delete-old-routes`. You will need to ensure
 the binary can still access the environment variables. 
 
 ## Contributing
 
-If you notice any issues or have anything to add I would be more than happy to work with you. 
+If you notice any issues or have anything to add, I would be more than happy to work with you. 
 Create an issue and outline your plans or bugs.
 
-## Todo
+## To do
 
 * More tests for server package
 * More database implementations (PSQL, SQLite, etc)
@@ -112,7 +112,7 @@ Create an issue and outline your plans or bugs.
 * Better configuration
 * Noob friendly setup tutorial
 
-Again, if you think you can help then create an issue and outline your plans.
+Again, if you think you can help, then create an issue and outline your plans.
 
 ## License
 
