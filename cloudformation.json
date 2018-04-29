@@ -151,7 +151,7 @@
           }
         ],
         "TimeToLiveSpecification": {
-          "AttributeName" : "TTL",
+          "AttributeName" : "ttl",
           "Enabled" : "true"
         }
       }
@@ -195,7 +195,7 @@
           }
         ],
         "TimeToLiveSpecification": {
-          "AttributeName" : "TTL",
+          "AttributeName" : "ttl",
           "Enabled" : "true"
         }
       }
