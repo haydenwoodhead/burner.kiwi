@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"gopkg.in/mailgun/mailgun-go.v1"
 )
 
@@ -114,7 +115,23 @@ func (FakeMG) GetRoutes(limit, skip int) (int, []mailgun.Route, error) {
 	return len(r), r, nil
 }
 
+func (FakeMG) CreateRoute(m mailgun.Route) (mailgun.Route, error) {
+	if routes == nil {
+		routes = make(map[string]mailgun.Route)
+	}
+
+	id, _ := uuid.NewRandom() // not the same format as mailgun but lets give each route a random id
+
+	m.ID = id.String()
+	m.CreatedAt = fmt.Sprintf("%v", time.Now().Unix())
+
+	routes[m.ID] = m
+
+	return m, nil
+}
+
 // Argh... mailgun and their massive interface making me implement all these methods
+// nolint
 func (FakeMG) ApiBase() string {
 	panic("implement me")
 }
@@ -123,10 +140,12 @@ func (FakeMG) Domain() string {
 	panic("implement me")
 }
 
+// nolint
 func (FakeMG) ApiKey() string {
 	panic("implement me")
 }
 
+// nolint
 func (FakeMG) PublicApiKey() string {
 	panic("implement me")
 }
@@ -207,6 +226,7 @@ func (FakeMG) CreateCampaign(name, id string) error {
 	panic("implement me")
 }
 
+// nolint
 func (FakeMG) UpdateCampaign(oldId, name, newId string) error {
 	panic("implement me")
 }
@@ -280,10 +300,6 @@ func (FakeMG) DeleteComplaint(string) error {
 }
 
 func (FakeMG) GetRouteByID(string) (mailgun.Route, error) {
-	panic("implement me")
-}
-
-func (FakeMG) CreateRoute(mailgun.Route) (mailgun.Route, error) {
 	panic("implement me")
 }
 
