@@ -112,7 +112,7 @@ func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
 		return msgs[i].ReceivedAt > msgs[j].ReceivedAt
 	})
 
-	received := getReceivedDetails(msgs)
+	received := GetReceivedDetails(msgs)
 
 	expiration := time.Until(time.Unix(i.TTL, 0))
 	h, m := GetHoursAndMinutes(expiration)
@@ -262,7 +262,7 @@ func (s *Server) IndividualMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rtd := getReceivedDetails([]Message{m})
+	rtd := GetReceivedDetails([]Message{m})
 
 	ra := time.Unix(m.ReceivedAt, 0)
 

@@ -38,9 +38,9 @@ type Message struct {
 	TTL        int64  `dynamodbav:"ttl" json:"ttl"`
 }
 
-//getReceivedDetails takes a slice of Message and returns a slice with a string corresponding to each msg
+//GetReceivedDetails takes a slice of Message and returns a slice with a string corresponding to each msg
 // with the details on when that message was received
-func getReceivedDetails(msgs []Message) []string {
+func GetReceivedDetails(msgs []Message) []string {
 	var received []string
 
 	// loop over all messages and calculate how long ago the message was received
