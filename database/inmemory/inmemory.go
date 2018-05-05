@@ -1,13 +1,15 @@
 package inmemory
 
 import (
-	"fmt"
+	"errors"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/haydenwoodhead/burner.kiwi/server"
 )
+
+var errInboxDoesntExist = errors.New("failed to get inbox. It doesn't exist")
 
 // InMemory implements an in memory database
 type InMemory struct {
@@ -27,36 +29,41 @@ func GetInMemoryDB() *InMemory {
 	go func(im *InMemory) {
 		for {
 			time.Sleep(6 * time.Hour)
-			im.m.Lock()
-
-			for k, v := range im.emails {
-				t := time.Unix(v.TTL, 0)
-
-				// if our emails ttl is before now then delete it
-				if t.Before(time.Now()) {
-					delete(im.emails, k)
-				}
-			}
-
-			for iK, iV := range im.messages {
-				for k, v := range iV {
-					t := time.Unix(v.TTL, 0)
-
-					if t.Before(time.Now()) {
-						delete(im.emails, k)
-					}
-				}
-
-				if len(iV) == 0 {
-					delete(im.messages, iK)
-				}
-			}
-
-			im.m.Unlock()
+			im.DeleteExpiredData()
 		}
 	}(im)
 
 	return im
+}
+
+// DeleteExpiredData deletes data that has expired according to its TTL
+func (im *InMemory) DeleteExpiredData() {
+	im.m.Lock()
+
+	for k, v := range im.emails {
+		t := time.Unix(v.TTL, 0)
+
+		// if our emails ttl is before now then delete it
+		if t.Before(time.Now()) {
+			delete(im.emails, k)
+		}
+	}
+
+	for iK, iV := range im.messages {
+		for k, v := range iV {
+			t := time.Unix(v.TTL, 0)
+
+			if t.Before(time.Now()) {
+				delete(im.messages[iK], k)
+			}
+		}
+
+		if len(iV) == 0 {
+			delete(im.messages, iK)
+		}
+	}
+
+	im.m.Unlock()
 }
 
 // SaveNewInbox saves a given inbox to memory
@@ -81,7 +88,7 @@ func (im *InMemory) GetInboxByID(id string) (server.Inbox, error) {
 	i, ok := im.emails[id]
 
 	if !ok {
-		return server.Inbox{}, fmt.Errorf("failed to get inbox. It doesn't exist")
+		return server.Inbox{}, errInboxDoesntExist
 	}
 
 	return i, nil
