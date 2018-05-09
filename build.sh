@@ -40,7 +40,7 @@ packr build -ldflags "-X github.com/haydenwoodhead/burner.kiwi/server.version=${
 mv "./static/$custom_name" ./buildres/
 mv "./static/$milligram_name" ./buildres/
 mv "./static/$normalize_name" ./buildres/
-cp ./static/logo-placeholder.png ./buildres/
+cp ./static/roger-proportional.svg ./buildres/
 
 echo Build Complete
 exit 0

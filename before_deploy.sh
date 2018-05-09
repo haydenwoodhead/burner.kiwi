@@ -13,6 +13,6 @@ cd ../
 cp cloudformation.json ./buildres/cloudformation/
 
 mv ./buildres/*min.css ./buildres/static
-mv ./buildres/*.png ./buildres/static
+mv ./buildres/*.svg ./buildres/static
 
 

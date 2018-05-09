@@ -1,4 +1,4 @@
-![Roger the pyro kiwi](/about.burner.kiwi/roger.svg?raw=true "Meet Roger. They pyromaniac Kiwi.")
+![Roger the pyro kiwi](roger.png?raw=true "Meet Roger. They pyromaniac Kiwi.")
 
 # Burner.kiwi
 [![Build Status](https://travis-ci.org/haydenwoodhead/burner.kiwi.svg?branch=master)](https://travis-ci.org/haydenwoodhead/burner.kiwi) [![Go Report Card](https://goreportcard.com/badge/github.com/haydenwoodhead/burner.kiwi)](https://goreportcard.com/report/github.com/haydenwoodhead/burner.kiwi) [![Coverage Status](https://coveralls.io/repos/github/haydenwoodhead/burner.kiwi/badge.svg)](https://coveralls.io/github/haydenwoodhead/burner.kiwi)
