@@ -1,3 +1,5 @@
+![Roger the pyro kiwi](/about.burner.kiwi/roger.svg?raw=true "Meet Roger. They pyromaniac Kiwi.")
+
 # Burner.kiwi
 [![Build Status](https://travis-ci.org/haydenwoodhead/burner.kiwi.svg?branch=master)](https://travis-ci.org/haydenwoodhead/burner.kiwi) [![Go Report Card](https://goreportcard.com/badge/github.com/haydenwoodhead/burner.kiwi)](https://goreportcard.com/report/github.com/haydenwoodhead/burner.kiwi) [![Coverage Status](https://coveralls.io/repos/github/haydenwoodhead/burner.kiwi/badge.svg)](https://coveralls.io/github/haydenwoodhead/burner.kiwi)
 
@@ -119,3 +121,6 @@ Again, if you think you can help, then create an issue and outline your plans.
 Copyright 2018 Hayden Woodhead
 
 Licensed under the MIT License. 
+
+The Roger logo is drawn by Melissa Bather, used with permission, and licensed under 
+[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)](https://creativecommons.org/licenses/by-nc-sa/4.0/).

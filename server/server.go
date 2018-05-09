@@ -30,7 +30,7 @@ var deleteTemplate *template.Template
 
 // Static asset vars - these are overridden at build time to inject a file w/ version info
 var milligram = "milligram.css"
-var logo = "logo-placeholder.png"
+var logo = "roger-proportional.svg"
 var normalize = "normalize.css"
 var custom = "custom.css"
 

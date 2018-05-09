@@ -24,7 +24,7 @@ hr {
 }
 
 a {
-    color: red;
+    color: #e38b25;
 }
 
 .no-link-color {
@@ -32,7 +32,7 @@ a {
 }
 
 .logo {
-    max-width: 13%;
+    max-width: 30%;
     height: auto;
     margin-left: auto;
     margin-right: auto;
@@ -73,20 +73,20 @@ a {
 }
 
 .button-red {
-    border-color: red;
-    background-color: red;
+    border-color: #f5ab33;
+    background-color: #f5ab33;
 }
 
 .button-red.button-outline {
     background-color: transparent;
-    color: red;
+    color: #f5ab33;
 }
 
 .button-red.button-outline:hover {
     color: white;
-    outline-color: red;
-    border: red;
-    background-color: red;
+    outline-color: #f5ab33;
+    border: #f5ab33;
+    background-color: #f5ab33;
 }
 
 .center {
