@@ -61,7 +61,7 @@ deploy:
     skip_cleanup: true
     bucket: static.burner.kiwi
     region: ap-southeast-2
-    local_dir: buildres/cloudformation
+    local_dir: buildres/static
   # Deploy about.burner.kiwi assets
   - provider: s3
     access_key_id: $AWS_ACCESS_KEY_ID
