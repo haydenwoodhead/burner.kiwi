@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/haydenwoodhead/burner.kiwi/data"
 )
 
 // Response is the root response for every api call
@@ -41,7 +42,7 @@ func GetMeta() Meta {
 
 // NewInboxJSON generates a new email address and returns it to the caller
 func (s *Server) NewInboxJSON(w http.ResponseWriter, r *http.Request) {
-	i := NewInbox()
+	i := data.NewInbox()
 	resp := Response{Meta: GetMeta()}
 
 	i.Address = s.eg.NewRandom()
@@ -95,8 +96,8 @@ func (s *Server) NewInboxJSON(w http.ResponseWriter, r *http.Request) {
 	token := s.tg.NewToken(i.ID)
 
 	res := struct {
-		Inbox Inbox  `json:"email"`
-		Token string `json:"token"`
+		Inbox data.Inbox `json:"email"`
+		Token string     `json:"token"`
 	}{
 		Inbox: i,
 		Token: token,

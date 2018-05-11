@@ -6,15 +6,17 @@ import (
 	"sync"
 	"time"
 
-	"github.com/haydenwoodhead/burner.kiwi/server"
+	"github.com/haydenwoodhead/burner.kiwi/data"
 )
+
+var _ data.Database = &InMemory{}
 
 var errInboxDoesntExist = errors.New("failed to get inbox. It doesn't exist")
 
 // InMemory implements an in memory database
 type InMemory struct {
-	emails   map[string]server.Inbox
-	messages map[string]map[string]server.Message
+	emails   map[string]data.Inbox
+	messages map[string]map[string]data.Message
 	m        sync.Mutex
 }
 
@@ -22,8 +24,8 @@ type InMemory struct {
 func GetInMemoryDB() *InMemory {
 	im := &InMemory{}
 
-	im.messages = make(map[string]map[string]server.Message)
-	im.emails = make(map[string]server.Inbox)
+	im.messages = make(map[string]map[string]data.Message)
+	im.emails = make(map[string]data.Inbox)
 
 	// launch a func which deletes expired objects
 	go func(im *InMemory) {
@@ -67,28 +69,28 @@ func (im *InMemory) DeleteExpiredData() {
 }
 
 // SaveNewInbox saves a given inbox to memory
-func (im *InMemory) SaveNewInbox(i server.Inbox) error {
+func (im *InMemory) SaveNewInbox(i data.Inbox) error {
 	im.m.Lock()
 	defer im.m.Unlock()
 
 	im.emails[i.ID] = i
 
 	if im.messages[i.ID] == nil {
-		im.messages[i.ID] = make(map[string]server.Message)
+		im.messages[i.ID] = make(map[string]data.Message)
 	}
 
 	return nil
 }
 
 //GetInboxByID gets an inbox by the given inbox id
-func (im *InMemory) GetInboxByID(id string) (server.Inbox, error) {
+func (im *InMemory) GetInboxByID(id string) (data.Inbox, error) {
 	im.m.Lock()
 	defer im.m.Unlock()
 
 	i, ok := im.emails[id]
 
 	if !ok {
-		return server.Inbox{}, errInboxDoesntExist
+		return data.Inbox{}, errInboxDoesntExist
 	}
 
 	return i, nil
@@ -110,7 +112,7 @@ func (im *InMemory) EmailAddressExists(a string) (bool, error) {
 }
 
 // SetInboxCreated updates the given inbox to reflect its created status
-func (im *InMemory) SetInboxCreated(i server.Inbox) error {
+func (im *InMemory) SetInboxCreated(i data.Inbox) error {
 	im.m.Lock()
 	defer im.m.Unlock()
 
@@ -121,12 +123,12 @@ func (im *InMemory) SetInboxCreated(i server.Inbox) error {
 }
 
 //SaveNewMessage saves a given message to memory
-func (im *InMemory) SaveNewMessage(m server.Message) error {
+func (im *InMemory) SaveNewMessage(m data.Message) error {
 	im.m.Lock()
 	defer im.m.Unlock()
 
 	if im.messages[m.InboxID] == nil {
-		im.messages[m.InboxID] = make(map[string]server.Message)
+		im.messages[m.InboxID] = make(map[string]data.Message)
 	}
 
 	im.messages[m.InboxID][m.ID] = m
@@ -135,17 +137,17 @@ func (im *InMemory) SaveNewMessage(m server.Message) error {
 }
 
 //GetMessagesByInboxID returns all messages in a given inbox
-func (im *InMemory) GetMessagesByInboxID(id string) ([]server.Message, error) {
+func (im *InMemory) GetMessagesByInboxID(id string) ([]data.Message, error) {
 	im.m.Lock()
 	defer im.m.Unlock()
 
 	msgs, ok := im.messages[id]
 
 	if !ok {
-		return []server.Message{}, nil
+		return []data.Message{}, nil
 	}
 
-	var msgsSlice []server.Message
+	var msgsSlice []data.Message
 
 	for _, v := range msgs {
 		msgsSlice = append(msgsSlice, v)
@@ -155,14 +157,14 @@ func (im *InMemory) GetMessagesByInboxID(id string) ([]server.Message, error) {
 }
 
 //GetMessageByID gets a single message by the given inbox and message id
-func (im *InMemory) GetMessageByID(i, m string) (server.Message, error) {
+func (im *InMemory) GetMessageByID(i, m string) (data.Message, error) {
 	im.m.Lock()
 	defer im.m.Unlock()
 
 	msg, ok := im.messages[i][m]
 
 	if !ok {
-		return server.Message{}, server.ErrMessageDoesntExist
+		return data.Message{}, data.ErrMessageDoesntExist
 	}
 
 	return msg, nil

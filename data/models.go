@@ -1,9 +1,11 @@
-package server
+package data
 
 import (
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/haydenwoodhead/burner.kiwi/stringduration"
 )
 
 // Inbox contains data on a temporary inbox including its address and ttl
@@ -57,7 +59,7 @@ func GetReceivedDetails(msgs []Message) []string {
 
 		diff = diff.Round(time.Minute) // Round to nearest minute
 
-		h, min := GetHoursAndMinutes(diff)
+		h, min := stringduration.GetHoursAndMinutes(diff)
 
 		if strings.Compare(h, "0") != 0 {
 			received = append(received, fmt.Sprintf("%vh %vm ago", h, min))

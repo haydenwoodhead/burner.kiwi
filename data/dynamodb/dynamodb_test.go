@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/haydenwoodhead/burner.kiwi/database"
+	"github.com/haydenwoodhead/burner.kiwi/data"
 )
 
 func TestDynamoDB(t *testing.T) {
@@ -34,7 +34,7 @@ func TestDynamoDB(t *testing.T) {
 	}
 
 	// iterate over the testing suite and call the function
-	for _, f := range database.TestingFuncs {
+	for _, f := range data.TestingFuncs {
 		f(t, db)
 	}
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/haydenwoodhead/burner.kiwi/data"
 )
 
 // MailgunIncoming receives incoming email webhooks from mailgun. It saves the email to
@@ -37,7 +38,7 @@ func (s *Server) MailgunIncoming(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var m Message
+	var m data.Message
 
 	m.InboxID = i.ID
 	m.TTL = i.TTL

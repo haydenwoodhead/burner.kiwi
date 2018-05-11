@@ -14,6 +14,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
+	"github.com/haydenwoodhead/burner.kiwi/data"
+	"github.com/haydenwoodhead/burner.kiwi/stringduration"
 )
 
 //staticDetails contains the names of the static files used in the project
@@ -39,9 +41,9 @@ func (s *Server) getStaticDetails() staticDetails {
 // indexOut contains data to be rendered by the index template
 type indexOut struct {
 	Static     staticDetails
-	Messages   []Message
+	Messages   []data.Message
 	ReceivedAt []string
-	Inbox      Inbox
+	Inbox      data.Inbox
 	Expires    expires
 }
 
@@ -56,7 +58,7 @@ type messageOut struct {
 	Static           staticDetails
 	ReceivedTimeDiff string
 	ReceivedAt       string
-	Message          Message
+	Message          data.Message
 }
 
 // Index returns messages in inbox to user
@@ -112,10 +114,10 @@ func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
 		return msgs[i].ReceivedAt > msgs[j].ReceivedAt
 	})
 
-	received := GetReceivedDetails(msgs)
+	received := data.GetReceivedDetails(msgs)
 
 	expiration := time.Until(time.Unix(i.TTL, 0))
-	h, m := GetHoursAndMinutes(expiration)
+	h, m := stringduration.GetHoursAndMinutes(expiration)
 
 	io := indexOut{
 		Static:     s.getStaticDetails(),
@@ -139,7 +141,7 @@ func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
 
 // NewInbox creates a new inbox and returns details to the user
 func (s *Server) NewInbox(w http.ResponseWriter, r *http.Request) {
-	i := NewInbox()
+	i := data.NewInbox()
 	sess, ok := r.Context().Value(sessionCTXKey).(*sessions.Session)
 
 	if !ok {
@@ -253,7 +255,7 @@ func (s *Server) IndividualMessage(w http.ResponseWriter, r *http.Request) {
 
 	m, err := s.db.GetMessageByID(iID, mID)
 
-	if err == ErrMessageDoesntExist {
+	if err == data.ErrMessageDoesntExist {
 		returnHTMLError(w, r, http.StatusNotFound, "Message not found on server")
 		return
 	} else if err != nil {
@@ -262,7 +264,7 @@ func (s *Server) IndividualMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rtd := GetReceivedDetails([]Message{m})
+	rtd := data.GetReceivedDetails([]data.Message{m})
 
 	ra := time.Unix(m.ReceivedAt, 0)
 

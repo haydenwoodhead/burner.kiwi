@@ -1,16 +1,14 @@
-package database
+package data
 
 import (
 	"reflect"
 	"strings"
 	"testing"
 	"time"
-
-	"github.com/haydenwoodhead/burner.kiwi/server"
 )
 
 // TestFunction is the signature for a testing function
-type TestFunction = func(t *testing.T, db server.Database)
+type TestFunction = func(t *testing.T, db Database)
 
 // TestingFuncs contain the suite of funcs that a db implementation should be tested against
 var TestingFuncs = []TestFunction{
@@ -24,8 +22,8 @@ var TestingFuncs = []TestFunction{
 }
 
 // TestSaveNewInbox verifies that SaveNewInbox works
-func TestSaveNewInbox(t *testing.T, db server.Database) {
-	i := server.Inbox{
+func TestSaveNewInbox(t *testing.T, db Database) {
+	i := Inbox{
 		Address:        "test@example.com",
 		ID:             "1234",
 		CreatedAt:      time.Now().Unix(),
@@ -52,8 +50,8 @@ func TestSaveNewInbox(t *testing.T, db server.Database) {
 }
 
 // TestGetInboxByID verifies that GetInboxByID works
-func TestGetInboxByID(t *testing.T, db server.Database) {
-	i := server.Inbox{
+func TestGetInboxByID(t *testing.T, db Database) {
+	i := Inbox{
 		Address:        "test@example.com",
 		ID:             "1234",
 		CreatedAt:      time.Now().Unix(),
@@ -80,8 +78,8 @@ func TestGetInboxByID(t *testing.T, db server.Database) {
 }
 
 // TestEmailAddressExists verifies that EmailAddressExists works
-func TestEmailAddressExists(t *testing.T, db server.Database) {
-	i := server.Inbox{
+func TestEmailAddressExists(t *testing.T, db Database) {
+	i := Inbox{
 		Address:        "test.1@example.com",
 		ID:             "5678",
 		CreatedAt:      time.Now().Unix(),
@@ -118,8 +116,8 @@ func TestEmailAddressExists(t *testing.T, db server.Database) {
 }
 
 //TestSetInboxCreated verifies that SetInboxCreated works
-func TestSetInboxCreated(t *testing.T, db server.Database) {
-	i := server.Inbox{
+func TestSetInboxCreated(t *testing.T, db Database) {
+	i := Inbox{
 		Address:        "test2@example.com",
 		ID:             "9101112",
 		CreatedAt:      time.Now().Unix(),
@@ -158,8 +156,8 @@ func TestSetInboxCreated(t *testing.T, db server.Database) {
 }
 
 //TestSaveNewMessage verifies that SaveNewMessage works
-func TestSaveNewMessage(t *testing.T, db server.Database) {
-	m := server.Message{
+func TestSaveNewMessage(t *testing.T, db Database) {
+	m := Message{
 		InboxID:    "1234",
 		ID:         "5678",
 		ReceivedAt: time.Now().Unix(),
@@ -190,8 +188,8 @@ func TestSaveNewMessage(t *testing.T, db server.Database) {
 }
 
 //TestGetMessageByID verifies that GetMessageByID works
-func TestGetMessageByID(t *testing.T, db server.Database) {
-	m := server.Message{
+func TestGetMessageByID(t *testing.T, db Database) {
+	m := Message{
 		InboxID:    "9101112",
 		ID:         "5678",
 		ReceivedAt: time.Now().Unix(),
@@ -213,7 +211,7 @@ func TestGetMessageByID(t *testing.T, db server.Database) {
 	tests := []struct {
 		InboxID     string
 		MessageID   string
-		ExpectedRes server.Message
+		ExpectedRes Message
 		ExpectedErr error
 	}{
 		{
@@ -225,8 +223,8 @@ func TestGetMessageByID(t *testing.T, db server.Database) {
 		{
 			InboxID:     "000000",
 			MessageID:   "00000",
-			ExpectedRes: server.Message{},
-			ExpectedErr: server.ErrMessageDoesntExist,
+			ExpectedRes: Message{},
+			ExpectedErr: ErrMessageDoesntExist,
 		},
 	}
 
@@ -244,8 +242,8 @@ func TestGetMessageByID(t *testing.T, db server.Database) {
 }
 
 //TestGetMessagesByInboxID verifies that GetMessagesByInboxID works
-func TestGetMessagesByInboxID(t *testing.T, db server.Database) {
-	m1 := server.Message{
+func TestGetMessagesByInboxID(t *testing.T, db Database) {
+	m1 := Message{
 		InboxID:    "9101112",
 		ID:         "5678",
 		ReceivedAt: time.Now().Unix(),
@@ -258,7 +256,7 @@ func TestGetMessagesByInboxID(t *testing.T, db server.Database) {
 		TTL:        time.Now().Add(5 * time.Minute).Unix(),
 	}
 
-	m2 := server.Message{
+	m2 := Message{
 		InboxID:    "9101112",
 		ID:         "9999",
 		ReceivedAt: time.Now().Unix(),

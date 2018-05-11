@@ -8,8 +8,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
-	"github.com/haydenwoodhead/burner.kiwi/server"
+	"github.com/haydenwoodhead/burner.kiwi/data"
 )
+
+var _ data.Database = &DynamoDB{}
 
 // DynamoDB implements the db interface
 type DynamoDB struct {
@@ -33,7 +35,7 @@ func GetNewDynamoDB() *DynamoDB {
 }
 
 // SaveNewInbox saves a given inbox to dynamodb
-func (d *DynamoDB) SaveNewInbox(i server.Inbox) error {
+func (d *DynamoDB) SaveNewInbox(i data.Inbox) error {
 	av, err := dynamodbattribute.MarshalMap(i)
 
 	if err != nil {
@@ -54,8 +56,8 @@ func (d *DynamoDB) SaveNewInbox(i server.Inbox) error {
 }
 
 //GetInboxByID gets an inbox by the given inbox id
-func (d *DynamoDB) GetInboxByID(id string) (server.Inbox, error) {
-	var i server.Inbox
+func (d *DynamoDB) GetInboxByID(id string) (data.Inbox, error) {
+	var i data.Inbox
 
 	o, err := d.dynDB.GetItem(&dynamodb.GetItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
@@ -67,13 +69,13 @@ func (d *DynamoDB) GetInboxByID(id string) (server.Inbox, error) {
 	})
 
 	if err != nil {
-		return server.Inbox{}, err
+		return data.Inbox{}, err
 	}
 
 	err = dynamodbattribute.UnmarshalMap(o.Item, &i)
 
 	if err != nil {
-		return server.Inbox{}, err
+		return data.Inbox{}, err
 	}
 
 	return i, nil
@@ -107,7 +109,7 @@ func (d *DynamoDB) EmailAddressExists(a string) (bool, error) {
 }
 
 // SetInboxCreated updates the given inbox to reflect its created status
-func (d *DynamoDB) SetInboxCreated(i server.Inbox) error {
+func (d *DynamoDB) SetInboxCreated(i data.Inbox) error {
 	u := &dynamodb.UpdateItemInput{
 		ExpressionAttributeNames: map[string]*string{
 			"#F": aws.String("failed_to_create"),
@@ -140,7 +142,7 @@ func (d *DynamoDB) SetInboxCreated(i server.Inbox) error {
 }
 
 //SaveNewMessage saves a given message to dynamodb
-func (d *DynamoDB) SaveNewMessage(m server.Message) error {
+func (d *DynamoDB) SaveNewMessage(m data.Message) error {
 	mv, err := dynamodbattribute.MarshalMap(m)
 
 	if err != nil {
@@ -160,8 +162,8 @@ func (d *DynamoDB) SaveNewMessage(m server.Message) error {
 }
 
 //GetMessagesByInboxID returns all messages in a given inbox
-func (d *DynamoDB) GetMessagesByInboxID(i string) ([]server.Message, error) {
-	var m []server.Message
+func (d *DynamoDB) GetMessagesByInboxID(i string) ([]data.Message, error) {
+	var m []data.Message
 
 	qi := &dynamodb.QueryInput{
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
@@ -176,21 +178,21 @@ func (d *DynamoDB) GetMessagesByInboxID(i string) ([]server.Message, error) {
 	res, err := d.dynDB.Query(qi)
 
 	if err != nil {
-		return []server.Message{}, fmt.Errorf("GetAllMessagesByInboxID: failed to query dynamodb: %v", err)
+		return []data.Message{}, fmt.Errorf("GetAllMessagesByInboxID: failed to query dynamodb: %v", err)
 	}
 
 	err = dynamodbattribute.UnmarshalListOfMaps(res.Items, &m)
 
 	if err != nil {
-		return []server.Message{}, fmt.Errorf("GetAllMessagesByInboxID: failed to unmarshal result: %v", err)
+		return []data.Message{}, fmt.Errorf("GetAllMessagesByInboxID: failed to unmarshal result: %v", err)
 	}
 
 	return m, nil
 }
 
 //GetMessageByID gets a single message by the given inbox and message id
-func (d *DynamoDB) GetMessageByID(i, m string) (server.Message, error) {
-	var msg server.Message
+func (d *DynamoDB) GetMessageByID(i, m string) (data.Message, error) {
+	var msg data.Message
 
 	o, err := d.dynDB.GetItem(&dynamodb.GetItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
@@ -205,17 +207,17 @@ func (d *DynamoDB) GetMessageByID(i, m string) (server.Message, error) {
 	})
 
 	if err != nil {
-		return server.Message{}, fmt.Errorf("GetMessageByID: failed to get message: %v", err)
+		return data.Message{}, fmt.Errorf("GetMessageByID: failed to get message: %v", err)
 	}
 
 	err = dynamodbattribute.UnmarshalMap(o.Item, &msg)
 
 	if err != nil {
-		return server.Message{}, fmt.Errorf("GetMessageByID: failed to unmarshal message: %v", err)
+		return data.Message{}, fmt.Errorf("GetMessageByID: failed to unmarshal message: %v", err)
 	}
 
 	if strings.Compare(msg.ID, "") == 0 {
-		return server.Message{}, server.ErrMessageDoesntExist
+		return data.Message{}, data.ErrMessageDoesntExist
 	}
 
 	return msg, nil
