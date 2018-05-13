@@ -127,6 +127,8 @@ func (FakeMG) CreateRoute(m mailgun.Route) (mailgun.Route, error) {
 
 	routes[m.ID] = m
 
+	time.Sleep(time.Millisecond * 500) // add fake network latency
+
 	return m, nil
 }
 
