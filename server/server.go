@@ -209,9 +209,8 @@ func (s *Server) createRouteAndUpdate(i data.Inbox) {
 //lambdaCreateRouteAndUpdate makes use of the waitgroup then calls createRouteAndUpdate. This is because lambda
 //will exit as soon as we return the response so we must make it wait
 func (s *Server) lambdaCreateRouteAndUpdate(wg *sync.WaitGroup, i data.Inbox) {
-	wg.Add(1)
+	defer wg.Done()
 	s.createRouteAndUpdate(i)
-	wg.Done()
 }
 
 //DeleteOldRoutes deletes routes older than 24 hours

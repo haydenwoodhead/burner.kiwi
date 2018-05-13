@@ -80,6 +80,7 @@ func (s *Server) NewInboxJSON(w http.ResponseWriter, r *http.Request) {
 	var wg sync.WaitGroup
 
 	if s.usingLambda {
+		wg.Add(1)
 		go s.lambdaCreateRouteAndUpdate(&wg, i)
 	} else {
 		go s.createRouteAndUpdate(i)
