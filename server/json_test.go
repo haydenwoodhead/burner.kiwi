@@ -130,3 +130,59 @@ func TestServer_GetInboxDetailsJSON(t *testing.T) {
 		}
 	}
 }
+
+func TestServer_GetAllMessagesJSON(t *testing.T) {
+	db := inmemory.GetInMemoryDB()
+
+	in := data.Inbox{
+		Address:        "1234@example.com",
+		ID:             "1234",
+		CreatedAt:      1526186018,
+		TTL:            1526189618,
+		MGRouteID:      "1234",
+		FailedToCreate: false,
+	}
+
+	db.SaveNewInbox(in)
+
+	message := data.Message{
+		InboxID:    "1234",
+		ID:         "91991919",
+		ReceivedAt: 1526186100,
+		MGID:       "56789",
+		Sender:     "bob@example.com",
+		From:       "Bobby Tables <bob@example.com>",
+		Subject:    "DELETE FROM MESSAGES;",
+		BodyPlain:  "Hello there how are you!",
+		BodyHTML:   "<html><body><p>Hello there how are you!</p></body></html>",
+		TTL:        1526189618,
+	}
+
+	db.SaveNewMessage(message)
+
+	s := Server{
+		db:          db,
+		tg:          token.NewGenerator("testexample12344", time.Hour),
+		mg:          FakeMG{},
+		eg:          generateemail.NewEmailGenerator([]string{"example.com"}, 8),
+		usingLambda: true, // make sure the create route goroutine finishes before we check the result
+	}
+
+	router := mux.NewRouter()
+	router.HandleFunc("/{inboxID}", s.GetAllMessagesJSON)
+
+	rr := httptest.NewRecorder()
+	r := httptest.NewRequest("GET", "/1234", nil)
+
+	router.ServeHTTP(rr, r)
+
+	if rr.Code != http.StatusOK {
+		t.Errorf("TestServer_GetAllMessagesJSON: expected status code 200. Got %v", rr.Code)
+	}
+
+	var expected = `{"success":true,"errors":null,"result":[{"id":"91991919","received_at":1526186100,"sender":"bob@example.com","from":"Bobby Tables \u003cbob@example.com\u003e","subject":"DELETE FROM MESSAGES;","body_html":"\u003chtml\u003e\u003cbody\u003e\u003cp\u003eHello there how are you!\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e","body_plain":"Hello there how are you!","ttl":1526189618}],"meta":{"version":"dev","by":"Hayden Woodhead"}}`
+
+	if strings.Compare(expected, rr.Body.String()) != 0 {
+		t.Errorf("TestServer_GetAllMessagesJSON: recieved something different than expected. Expected %v, got %v", expected, rr.Body.String())
+	}
+}
