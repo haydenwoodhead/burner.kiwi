@@ -99,6 +99,7 @@ func NewServer(n NewServerInput) (*Server, error) {
 	// HTML - trying to make middleware flow/handler declaration a little more readable
 	s.Router.Handle("/",
 		alice.New( //Middleware below
+			HTMLContentType,
 			Refresh(20),
 			CacheControl(14),
 			SetVersionHeader,
@@ -109,6 +110,7 @@ func NewServer(n NewServerInput) (*Server, error) {
 
 	s.Router.Handle("/messages/{messageID}/",
 		alice.New(
+			HTMLContentType,
 			s.CheckCookieExists(returnHTMLError),
 			CacheControl(3600),
 			SetVersionHeader,
@@ -118,6 +120,7 @@ func NewServer(n NewServerInput) (*Server, error) {
 
 	s.Router.Handle("/delete",
 		alice.New(
+			HTMLContentType,
 			s.CheckCookieExists(returnHTMLError),
 			SetVersionHeader,
 			s.SecurityHeaders(false),
@@ -126,6 +129,7 @@ func NewServer(n NewServerInput) (*Server, error) {
 
 	s.Router.Handle("/delete",
 		alice.New(
+			HTMLContentType,
 			s.CheckCookieExists(returnHTMLError),
 			SetVersionHeader,
 			s.SecurityHeaders(false),
