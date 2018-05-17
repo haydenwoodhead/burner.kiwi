@@ -8,10 +8,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/apex/gateway"
 	"github.com/gorilla/context"
 	"github.com/haydenwoodhead/burner.kiwi/data/dynamodb"
 	"github.com/haydenwoodhead/burner.kiwi/server"
+	"github.com/haydenwoodhead/gateway"
 )
 
 var runDelete bool

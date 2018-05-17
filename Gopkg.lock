@@ -14,12 +14,6 @@
   version = "v1.0.0"
 
 [[projects]]
-  name = "github.com/apex/gateway"
-  packages = ["."]
-  revision = "94cc84b10787c61dbfbe8dd549cbc5c5dc685d1f"
-  version = "v1.0.0"
-
-[[projects]]
   name = "github.com/aws/aws-lambda-go"
   packages = [
     "events",
@@ -115,6 +109,12 @@
   version = "v1.1"
 
 [[projects]]
+  name = "github.com/haydenwoodhead/gateway"
+  packages = ["."]
+  revision = "94cc84b10787c61dbfbe8dd549cbc5c5dc685d1f"
+  version = "v1.0.0"
+
+[[projects]]
   name = "github.com/jmespath/go-jmespath"
   packages = ["."]
   revision = "0b12d6b5"
@@ -155,6 +155,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "fc6bdd3e67b8aed66badcd310728fdd9bb97781c2b1057beb8cbc314b53ee498"
+  inputs-digest = "a8e48bbf024c234801cbe2bb9c4e42b81df615ad441b5bc091890c7503640afa"
   solver-name = "gps-cdcl"
   solver-version = 1
