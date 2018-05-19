@@ -111,8 +111,8 @@
 [[projects]]
   name = "github.com/haydenwoodhead/gateway"
   packages = ["."]
-  revision = "94cc84b10787c61dbfbe8dd549cbc5c5dc685d1f"
-  version = "v1.0.0"
+  revision = "b1a1e46347f9dd10c0eb50735c54420dc86760e7"
+  version = "v2.0.0"
 
 [[projects]]
   name = "github.com/jmespath/go-jmespath"

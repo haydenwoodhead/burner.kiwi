@@ -13,15 +13,18 @@ import (
 // ResponseWriter implements the http.ResponseWriter interface
 // in order to support the API Gateway Lambda HTTP "protocol".
 type ResponseWriter struct {
-	out         events.APIGatewayProxyResponse
-	buf         bytes.Buffer
-	header      http.Header
-	wroteHeader bool
+	out           events.APIGatewayProxyResponse
+	buf           bytes.Buffer
+	header        http.Header
+	wroteHeader   bool
+	closeNotifyCh chan bool
 }
 
 // NewResponse returns a new response writer to capture http output.
 func NewResponse() *ResponseWriter {
-	return &ResponseWriter{}
+	return &ResponseWriter{
+		closeNotifyCh: make(chan bool, 1),
+	}
 }
 
 // Header implementation.
@@ -39,7 +42,9 @@ func (w *ResponseWriter) Write(b []byte) (int, error) {
 		w.WriteHeader(http.StatusOK)
 	}
 
-	// TODO: HEAD? ignore
+	if w.Header().Get("Content-Type") == "" {
+		w.Header().Set("Content-Type", http.DetectContentType(b))
+	}
 
 	return w.buf.Write(b)
 }
@@ -50,22 +55,13 @@ func (w *ResponseWriter) WriteHeader(status int) {
 		return
 	}
 
-	if w.Header().Get("Content-Type") == "" {
-		w.Header().Set("Content-Type", "text/plain; charset=utf8")
-	}
-
 	w.out.StatusCode = status
-
-	h := make(map[string]string)
-
-	for k, v := range w.Header() {
-		if len(v) > 0 {
-			h[k] = v[len(v)-1]
-		}
-	}
-
-	w.out.Headers = h
 	w.wroteHeader = true
+}
+
+// CloseNotify notify when the response is closed
+func (w *ResponseWriter) CloseNotify() <-chan bool {
+	return w.closeNotifyCh
 }
 
 // End the request.
@@ -78,20 +74,32 @@ func (w *ResponseWriter) End() events.APIGatewayProxyResponse {
 		w.out.Body = w.buf.String()
 	}
 
+	h := make(map[string]string)
+
+	for k, v := range w.Header() {
+		if len(v) > 0 {
+			h[k] = v[len(v)-1]
+		}
+	}
+
+	w.out.Headers = h
+
+	// notify end
+	w.closeNotifyCh <- true
+
 	return w.out
 }
 
-// isBinary returns true if the response reprensents binary.
+// isBinary returns true if the response represents binary.
 func isBinary(h http.Header) bool {
-	if !isTextMime(h.Get("Content-Type")) {
+	switch {
+	case !isTextMime(h.Get("Content-Type")):
 		return true
-	}
-
-	if h.Get("Content-Encoding") == "gzip" {
+	case h.Get("Content-Encoding") == "gzip":
 		return true
+	default:
+		return false
 	}
-
-	return false
 }
 
 // isTextMime returns true if the content type represents textual data.
@@ -106,7 +114,7 @@ func isTextMime(kind string) bool {
 	}
 
 	switch mt {
-	case "svg+xml":
+	case "image/svg+xml":
 		return true
 	case "application/json":
 		return true
