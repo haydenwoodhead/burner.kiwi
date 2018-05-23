@@ -27,7 +27,7 @@ func GetNewDynamoDB() *DynamoDB {
 
 	return &DynamoDB{
 		dynDB:                 dynDB,
-		emailsTableName:       "burner-kwi",
+		emailsTableName:       "burner-kiwi",
 		emailAddressIndexName: "email_address-index",
 	}
 }
