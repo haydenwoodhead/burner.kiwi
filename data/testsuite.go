@@ -243,8 +243,23 @@ func TestGetMessageByID(t *testing.T, db Database) {
 
 //TestGetMessagesByInboxID verifies that GetMessagesByInboxID works
 func TestGetMessagesByInboxID(t *testing.T, db Database) {
+	i := Inbox{
+		Address:        "ddb9ec88-2c11-4731-a433-36a04661de83@example.com",
+		ID:             "ddb9ec88-2c11-4731-a433-36a04661de83",
+		CreatedAt:      time.Now().Unix(),
+		TTL:            time.Now().Add(5 * time.Minute).Unix(),
+		MGRouteID:      "ddb9ec88-2c11-4731-a433-36a04661de83",
+		FailedToCreate: false,
+	}
+
+	err := db.SaveNewInbox(i)
+
+	if err != nil {
+		t.Errorf("%v - TestGetMessagesByInboxID: failed to save: %v", reflect.TypeOf(db), err)
+	}
+
 	m1 := Message{
-		InboxID:    "9101112",
+		InboxID:    "ddb9ec88-2c11-4731-a433-36a04661de83",
 		ID:         "5678",
 		ReceivedAt: time.Now().Unix(),
 		MGID:       "56789",
@@ -257,7 +272,7 @@ func TestGetMessagesByInboxID(t *testing.T, db Database) {
 	}
 
 	m2 := Message{
-		InboxID:    "9101112",
+		InboxID:    "ddb9ec88-2c11-4731-a433-36a04661de83",
 		ID:         "9999",
 		ReceivedAt: time.Now().Unix(),
 		MGID:       "56789",
@@ -269,7 +284,7 @@ func TestGetMessagesByInboxID(t *testing.T, db Database) {
 		TTL:        time.Now().Add(5 * time.Minute).Unix(),
 	}
 
-	err := db.SaveNewMessage(m1)
+	err = db.SaveNewMessage(m1)
 
 	if err != nil {
 		t.Errorf("%v - TestGetMessagesByInboxID: failed to save message 1: %v", reflect.TypeOf(db), err)

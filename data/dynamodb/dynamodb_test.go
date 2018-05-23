@@ -24,7 +24,6 @@ func TestDynamoDB(t *testing.T) {
 		dynDB: dbSvc,
 		emailAddressIndexName: "email_address-index",
 		emailsTableName:       "emails",
-		messagesTableName:     "messages",
 	}
 
 	err = db.createDatabase()

@@ -18,7 +18,6 @@ type DynamoDB struct {
 	dynDB                 *dynamodb.DynamoDB
 	emailsTableName       string
 	emailAddressIndexName string
-	messagesTableName     string
 }
 
 //GetNewDynamoDB gets a new dynamodb database or panics
@@ -28,15 +27,19 @@ func GetNewDynamoDB() *DynamoDB {
 
 	return &DynamoDB{
 		dynDB:                 dynDB,
-		emailsTableName:       "bk-emails",
+		emailsTableName:       "burner-kwi",
 		emailAddressIndexName: "email_address-index",
-		messagesTableName:     "bk-messages",
 	}
 }
 
 // SaveNewInbox saves a given inbox to dynamodb
 func (d *DynamoDB) SaveNewInbox(i data.Inbox) error {
 	av, err := dynamodbattribute.MarshalMap(i)
+
+	// Insert an empty messages attribute so we can add messages later
+	av["messages"] = &dynamodb.AttributeValue{
+		M: make(map[string]*dynamodb.AttributeValue),
+	}
 
 	if err != nil {
 		return fmt.Errorf("SaveNewInbox: failed to marshal struct to attribute value: %v", err)
@@ -149,9 +152,23 @@ func (d *DynamoDB) SaveNewMessage(m data.Message) error {
 		return fmt.Errorf("SaveMessage: failed to marshal struct to attribute value: %v", err)
 	}
 
-	_, err = d.dynDB.PutItem(&dynamodb.PutItemInput{
-		TableName: aws.String(d.messagesTableName),
-		Item:      mv,
+	_, err = d.dynDB.UpdateItem(&dynamodb.UpdateItemInput{
+		ExpressionAttributeNames: map[string]*string{
+			"#M":   aws.String("messages"),
+			"#MID": aws.String(m.ID),
+		},
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":m": {
+				M: mv,
+			},
+		},
+		Key: map[string]*dynamodb.AttributeValue{
+			"id": {
+				S: aws.String(m.InboxID),
+			},
+		},
+		TableName:        aws.String(d.emailsTableName),
+		UpdateExpression: aws.String("SET #M.#MID = :m"),
 	})
 
 	if err != nil {
@@ -163,60 +180,72 @@ func (d *DynamoDB) SaveNewMessage(m data.Message) error {
 
 //GetMessagesByInboxID returns all messages in a given inbox
 func (d *DynamoDB) GetMessagesByInboxID(i string) ([]data.Message, error) {
-	var m []data.Message
+	var ret map[string]map[string]data.Message
+	var msgs []data.Message
 
-	qi := &dynamodb.QueryInput{
-		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
-			":id": {
+	gi := &dynamodb.GetItemInput{
+		Key: map[string]*dynamodb.AttributeValue{
+			"id": {
 				S: aws.String(i),
 			},
 		},
-		KeyConditionExpression: aws.String("inbox_id = :id"),
-		TableName:              aws.String(d.messagesTableName),
+		ProjectionExpression: aws.String("messages"),
+		TableName:            aws.String(d.emailsTableName),
 	}
 
-	res, err := d.dynDB.Query(qi)
+	res, err := d.dynDB.GetItem(gi)
 
 	if err != nil {
 		return []data.Message{}, fmt.Errorf("GetAllMessagesByInboxID: failed to query dynamodb: %v", err)
 	}
 
-	err = dynamodbattribute.UnmarshalListOfMaps(res.Items, &m)
+	err = dynamodbattribute.UnmarshalMap(res.Item, &ret)
 
 	if err != nil {
 		return []data.Message{}, fmt.Errorf("GetAllMessagesByInboxID: failed to unmarshal result: %v", err)
 	}
 
-	return m, nil
+	for _, v := range ret["messages"] {
+		msgs = append(msgs, v)
+	}
+
+	return msgs, nil
 }
 
 //GetMessageByID gets a single message by the given inbox and message id
 func (d *DynamoDB) GetMessageByID(i, m string) (data.Message, error) {
-	var msg data.Message
+	var ret map[string]data.Message
 
-	o, err := d.dynDB.GetItem(&dynamodb.GetItemInput{
+	gi := &dynamodb.GetItemInput{
+		ExpressionAttributeNames: map[string]*string{
+			"#ID": aws.String(m),
+		},
 		Key: map[string]*dynamodb.AttributeValue{
-			"inbox_id": {
+			"id": {
 				S: aws.String(i),
 			},
-			"message_id": {
-				S: aws.String(m),
-			},
 		},
-		TableName: aws.String(d.messagesTableName),
-	})
-
-	if err != nil {
-		return data.Message{}, fmt.Errorf("GetMessageByID: failed to get message: %v", err)
+		ProjectionExpression: aws.String("messages.#ID"),
+		TableName:            aws.String(d.emailsTableName),
 	}
 
-	err = dynamodbattribute.UnmarshalMap(o.Item, &msg)
+	res, err := d.dynDB.GetItem(gi)
 
 	if err != nil {
-		return data.Message{}, fmt.Errorf("GetMessageByID: failed to unmarshal message: %v", err)
+		return data.Message{}, fmt.Errorf("GetMessageByID: failed to query dynamodb: %v", err)
 	}
 
-	if strings.Compare(msg.ID, "") == 0 {
+	// Despite only returning one message it is nested under messages and then it's id. We must unmarshal this response
+	// to a map and then get the item from that map.
+	err = dynamodbattribute.Unmarshal(res.Item["messages"], &ret)
+
+	if err != nil {
+		return data.Message{}, fmt.Errorf("GetMessageByID: failed to unmarshal result: %v", err)
+	}
+
+	msg, ok := ret[m]
+
+	if !ok {
 		return data.Message{}, data.ErrMessageDoesntExist
 	}
 
@@ -268,42 +297,6 @@ func (d *DynamoDB) createDatabase() error {
 	}
 
 	_, err := d.dynDB.CreateTable(emails)
-
-	if err != nil {
-		if !strings.Contains(err.Error(), dynamodb.ErrCodeResourceInUseException) {
-			return err
-		}
-	}
-
-	messages := &dynamodb.CreateTableInput{
-		AttributeDefinitions: []*dynamodb.AttributeDefinition{
-			{
-				AttributeName: aws.String("inbox_id"),
-				AttributeType: aws.String("S"),
-			},
-			{
-				AttributeName: aws.String("message_id"),
-				AttributeType: aws.String("S"),
-			},
-		},
-		KeySchema: []*dynamodb.KeySchemaElement{
-			{
-				AttributeName: aws.String("inbox_id"),
-				KeyType:       aws.String("HASH"),
-			},
-			{
-				AttributeName: aws.String("message_id"),
-				KeyType:       aws.String("RANGE"),
-			},
-		},
-		ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
-			ReadCapacityUnits:  aws.Int64(5),
-			WriteCapacityUnits: aws.Int64(5),
-		},
-		TableName: aws.String(d.messagesTableName),
-	}
-
-	_, err = d.dynDB.CreateTable(messages)
 
 	if err != nil {
 		if !strings.Contains(err.Error(), dynamodb.ErrCodeResourceInUseException) {
