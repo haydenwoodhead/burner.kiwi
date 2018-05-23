@@ -155,50 +155,6 @@
           "Enabled" : "true"
         }
       }
-    },
-    "MessagesTable" : {
-      "Type" : "AWS::DynamoDB::Table",
-      "Properties" : {
-        "AttributeDefinitions": [
-          {
-            "AttributeName": "inbox_id",
-            "AttributeType": "S"
-          },
-          {
-            "AttributeName": "message_id",
-            "AttributeType": "S"
-          }
-        ],
-        "KeySchema": [
-          {
-            "AttributeName": "inbox_id",
-            "KeyType": "HASH"
-          },
-          {
-            "AttributeName": "message_id",
-            "KeyType": "RANGE"
-          }
-        ],
-        "ProvisionedThroughput": {
-          "ReadCapacityUnits" : 2,
-          "WriteCapacityUnits" : 2
-        },
-        "TableName": "bk-messages",
-        "Tags": [
-          {
-            "Key": "Name",
-            "Value": "Burner Kiwi Messages Table"
-          },
-          {
-            "Key": "Burner-Kiwi",
-            "Value": "true"
-          }
-        ],
-        "TimeToLiveSpecification": {
-          "AttributeName" : "ttl",
-          "Enabled" : "true"
-        }
-      }
     }
   },
   "Outputs" : {
