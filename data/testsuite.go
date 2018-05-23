@@ -242,6 +242,7 @@ func TestGetMessageByID(t *testing.T, db Database) {
 }
 
 //TestGetMessagesByInboxID verifies that GetMessagesByInboxID works
+//nolint
 func TestGetMessagesByInboxID(t *testing.T, db Database) {
 	i := Inbox{
 		Address:        "ddb9ec88-2c11-4731-a433-36a04661de83@example.com",
