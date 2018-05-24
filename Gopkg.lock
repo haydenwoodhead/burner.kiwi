@@ -21,8 +21,8 @@
     "lambda/messages",
     "lambdacontext"
   ]
-  revision = "fafa7e49388b8991caf99308e80655ba91816b72"
-  version = "v1.1.0"
+  revision = "4d30d0ff60440c2d0480a15747c96ee71c3c53d4"
+  version = "v1.2.0"
 
 [[projects]]
   name = "github.com/aws/aws-sdk-go"
@@ -57,8 +57,8 @@
     "service/dynamodb/dynamodbattribute",
     "service/sts"
   ]
-  revision = "6454c9c7415974700e9d0d7f480edbe669f7b2f8"
-  version = "v1.13.36"
+  revision = "fad131ddc707880428615dc8bc1587b55fb46d74"
+  version = "v1.13.54"
 
 [[projects]]
   branch = "master"
@@ -87,14 +87,14 @@
 [[projects]]
   name = "github.com/gorilla/context"
   packages = ["."]
-  revision = "1ea25387ff6f684839d82767c1733ff4d4d15d0a"
-  version = "v1.1"
+  revision = "08b5f424b9271eedf6f9f0ce86cb9396ed337a42"
+  version = "v1.1.1"
 
 [[projects]]
   name = "github.com/gorilla/mux"
   packages = ["."]
-  revision = "53c1911da2b537f792e7cafcb446b05ffe33b996"
-  version = "v1.6.1"
+  revision = "e3702bed27f0d39777b0b37b664b6280e8ef8fbf"
+  version = "v1.6.2"
 
 [[projects]]
   name = "github.com/gorilla/securecookie"
@@ -111,8 +111,8 @@
 [[projects]]
   name = "github.com/haydenwoodhead/gateway"
   packages = ["."]
-  revision = "b1a1e46347f9dd10c0eb50735c54420dc86760e7"
-  version = "v2.0.0"
+  revision = "24dbd09be63be4e1567fa0a435acf9eb77fa19e0"
+  version = "v1.1.1"
 
 [[projects]]
   name = "github.com/jmespath/go-jmespath"
@@ -135,7 +135,7 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["blake2b"]
-  revision = "2b6c08872f4b66da917bb4ce98df4f0307330f78"
+  revision = "75e913eb8a8e3d31a97b216de09de106a7b07681"
 
 [[projects]]
   branch = "master"
@@ -144,7 +144,13 @@
     "html",
     "html/atom"
   ]
-  revision = "5f9ae10d9af5b1c89ae6904293b14b064d4ada23"
+  revision = "9ef9f5bb98a1fdc41f8cf6c250a4404b4085e389"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/sys"
+  packages = ["cpu"]
+  revision = "77b0e4315053a57ed2962443614bdb28db152054"
 
 [[projects]]
   name = "gopkg.in/mailgun/mailgun-go.v1"
@@ -155,6 +161,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a8e48bbf024c234801cbe2bb9c4e42b81df615ad441b5bc091890c7503640afa"
+  inputs-digest = "1b0c8d11bd802ed7b23f488e779f44f16eb90df42c2f283fa04984e1d4057a28"
   solver-name = "gps-cdcl"
   solver-version = 1
