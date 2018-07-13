@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/cookiejar"
@@ -224,6 +225,128 @@ func TestServer_CheckCookieExists(t *testing.T) {
 
 	if strings.Compare(string(body3), "success") != 0 {
 		t.Fatalf("TestServer_CheckCookieExists: Body3 not expected. Expected %v, got %v", "success", string(body3))
+	}
+}
+
+func TestSetVersionHeader(t *testing.T) {
+	rr := httptest.NewRecorder()
+	req := httptest.NewRequest("GET", "/", nil)
+
+	h := SetVersionHeader(http.HandlerFunc(fakeHandler))
+
+	h.ServeHTTP(rr, req)
+
+	if rr.HeaderMap.Get("X-Burner-Kiwi-version") != version {
+		t.Fatalf("TestSetVersionHeader: returned version header doesn't equal default header. Got %v, expected %v", rr.HeaderMap.Get("X-Burner-Kiwi-version"), version)
+	}
+}
+
+func TestRefresh(t *testing.T) {
+	rr := httptest.NewRecorder()
+	req := httptest.NewRequest("GET", "/", nil)
+
+	r := Refresh(10)
+	h := r(http.HandlerFunc(fakeHandler))
+
+	h.ServeHTTP(rr, req)
+
+	if rr.HeaderMap.Get("Refresh") != "10" {
+		t.Fatalf("TestRefresh: returned refresh header doesn't equal expected header. Got %v, expected %v", rr.HeaderMap.Get("Refresh"), 10)
+	}
+}
+
+func TestCacheControl(t *testing.T) {
+	rr := httptest.NewRecorder()
+	req := httptest.NewRequest("GET", "/", nil)
+
+	r := CacheControl(10)
+	h := r(http.HandlerFunc(fakeHandler))
+
+	h.ServeHTTP(rr, req)
+
+	if rr.HeaderMap.Get("Cache-Control") != "max-age=10" {
+		t.Fatalf("TestCahceControl: returned cache header doesn't equal expected header. Got %v, expected %v", rr.HeaderMap.Get("Cache-Control"), "max-age=10")
+	}
+}
+
+func TestServer_SecurityHeaders_SelfServe(t *testing.T) {
+	s := Server{
+		developing: false,
+		staticURL:  "/static",
+	}
+
+	rr := httptest.NewRecorder()
+	req := httptest.NewRequest("GET", "/", nil)
+
+	m := s.SecurityHeaders(false)
+	h := m(http.HandlerFunc(fakeHandler))
+
+	h.ServeHTTP(rr, req)
+
+	expectedCSP := "script-src 'none'; font-src 'self' https://fonts.gstatic.com/; style-src 'self' http://fonts.googleapis.com/; img-src 'self'; default-src 'self'"
+
+	if csp := rr.HeaderMap.Get("Content-Security-Policy"); csp != expectedCSP {
+		t.Fatalf("TestServer_SecurityHeaders_SelfServe: csp doesn't match expected. Got %v, expected %v", csp, expectedCSP)
+	}
+
+	if xframe := rr.HeaderMap.Get("X-Frame-Options"); xframe != "DENY" {
+		t.Fatalf("TestServer_SecurityHeaders_SelfServe: x frame options not as expected. Expected %v, got %v", "DENY", xframe)
+	}
+
+	if xss := rr.HeaderMap.Get("X-XSS-Protection"); xss != "1" {
+		t.Fatalf("TestServer_SecurityHeaders_SelfServe: xss protection not as expected. Expected %v, got %v", "1", xss)
+	}
+
+	if ctype := rr.HeaderMap.Get("X-Content-Type-Options"); ctype != "nosniff" {
+		t.Fatalf("TestServer_SecurityHeaders_SelfServe: content type protection not as expected. Expected %v, got %v", "nosniff", ctype)
+	}
+
+	if ref := rr.HeaderMap.Get("Referrer-Policy"); ref != "no-referrer" {
+		t.Fatalf("TestServer_SecurityHeaders_SelfServe: referrer protection not as expected. Expected %v, got %v", "no-referrer", ref)
+	}
+}
+
+func TestServer_SecurityHeaders_ExtServe(t *testing.T) {
+	s := Server{
+		developing: false,
+		staticURL:  "https://www.example.com/static",
+	}
+
+	rr := httptest.NewRecorder()
+	req := httptest.NewRequest("GET", "/", nil)
+
+	m := s.SecurityHeaders(false)
+	h := m(http.HandlerFunc(fakeHandler))
+
+	h.ServeHTTP(rr, req)
+
+	expectedCSP := "script-src 'none'; font-src https://www.example.com/static https://fonts.gstatic.com/; style-src https://www.example.com/static http://fonts.googleapis.com/; img-src https://www.example.com/static; default-src 'self'"
+
+	if csp := rr.HeaderMap.Get("Content-Security-Policy"); csp != expectedCSP {
+		t.Fatalf("TestServer_SecurityHeaders_ExtServe: csp doesn't match expected. Got %v, expected %v", csp, expectedCSP)
+	}
+}
+
+func TestServer_SecurityHeaders_AllowExt(t *testing.T) {
+	s := Server{
+		developing: false,
+		staticURL:  "https://www.example.com/static",
+	}
+
+	rr := httptest.NewRecorder()
+	req := httptest.NewRequest("GET", "/", nil)
+
+	m := s.SecurityHeaders(true)
+	h := m(http.HandlerFunc(fakeHandler))
+
+	h.ServeHTTP(rr, req)
+
+	expectedCSP := "script-src 'none'; font-src * https://fonts.gstatic.com/; style-src * 'unsafe-inline' http://fonts.googleapis.com/; img-src *; default-src 'self'"
+
+	if csp := rr.HeaderMap.Get("Content-Security-Policy"); csp != expectedCSP {
+		fmt.Println(expectedCSP)
+		fmt.Println(csp)
+		t.Fatalf("TestServer_SecurityHeaders_AllowExt: csp doesn't match expected. Got %v, expected %v", csp, expectedCSP)
 	}
 }
 
