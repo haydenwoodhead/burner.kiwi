@@ -165,9 +165,9 @@ func TestServer_CheckCookieExists(t *testing.T) {
 	}
 
 	r := mux.NewRouter()
-	r.Handle("/fake", alice.New(s.CheckCookieExists(fakeErrorPrinter)).ThenFunc(fakeHandler))
+	r.Handle("/fake", alice.New(s.CheckCookieExists).ThenFunc(fakeHandler))
 	r.HandleFunc("/setcookie", setCookieHandler)
-	r.Handle("/getcookie", alice.New(s.CheckCookieExists(fakeErrorPrinter)).Then(checkCookieHandler(t)))
+	r.Handle("/getcookie", alice.New(s.CheckCookieExists).Then(checkCookieHandler(t)))
 
 	server := httptest.NewServer(r)
 
@@ -185,8 +185,9 @@ func TestServer_CheckCookieExists(t *testing.T) {
 		t.Fatalf("TestServer_CheckCookieExists: Failed to read body1: %v", err)
 	}
 
-	if strings.Compare(string(body1), checkCookieExistsErrorResponse) != 0 {
-		t.Fatalf("TestServer_CheckCookieExists: Body1 not expected. Expected %v, got %v", checkCookieExistsErrorResponse, string(body1))
+	// http.Error adds a trailing newline to our message so we need to add it here in our comparison
+	if strings.Compare(string(body1), checkCookieExistsErrorResponse+"\n") != 0 {
+		t.Fatalf("TestServer_CheckCookieExists: Body1 not expected. Expected %T, got %T", checkCookieExistsErrorResponse, string(body1))
 	}
 
 	// Second request to setup cookie/session
@@ -229,11 +230,6 @@ func TestServer_CheckCookieExists(t *testing.T) {
 // Mock handler implementations
 
 var store = sessions.NewCookieStore([]byte("testtest1234"))
-
-func fakeErrorPrinter(w http.ResponseWriter, r *http.Request, code int, msg string) {
-	w.WriteHeader(code)
-	w.Write([]byte(msg))
-}
 
 func fakeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(FAKEHANDLERRESP))

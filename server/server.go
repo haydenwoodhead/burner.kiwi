@@ -109,7 +109,7 @@ func NewServer(n NewServerInput) (*Server, error) {
 
 	s.Router.Handle("/messages/{messageID}/",
 		alice.New(
-			s.CheckCookieExists(returnHTMLError),
+			s.CheckCookieExists,
 			CacheControl(3600),
 			SetVersionHeader,
 			s.SecurityHeaders(true),
@@ -118,7 +118,7 @@ func NewServer(n NewServerInput) (*Server, error) {
 
 	s.Router.Handle("/delete",
 		alice.New(
-			s.CheckCookieExists(returnHTMLError),
+			s.CheckCookieExists,
 			SetVersionHeader,
 			s.SecurityHeaders(false),
 		).ThenFunc(s.DeleteInbox),
@@ -126,7 +126,7 @@ func NewServer(n NewServerInput) (*Server, error) {
 
 	s.Router.Handle("/delete",
 		alice.New(
-			s.CheckCookieExists(returnHTMLError),
+			s.CheckCookieExists,
 			SetVersionHeader,
 			s.SecurityHeaders(false),
 		).ThenFunc(s.ConfirmDeleteInbox),

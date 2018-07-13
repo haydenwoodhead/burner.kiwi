@@ -55,32 +55,30 @@ const checkCookieExistsErrorResponse = "You do not have permission to view this 
 
 // CheckCookieExists checks for the existence of the session cookie and displays and error if false
 // using the provided ErrorPrinter
-func (s *Server) CheckCookieExists(f ErrorPrinter) alice.Constructor {
-	return func(h http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			sess, _ := s.store.Get(r, sessionStoreKey)
-			ctx := context.WithValue(r.Context(), sessionCTXKey, sess)
+func (s *Server) CheckCookieExists(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sess, _ := s.store.Get(r, sessionStoreKey)
+		ctx := context.WithValue(r.Context(), sessionCTXKey, sess)
 
-			// if the session is new we know that the user doesn't have permission to view the page they're requesting
-			if sess.IsNew {
-				// we need to delete this session we just accidentally created otherwise when the user goes to load
-				// the main page they wont be directed to the inbox creation handler
-				sess.Options.MaxAge = -1
-				err := sess.Save(r, w)
+		// if the session is new we know that the user doesn't have permission to view the page they're requesting
+		if sess.IsNew {
+			// we need to delete this session we just accidentally created otherwise when the user goes to load
+			// the main page they wont be directed to the inbox creation handler
+			sess.Options.MaxAge = -1
+			err := sess.Save(r, w)
 
-				if err != nil {
-					log.Printf("CheckCookieExists: failed to delete accidenatally created session cookie.")
-					w.WriteHeader(http.StatusInternalServerError)
-					return
-				}
-
-				f(w, r, http.StatusUnauthorized, checkCookieExistsErrorResponse)
+			if err != nil {
+				log.Printf("CheckCookieExists: failed to delete accidenatally created session cookie.")
+				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
 
-			h.ServeHTTP(w, r.WithContext(ctx))
-		})
-	}
+			http.Error(w, checkCookieExistsErrorResponse, http.StatusUnauthorized)
+			return
+		}
+
+		h.ServeHTTP(w, r.WithContext(ctx))
+	})
 }
 
 // IsNew returns an alice middleware that checks whether or not a session cookie is set. If the session is set it passes

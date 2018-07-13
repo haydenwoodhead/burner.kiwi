@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"reflect"
@@ -67,7 +66,7 @@ func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
 
 	if !ok {
 		log.Printf("Index: failed to get sess var. Sess not of type sessions.Session actual type: %v", reflect.TypeOf(sess))
-		returnHTML500(w, r, "Failed to get session")
+		http.Error(w, "Failed to get session", http.StatusInternalServerError)
 		return
 	}
 
@@ -75,7 +74,7 @@ func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
 
 	if !ok {
 		log.Printf("Index: failed to get id from session. ID not of type string. ID actual type: %v", reflect.TypeOf(sess.Values["id"]))
-		returnHTML500(w, r, "Failed to get session id")
+		http.Error(w, "Failed to get session id", http.StatusInternalServerError)
 		return
 	}
 
@@ -83,7 +82,7 @@ func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Printf("Index: failed to get inbox: %v", err)
-		returnHTML500(w, r, "Failed to get inbox")
+		http.Error(w, "Failed to get inbox", http.StatusInternalServerError)
 		return
 	}
 
@@ -94,11 +93,11 @@ func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
 
 		if err != nil {
 			log.Printf("Index: failed to delete session cookie: %v", err)
-			returnHTML500(w, r, "Failed to create inbox. Please clear your cookies.")
+			http.Error(w, "Failed to create inbox. Please clear your cookies.", http.StatusInternalServerError)
 			return
 		}
 
-		returnHTML500(w, r, "Failed to create inbox. Please refresh.")
+		http.Error(w, "Failed to create inbox. Please refresh.", http.StatusInternalServerError)
 		return
 	}
 
@@ -106,7 +105,7 @@ func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Printf("Index: failed to get all messages from inbox. %v", err)
-		returnHTML500(w, r, "Failed to get messages")
+		http.Error(w, "Failed to get messages", http.StatusInternalServerError)
 		return
 	}
 
@@ -146,7 +145,7 @@ func (s *Server) NewInbox(w http.ResponseWriter, r *http.Request) {
 
 	if !ok {
 		log.Printf("New Inbox: failed to get sess var. Sess not of type sessions.Session actual type: %v", reflect.TypeOf(sess))
-		returnHTML500(w, r, "Failed to generate email")
+		http.Error(w, "Failed to generate email", http.StatusInternalServerError)
 		return
 	}
 
@@ -156,13 +155,13 @@ func (s *Server) NewInbox(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Printf("New Inbox: failed to check if email exists: %v", err)
-		returnHTML500(w, r, "Failed to generate email")
+		http.Error(w, "Failed to generate email", http.StatusInternalServerError)
 		return
 	}
 
 	if exist {
 		log.Printf("NewInbox: email already exisists: %v", err)
-		returnHTML500(w, r, "Failed to generate email")
+		http.Error(w, "Failed to generate email", http.StatusInternalServerError)
 		return
 	}
 
@@ -170,7 +169,7 @@ func (s *Server) NewInbox(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Printf("Index: failed to generate new random id: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		http.Error(w, "Failed to generate new random id", http.StatusInternalServerError)
 		return
 	}
 
@@ -195,7 +194,7 @@ func (s *Server) NewInbox(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Printf("NewInbox: failed to save email: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		http.Error(w, "Failed to save new email", http.StatusInternalServerError)
 		return
 	}
 
@@ -204,7 +203,7 @@ func (s *Server) NewInbox(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Printf("NewInbox: failed to set session cookie: %v", err)
-		returnHTML500(w, r, "Failed to set session cookie")
+		http.Error(w, "Failed to set session cookie", http.StatusInternalServerError)
 		return
 	}
 
@@ -222,7 +221,7 @@ func (s *Server) NewInbox(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Printf("NewInbox: failed to write response: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
 		return
 	}
 
@@ -239,7 +238,7 @@ func (s *Server) IndividualMessage(w http.ResponseWriter, r *http.Request) {
 
 	if !ok {
 		log.Printf("IndividualMessage: failed to get sess var. Sess not of type *sessions.Session actual type: %v", reflect.TypeOf(sess))
-		returnHTML500(w, r, "Failed to get email")
+		http.Error(w, "Failed to get email", http.StatusInternalServerError)
 		return
 	}
 
@@ -250,18 +249,18 @@ func (s *Server) IndividualMessage(w http.ResponseWriter, r *http.Request) {
 
 	if !ok {
 		log.Printf("IndividualMessage: failed to get inbox id. Id not of type string. Actual type: %v", reflect.TypeOf(iID))
-		returnHTML500(w, r, "Failed to get message")
+		http.Error(w, "Failed to get message", http.StatusInternalServerError)
 		return
 	}
 
 	m, err := s.db.GetMessageByID(iID, mID)
 
 	if err == data.ErrMessageDoesntExist {
-		returnHTMLError(w, r, http.StatusNotFound, "Message not found on server")
+		http.Error(w, "Message not found on server", http.StatusNotFound)
 		return
 	} else if err != nil {
 		log.Printf("IndividualMessage: failed to get message. Error: %v", err)
-		returnHTML500(w, r, "Failed to get message")
+		http.Error(w, "Failed to get message", http.StatusInternalServerError)
 		return
 	}
 
@@ -284,7 +283,7 @@ func (s *Server) IndividualMessage(w http.ResponseWriter, r *http.Request) {
 
 		if err != nil {
 			log.Printf("IndividualMessage: failed to execute template: %v", err)
-			w.WriteHeader(http.StatusInternalServerError)
+			http.Error(w, "Failed to execute template", http.StatusInternalServerError)
 		}
 
 		return
@@ -294,7 +293,7 @@ func (s *Server) IndividualMessage(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Printf("IndividualMessage: failed to execute template: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		http.Error(w, "Failed to execute template", http.StatusInternalServerError)
 	}
 }
 
@@ -308,7 +307,7 @@ func (s *Server) DeleteInbox(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Printf("DeleteInbox: failed to execute template: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		http.Error(w, "Failed to execute template", http.StatusInternalServerError)
 	}
 }
 
@@ -318,7 +317,7 @@ func (s *Server) ConfirmDeleteInbox(w http.ResponseWriter, r *http.Request) {
 
 	if !ok {
 		log.Printf("ConfirmDeleteInbox: failed to get sess var. Sess not of type *sessions.Session actual type: %v", reflect.TypeOf(sess))
-		returnHTML500(w, r, "Failed to get user session")
+		http.Error(w, "Failed to get user session", http.StatusInternalServerError)
 		return
 	}
 
@@ -326,19 +325,19 @@ func (s *Server) ConfirmDeleteInbox(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Printf("ConfirmDeleteInbox: failed to parse form %v", err)
-		returnHTML500(w, r, "Failed to parse form")
+		http.Error(w, "Failed to parse form", http.StatusInternalServerError)
 		return
 	}
 
-	delete, err := strconv.ParseBool(r.FormValue("really-delete"))
+	dlt, err := strconv.ParseBool(r.FormValue("really-delete"))
 
 	if err != nil {
 		log.Printf("ConfirmDeleteInbox: failed to parse really-delete %v", err)
-		returnHTML500(w, r, "Failed to parse form")
+		http.Error(w, "Failed to parse really-delete", http.StatusInternalServerError)
 		return
 	}
 
-	if !delete {
+	if !dlt {
 		http.Redirect(w, r, "/", http.StatusFound)
 	}
 
@@ -347,33 +346,9 @@ func (s *Server) ConfirmDeleteInbox(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Printf("ConfirmDeleteInbox: failed to delete user session %v", err)
-		returnHTML500(w, r, "Failed to delete user session")
+		http.Error(w, "Failed to delete user session", http.StatusInternalServerError)
 		return
 	}
 
 	http.Redirect(w, r, "/", http.StatusFound)
-}
-
-// TODO: refactor to remove duplicate functions returnHTML500 and returnHTML error and do the same for json
-func returnHTML500(w http.ResponseWriter, r *http.Request, msg string) {
-	w.WriteHeader(http.StatusInternalServerError)
-	_, err := w.Write([]byte(fmt.Sprintf("Internal Server Error: %v", msg)))
-
-	if err != nil {
-		log.Printf("returnHTML500: failed to write response: %v", err)
-		return
-	}
-}
-
-// ErrorPrinter are funcs that are used to send specific error messages with codes to users
-type ErrorPrinter func(w http.ResponseWriter, r *http.Request, code int, msg string)
-
-func returnHTMLError(w http.ResponseWriter, r *http.Request, code int, msg string) {
-	w.WriteHeader(code)
-	_, err := w.Write([]byte(msg))
-
-	if err != nil {
-		log.Printf("returnHTML500: failed to write response: %v", err)
-		return
-	}
 }
