@@ -87,6 +87,7 @@ func TestServer_DeleteOldRoutes(t *testing.T) {
 }
 
 type FakeMG struct {
+	Verify bool
 }
 
 var routes = map[string]mailgun.Route{}
@@ -130,6 +131,10 @@ func (FakeMG) CreateRoute(m mailgun.Route) (mailgun.Route, error) {
 	time.Sleep(time.Millisecond * 500) // add fake network latency
 
 	return m, nil
+}
+
+func (f FakeMG) VerifyWebhookRequest(req *http.Request) (verified bool, err error) {
+	return f.Verify, nil
 }
 
 // Argh... mailgun and their massive interface making me implement all these methods
@@ -326,10 +331,6 @@ func (FakeMG) GetWebhookByType(kind string) (string, error) {
 }
 
 func (FakeMG) UpdateWebhook(kind, url string) error {
-	panic("implement me")
-}
-
-func (FakeMG) VerifyWebhookRequest(req *http.Request) (verified bool, err error) {
 	panic("implement me")
 }
 
