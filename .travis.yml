@@ -77,3 +77,20 @@ deploy:
   - provider: script
     skip_cleanup: true
     script: aws lambda update-function-code --zip-file=fileb://buildres/cloudformation/burnerkiwi.zip --region=ap-southeast-2 --function-name=burner-kiwi-main >/dev/null
+  # Deploy to dev specific branch
+  # Deploy static assets to dev s3
+  - provider: s3
+    access_key_id: $AWS_ACCESS_KEY_ID
+    secret_access_key: $AWS_SECRET_ACCESS_KEY
+    skip_cleanup: true
+    bucket: dev-static.burner.kiwi
+    region: ap-southeast-2
+    local_dir: buildres/static
+    on:
+      branch: dev
+  # deploy code to dev lambda
+  - provider: script
+    skip_cleanup: true
+    script: aws lambda update-function-code --zip-file=fileb://buildres/cloudformation/burnerkiwi.zip --region=ap-southeast-2 --function-name=burner-kiwi-main >/dev/null
+    on:
+      branch: dev
