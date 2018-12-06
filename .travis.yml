@@ -69,7 +69,7 @@ deploy:
     region: ap-southeast-2
     local_dir: buildres/static
   # Deploy about.burner.kiwi assets
-  - provider: s3
+  - provider: s3go get -u github.com/gobuffalo/packr/...
     access_key_id: $AWS_ACCESS_KEY_ID
     secret_access_key: $AWS_SECRET_ACCESS_KEY
     skip_cleanup: true
@@ -95,6 +95,6 @@ deploy:
   # deploy code to dev lambda
   - provider: script
     skip_cleanup: true
-    script: aws lambda update-function-code --zip-file=fileb://buildres/cloudformation/burnerkiwi.zip --region=ap-southeast-2 --function-name=burner-kiwi-main >/dev/null
+    script: aws lambda update-function-code --zip-file=fileb://buildres/cloudformation/burnerkiwi.zip --region=ap-southeast-2 --function-name=burner-kiwi-dev >/dev/null
     on:
       branch: dev
