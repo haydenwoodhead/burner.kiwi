@@ -236,8 +236,8 @@ func TestSetVersionHeader(t *testing.T) {
 
 	h.ServeHTTP(rr, req)
 
-	if rr.HeaderMap.Get("X-Burner-Kiwi-version") != version {
-		t.Fatalf("TestSetVersionHeader: returned version header doesn't equal default header. Got %v, expected %v", rr.HeaderMap.Get("X-Burner-Kiwi-version"), version)
+	if rr.Header().Get("X-Burner-Kiwi-version") != version {
+		t.Fatalf("TestSetVersionHeader: returned version header doesn't equal default header. Got %v, expected %v", rr.Header().Get("X-Burner-Kiwi-version"), version)
 	}
 }
 
@@ -250,8 +250,8 @@ func TestRefresh(t *testing.T) {
 
 	h.ServeHTTP(rr, req)
 
-	if rr.HeaderMap.Get("Refresh") != "10" {
-		t.Fatalf("TestRefresh: returned refresh header doesn't equal expected header. Got %v, expected %v", rr.HeaderMap.Get("Refresh"), 10)
+	if rr.Header().Get("Refresh") != "10" {
+		t.Fatalf("TestRefresh: returned refresh header doesn't equal expected header. Got %v, expected %v", rr.Header().Get("Refresh"), 10)
 	}
 }
 
@@ -264,8 +264,8 @@ func TestCacheControl(t *testing.T) {
 
 	h.ServeHTTP(rr, req)
 
-	if rr.HeaderMap.Get("Cache-Control") != "max-age=10" {
-		t.Fatalf("TestCahceControl: returned cache header doesn't equal expected header. Got %v, expected %v", rr.HeaderMap.Get("Cache-Control"), "max-age=10")
+	if rr.Header().Get("Cache-Control") != "max-age=10" {
+		t.Fatalf("TestCahceControl: returned cache header doesn't equal expected header. Got %v, expected %v", rr.Header().Get("Cache-Control"), "max-age=10")
 	}
 }
 
@@ -285,23 +285,23 @@ func TestServer_SecurityHeaders_SelfServe(t *testing.T) {
 
 	expectedCSP := "script-src 'none'; font-src 'self' https://fonts.gstatic.com/; style-src 'self' http://fonts.googleapis.com/; img-src 'self'; default-src 'self'"
 
-	if csp := rr.HeaderMap.Get("Content-Security-Policy"); csp != expectedCSP {
+	if csp := rr.Header().Get("Content-Security-Policy"); csp != expectedCSP {
 		t.Fatalf("TestServer_SecurityHeaders_SelfServe: csp doesn't match expected. Got %v, expected %v", csp, expectedCSP)
 	}
 
-	if xframe := rr.HeaderMap.Get("X-Frame-Options"); xframe != "DENY" {
+	if xframe := rr.Header().Get("X-Frame-Options"); xframe != "DENY" {
 		t.Fatalf("TestServer_SecurityHeaders_SelfServe: x frame options not as expected. Expected %v, got %v", "DENY", xframe)
 	}
 
-	if xss := rr.HeaderMap.Get("X-XSS-Protection"); xss != "1" {
+	if xss := rr.Header().Get("X-XSS-Protection"); xss != "1" {
 		t.Fatalf("TestServer_SecurityHeaders_SelfServe: xss protection not as expected. Expected %v, got %v", "1", xss)
 	}
 
-	if ctype := rr.HeaderMap.Get("X-Content-Type-Options"); ctype != "nosniff" {
+	if ctype := rr.Header().Get("X-Content-Type-Options"); ctype != "nosniff" {
 		t.Fatalf("TestServer_SecurityHeaders_SelfServe: content type protection not as expected. Expected %v, got %v", "nosniff", ctype)
 	}
 
-	if ref := rr.HeaderMap.Get("Referrer-Policy"); ref != "no-referrer" {
+	if ref := rr.Header().Get("Referrer-Policy"); ref != "no-referrer" {
 		t.Fatalf("TestServer_SecurityHeaders_SelfServe: referrer protection not as expected. Expected %v, got %v", "no-referrer", ref)
 	}
 }
@@ -322,7 +322,7 @@ func TestServer_SecurityHeaders_ExtServe(t *testing.T) {
 
 	expectedCSP := "script-src 'none'; font-src https://www.example.com/static https://fonts.gstatic.com/; style-src https://www.example.com/static http://fonts.googleapis.com/; img-src https://www.example.com/static; default-src 'self'"
 
-	if csp := rr.HeaderMap.Get("Content-Security-Policy"); csp != expectedCSP {
+	if csp := rr.Header().Get("Content-Security-Policy"); csp != expectedCSP {
 		t.Fatalf("TestServer_SecurityHeaders_ExtServe: csp doesn't match expected. Got %v, expected %v", csp, expectedCSP)
 	}
 }
@@ -343,7 +343,7 @@ func TestServer_SecurityHeaders_AllowExt(t *testing.T) {
 
 	expectedCSP := "script-src 'none'; font-src * https://fonts.gstatic.com/; style-src * 'unsafe-inline' http://fonts.googleapis.com/; img-src *; default-src 'self'"
 
-	if csp := rr.HeaderMap.Get("Content-Security-Policy"); csp != expectedCSP {
+	if csp := rr.Header().Get("Content-Security-Policy"); csp != expectedCSP {
 		fmt.Println(expectedCSP)
 		fmt.Println(csp)
 		t.Fatalf("TestServer_SecurityHeaders_AllowExt: csp doesn't match expected. Got %v, expected %v", csp, expectedCSP)

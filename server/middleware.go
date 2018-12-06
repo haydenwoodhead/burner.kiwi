@@ -57,7 +57,14 @@ const checkCookieExistsErrorResponse = "You do not have permission to view this 
 // using the provided ErrorPrinter
 func (s *Server) CheckCookieExists(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		sess, _ := s.store.Get(r, sessionStoreKey)
+		sess, err := s.store.Get(r, sessionStoreKey)
+
+		if err != nil {
+			log.Printf("CheckCookieExists: failed to decode session cookie.")
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
 		ctx := context.WithValue(r.Context(), sessionCTXKey, sess)
 
 		// if the session is new we know that the user doesn't have permission to view the page they're requesting
@@ -86,7 +93,14 @@ func (s *Server) CheckCookieExists(h http.Handler) http.Handler {
 func (s *Server) IsNew(n http.Handler) alice.Constructor {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			sess, _ := s.store.Get(r, sessionStoreKey)
+			sess, err := s.store.Get(r, sessionStoreKey)
+
+			if err != nil {
+				log.Printf("IsNew: failed to decode session cookie.")
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
 			ctx := context.WithValue(r.Context(), sessionCTXKey, sess)
 
 			if sess.IsNew {
