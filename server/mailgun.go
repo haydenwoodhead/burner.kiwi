@@ -27,6 +27,11 @@ func (s *Server) MailgunIncoming(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if r.FormValue("sender") == "noreply@steampowered.com" {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
 	vars := mux.Vars(r)
 	id := vars["inboxID"]
 
