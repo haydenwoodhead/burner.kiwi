@@ -21,13 +21,13 @@ type DynamoDB struct {
 }
 
 //GetNewDynamoDB gets a new dynamodb database or panics
-func GetNewDynamoDB() *DynamoDB {
+func GetNewDynamoDB(table string) *DynamoDB {
 	awsSession := session.Must(session.NewSession())
 	dynDB := dynamodb.New(awsSession)
 
 	return &DynamoDB{
 		dynDB:                 dynDB,
-		emailsTableName:       "burner-kiwi",
+		emailsTableName:       table,
 		emailAddressIndexName: "email_address-index",
 	}
 }

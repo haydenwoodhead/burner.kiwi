@@ -33,7 +33,7 @@ func main() {
 		Developing:  mustParseBoolVar("DEVELOPING"),
 		Domains:     mustParseSliceVar("DOMAINS"),
 		UsingLambda: useLambda,
-		Database:    dynamodb.GetNewDynamoDB(),
+		Database:    dynamodb.GetNewDynamoDB(mustParseStringVar("TABLE")),
 	}
 
 	s, err := server.NewServer(nsi)

@@ -75,6 +75,7 @@ DEVELOPING | Boolean | Set to `true` to disable HSTS and set `Cache-Control` to 
 DOMAINS | []String | Comma separated list of domains connected to Mailgun account and able to receive email
 MG_KEY | String | Mailgun private API key
 MG_DOMAIN | String | One of the domains set up on your Mailgun account
+TABLE | String | Name of the dynamodb table to use for storage
 
 If you are using DynamoDB a non AWS environment you need to set these. If you are on AWS you should, of course, should use IAM roles.
 
