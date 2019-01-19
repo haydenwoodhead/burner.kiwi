@@ -13,6 +13,7 @@ type Inbox struct {
 	Address        string `dynamodbav:"email_address" json:"address"`
 	ID             string `dynamodbav:"id" json:"id"`
 	CreatedAt      int64  `dynamodbav:"created_at" json:"created_at"`
+	CreatedBy      string `dynamodbav:"created_by" json:"-"`
 	TTL            int64  `dynamodbav:"ttl" json:"ttl"`
 	MGRouteID      string `dynamodbav:"mg_routeid" json:"-"`
 	FailedToCreate bool   `dynamodbav:"failed_to_create" json:"-"`

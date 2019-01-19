@@ -29,6 +29,7 @@ func TestServer_NewInboxJSON(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", "/", nil)
+	r.RemoteAddr = "192.168.1.1"
 
 	s.NewInboxJSON(rr, r)
 
@@ -71,6 +72,10 @@ func TestServer_NewInboxJSON(t *testing.T) {
 	if inbox.FailedToCreate {
 		t.Error("TestServer_NewInboxJSON: inbox not set as created")
 	}
+
+	if inbox.CreatedBy != "192.168.1.1" {
+		t.Error("TestServer_NewInboxJSON: creators ip not recorded")
+	}
 }
 
 func TestServer_GetInboxDetailsJSON(t *testing.T) {
@@ -80,6 +85,7 @@ func TestServer_GetInboxDetailsJSON(t *testing.T) {
 		Address:        "1234@example.com",
 		ID:             "1234",
 		CreatedAt:      1526186018,
+		CreatedBy:      "192.168.1.1",
 		TTL:            1526189618,
 		MGRouteID:      "1234",
 		FailedToCreate: false,

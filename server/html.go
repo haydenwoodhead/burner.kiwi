@@ -176,6 +176,7 @@ func (s *Server) NewInbox(w http.ResponseWriter, r *http.Request) {
 	i.ID = id.String()
 	i.CreatedAt = time.Now().Unix()
 	i.TTL = time.Now().Add(time.Hour * 24).Unix()
+	i.CreatedBy = r.RemoteAddr
 
 	// Mailgun can take a really long time to register a route (sometimes up to 2 seconds) so
 	// we should do this out of the request thread and then update our db with the results. However if we're using
