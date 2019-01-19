@@ -149,9 +149,6 @@ func NewServer(n NewServerInput) (*Server, error) {
 		s.Router.PathPrefix("/static/").Handler(alice.New(CacheControl(15778463)).Then(fs))
 	}
 
-	fs2 := http.StripPrefix("/templates/", http.FileServer(templates))
-	s.Router.PathPrefix("/templates/").Handler(alice.New(CacheControl(0)).Then(fs2))
-
 	return &s, nil
 }
 

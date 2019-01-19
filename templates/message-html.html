@@ -20,9 +20,16 @@
     <h4>Message: </h4>
 
     <div class="row">
-        <iframe sandbox="allow-forms allow-popups allow-same-origin" srcdoc="{{.Message.BodyHTML}}">
+        <iframe sandbox="allow-forms allow-popups allow-same-origin allow-scripts" srcdoc="{{.Message.BodyHTML}}">
         </iframe>
     </div>
 
 </section>
+
+<section class="container footer">
+    <hr>
+
+    <p><i>Note: if this message links to a page containing javascript you may need to copy and paste the link in a new tab in order for the linked site to work properly.</i></p>
+</section>
+
 {{end}}
