@@ -67,7 +67,7 @@ deploy:
     region: ap-southeast-2
     local_dir: buildres/static
   # Deploy about.burner.kiwi assets
-  - provider: s3go get -u github.com/gobuffalo/packr/...
+  - provider: s3
     access_key_id: $AWS_ACCESS_KEY_ID
     secret_access_key: $AWS_SECRET_ACCESS_KEY
     skip_cleanup: true
