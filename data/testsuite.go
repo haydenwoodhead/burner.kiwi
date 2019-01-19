@@ -26,6 +26,7 @@ func TestSaveNewInbox(t *testing.T, db Database) {
 	i := Inbox{
 		Address:        "test@example.com",
 		ID:             "1234",
+		CreatedBy:      "192.168.1.1",
 		CreatedAt:      time.Now().Unix(),
 		TTL:            time.Now().Add(5 * time.Minute).Unix(),
 		MGRouteID:      "-",
@@ -54,6 +55,7 @@ func TestGetInboxByID(t *testing.T, db Database) {
 	i := Inbox{
 		Address:        "test@example.com",
 		ID:             "1234",
+		CreatedBy:      "192.168.1.1",
 		CreatedAt:      time.Now().Unix(),
 		TTL:            time.Now().Add(5 * time.Minute).Unix(),
 		MGRouteID:      "-",
