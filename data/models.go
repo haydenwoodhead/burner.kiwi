@@ -10,13 +10,13 @@ import (
 
 // Inbox contains data on a temporary inbox including its address and ttl
 type Inbox struct {
-	Address        string `dynamodbav:"email_address" json:"address"`
-	ID             string `dynamodbav:"id" json:"id"`
-	CreatedAt      int64  `dynamodbav:"created_at" json:"created_at"`
-	CreatedBy      string `dynamodbav:"created_by" json:"-"`
-	TTL            int64  `dynamodbav:"ttl" json:"ttl"`
-	MGRouteID      string `dynamodbav:"mg_routeid" json:"-"`
-	FailedToCreate bool   `dynamodbav:"failed_to_create" json:"-"`
+	Address        string `dynamodbav:"email_address" json:"address" db:"address"`
+	ID             string `dynamodbav:"id" json:"id" db:"id"`
+	CreatedAt      int64  `dynamodbav:"created_at" json:"created_at" db:"created_at"`
+	CreatedBy      string `dynamodbav:"created_by" json:"-" db:"created_by"`
+	TTL            int64  `dynamodbav:"ttl" json:"ttl" db:"ttl"`
+	MGRouteID      string `dynamodbav:"mg_routeid" json:"-" db:"mg_routeid"`
+	FailedToCreate bool   `dynamodbav:"failed_to_create" json:"-" db:"failed_to_create"`
 }
 
 // NewInbox returns an inbox with failed to create and route id set. Upon successful registration of the mailgun route we set these as true.
@@ -29,16 +29,16 @@ func NewInbox() Inbox {
 
 // Message contains details of an individual email message received by the server
 type Message struct {
-	InboxID    string `dynamodbav:"inbox_id" json:"-"`
-	ID         string `dynamodbav:"message_id" json:"id"`
-	ReceivedAt int64  `dynamodbav:"received_at" json:"received_at"`
-	MGID       string `dynamodbav:"mg_id" json:"-"`
-	Sender     string `dynamodbav:"sender" json:"sender"`
-	From       string `dynamodbav:"from" json:"from"`
-	Subject    string `dynamodbav:"subject" json:"subject"`
-	BodyHTML   string `dynamodbav:"body_html" json:"body_html"`
-	BodyPlain  string `dynamodbav:"body_plain" json:"body_plain"`
-	TTL        int64  `dynamodbav:"ttl" json:"ttl"`
+	InboxID    string `dynamodbav:"inbox_id" json:"-" db:"inbox_id"`
+	ID         string `dynamodbav:"message_id" json:"id" db:"message_id"`
+	ReceivedAt int64  `dynamodbav:"received_at" json:"received_at" db:"received_at"`
+	MGID       string `dynamodbav:"mg_id" json:"-" db:"mg_id"`
+	Sender     string `dynamodbav:"sender" json:"sender" db:"sender"`
+	From       string `dynamodbav:"from" json:"from" db:"from"`
+	Subject    string `dynamodbav:"subject" json:"subject" db:"subject"`
+	BodyHTML   string `dynamodbav:"body_html" json:"body_html" db:"body_html"`
+	BodyPlain  string `dynamodbav:"body_plain" json:"body_plain" db:"body_plain"`
+	TTL        int64  `dynamodbav:"ttl" json:"ttl" db:"ttl"`
 }
 
 //GetReceivedDetails takes a slice of Message and returns a slice with a string corresponding to each msg

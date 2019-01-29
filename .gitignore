@@ -1,5 +1,6 @@
 #ignore idea files
 .idea/
+.vscode/
 
 #ignore build res
 buildres/
