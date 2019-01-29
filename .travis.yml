@@ -74,11 +74,7 @@ deploy:
     bucket: about.burner.kiwi
     region: ap-southeast-2
     local_dir: about.burner.kiwi
-  # Deploy lambda func - do this via a script and the aws cli because travis resets everything to the settings
-  # specified here. Why would I want that... Also pipe the output to /dev/null so we don't expose environment vars
-  - provider: script
-    skip_cleanup: true
-    script: aws lambda update-function-code --zip-file=fileb://buildres/cloudformation/burnerkiwi.zip --region=ap-southeast-2 --function-name=burner-kiwi-main >/dev/null
+  # Deploy to lambda removed -- due to misuse
   # Deploy to dev specific branch
   # Deploy static assets to dev s3
   - provider: s3
@@ -88,11 +84,5 @@ deploy:
     bucket: dev-static.burner.kiwi
     region: ap-southeast-2
     local_dir: buildres/static
-    on:
-      branch: dev
-  # deploy code to dev lambda
-  - provider: script
-    skip_cleanup: true
-    script: aws lambda update-function-code --zip-file=fileb://buildres/cloudformation/burnerkiwi.zip --region=ap-southeast-2 --function-name=burner-kiwi-dev >/dev/null
     on:
       branch: dev
