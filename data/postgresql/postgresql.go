@@ -23,7 +23,7 @@ func GetPostgreSQLDB(dbURL string) *PostgreSQL {
 // SaveNewInbox saves a new inbox
 func (p *PostgreSQL) SaveNewInbox(i data.Inbox) error {
 	_, err := p.NamedExec(
-		"INSERT INTO inbox VALUES (:id, :address, :created_at, :created_by, :mg_routeid, :ttl, :failed_to_create)",
+		"INSERT INTO inbox (id, address, created_at, created_by, mg_routeid, ttl, failed_to_create) VALUES (:id, :address, :created_at, :created_by, :mg_routeid, :ttl, :failed_to_create)",
 		map[string]interface{}{
 			"id":               i.ID,
 			"address":          i.Address,
@@ -40,7 +40,7 @@ func (p *PostgreSQL) SaveNewInbox(i data.Inbox) error {
 // GetInboxByID gets an inbox by id
 func (p *PostgreSQL) GetInboxByID(id string) (data.Inbox, error) {
 	var i data.Inbox
-	err := p.Get(&i, "SELECT * FROM inbox WHERE id = $1", id)
+	err := p.Get(&i, "SELECT id, address, created_at, created_by, mg_routeid, ttl, failed_to_create FROM inbox WHERE id = $1", id)
 	return i, err
 }
 
