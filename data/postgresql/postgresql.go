@@ -12,13 +12,31 @@ type PostgreSQL struct {
 	*sqlx.DB
 }
 
+// GetPostgreSQLDB returns a new postgres db or panics
+func GetPostgreSQLDB(dbURL string) *PostgreSQL {
+	db := sqlx.MustOpen("postgres", dbURL)
+	return &PostgreSQL{db}
+}
+
 // SaveNewInbox saves a new inbox
-func (p *PostgreSQL) SaveNewInbox(data.Inbox) error {
-	panic("implement me")
+func (p *PostgreSQL) SaveNewInbox(i data.Inbox) error {
+	_, err := p.NamedExec(
+		"INSERT INTO inbox VALUES (:id, :address, :created_at, :created_by, :mg_routeid, :ttl, :failed_to_create)",
+		map[string]interface{}{
+			"id":               i.ID,
+			"address":          i.Address,
+			"created_at":       i.CreatedAt,
+			"created_by":       i.CreatedBy,
+			"mg_routeid":       i.MGRouteID,
+			"ttl":              i.TTL,
+			"failed_to_create": i.FailedToCreate,
+		},
+	)
+	return err
 }
 
 // GetInboxByID gets an inbox by id
-func (p *PostgreSQL) GetInboxByID(string) (data.Inbox, error) {
+func (p *PostgreSQL) GetInboxByID(id string) (data.Inbox, error) {
 	panic("implement me")
 }
 
