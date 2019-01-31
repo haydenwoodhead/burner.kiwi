@@ -26,5 +26,7 @@ func TestPostgreSQL(t *testing.T) {
 	// iterate over the testing suite and call the function
 	for _, f := range data.TestingFuncs {
 		f(t, db)
+		db.MustExec("DELETE FROM inbox")
+		db.MustExec("DELETE FROM message")
 	}
 }

@@ -37,7 +37,9 @@ func (p *PostgreSQL) SaveNewInbox(i data.Inbox) error {
 
 // GetInboxByID gets an inbox by id
 func (p *PostgreSQL) GetInboxByID(id string) (data.Inbox, error) {
-	panic("implement me")
+	var i data.Inbox
+	err := p.Get(&i, "SELECT * FROM inbox WHERE id = $1", id)
+	return i, err
 }
 
 // EmailAddressExists checks if an address already exists
