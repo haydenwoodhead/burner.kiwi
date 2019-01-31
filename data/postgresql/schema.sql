@@ -10,7 +10,7 @@ create table if not exists inbox (
 );
 
 create table if not exists message (
-    inbox_id uuid references inbox(id),
+    inbox_id uuid references inbox(id) on delete cascade,
     message_id uuid not null unique,
     received_at numeric,
     mg_id text,

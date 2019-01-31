@@ -252,8 +252,8 @@ func TestGetMessageByID(t *testing.T, db Database) {
 			ExpectedErr: nil,
 		},
 		{
-			InboxID:     "000000",
-			MessageID:   "00000",
+			InboxID:     uuid.Must(uuid.NewRandom()).String(), // doesn't exist
+			MessageID:   uuid.Must(uuid.NewRandom()).String(),
 			ExpectedRes: Message{},
 			ExpectedErr: ErrMessageDoesntExist,
 		},
@@ -348,7 +348,7 @@ func TestGetMessagesByInboxID(t *testing.T, db Database) {
 	}
 
 	// Test that it returns an empty messages slice if there are no messages
-	empty, err := db.GetMessagesByInboxID("doesntexist")
+	empty, err := db.GetMessagesByInboxID(uuid.Must(uuid.NewRandom()).String())
 
 	if err != nil {
 		t.Errorf("%v - TestGetMessagesByInboxID: get empty inbox: %v", reflect.TypeOf(db), err)
