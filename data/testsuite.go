@@ -26,7 +26,7 @@ var TestingFuncs = []TestFunction{
 // TestSaveNewInbox verifies that SaveNewInbox works
 func TestSaveNewInbox(t *testing.T, db Database) {
 	i := Inbox{
-		Address:        "test@example.com",
+		Address:        "test.1@example.com",
 		ID:             uuid.Must(uuid.NewRandom()).String(),
 		CreatedBy:      "192.168.1.1",
 		CreatedAt:      time.Now().Unix(),
@@ -55,7 +55,7 @@ func TestSaveNewInbox(t *testing.T, db Database) {
 // TestGetInboxByID verifies that GetInboxByID works
 func TestGetInboxByID(t *testing.T, db Database) {
 	i := Inbox{
-		Address:        "test@example.com",
+		Address:        "test.2@example.com",
 		ID:             uuid.Must(uuid.NewRandom()).String(),
 		CreatedBy:      "192.168.1.1",
 		CreatedAt:      time.Now().Unix(),
@@ -84,7 +84,7 @@ func TestGetInboxByID(t *testing.T, db Database) {
 // TestEmailAddressExists verifies that EmailAddressExists works
 func TestEmailAddressExists(t *testing.T, db Database) {
 	i := Inbox{
-		Address:        "test.1@example.com",
+		Address:        "test.3@example.com",
 		ID:             uuid.Must(uuid.NewRandom()).String(),
 		CreatedAt:      time.Now().Unix(),
 		CreatedBy:      "192.168.1.1",
@@ -103,7 +103,7 @@ func TestEmailAddressExists(t *testing.T, db Database) {
 		Email  string
 		Expect bool
 	}{
-		{"test.1@example.com", true},
+		{"test.3@example.com", true},
 		{"doesntexist@example.com", false},
 	}
 
@@ -111,7 +111,7 @@ func TestEmailAddressExists(t *testing.T, db Database) {
 		exists, err := db.EmailAddressExists(test.Email)
 
 		if err != nil {
-			t.Errorf("%v - TestEmailAddressExists - %v: failed to check if address exists: %v", reflect.TypeOf(db), i, err)
+			t.Errorf("%v - sTestEmailAddressExists - %v: failed to check if address exists: %v", reflect.TypeOf(db), i, err)
 		}
 
 		if exists != test.Expect {
@@ -123,7 +123,7 @@ func TestEmailAddressExists(t *testing.T, db Database) {
 //TestSetInboxCreated verifies that SetInboxCreated works
 func TestSetInboxCreated(t *testing.T, db Database) {
 	i := Inbox{
-		Address:        "test2@example.com",
+		Address:        "test.4@example.com",
 		ID:             uuid.Must(uuid.NewRandom()).String(),
 		CreatedAt:      time.Now().Unix(),
 		CreatedBy:      "192.168.1.1",
@@ -164,7 +164,7 @@ func TestSetInboxCreated(t *testing.T, db Database) {
 //TestSaveNewMessage verifies that SaveNewMessage works
 func TestSaveNewMessage(t *testing.T, db Database) {
 	i := Inbox{
-		Address:        "test3@example.com",
+		Address:        "test.5@example.com",
 		ID:             uuid.Must(uuid.NewRandom()).String(),
 		CreatedAt:      time.Now().Unix(),
 		CreatedBy:      "192.168.1.1",
@@ -212,7 +212,7 @@ func TestSaveNewMessage(t *testing.T, db Database) {
 func TestGetMessageByID(t *testing.T, db Database) {
 	i := Inbox{
 		ID:      uuid.Must(uuid.NewRandom()).String(),
-		Address: "test4@example.com",
+		Address: "test.6@example.com",
 	}
 
 	err := db.SaveNewInbox(i)
@@ -276,7 +276,7 @@ func TestGetMessageByID(t *testing.T, db Database) {
 //nolint
 func TestGetMessagesByInboxID(t *testing.T, db Database) {
 	i := Inbox{
-		Address:        "ddb9ec88-2c11-4731-a433-36a04661de83@example.com",
+		Address:        "test.7@example.com",
 		ID:             "ddb9ec88-2c11-4731-a433-36a04661de83",
 		CreatedAt:      time.Now().Unix(),
 		CreatedBy:      "192.168.1.1",
