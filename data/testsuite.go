@@ -5,6 +5,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // TestFunction is the signature for a testing function
@@ -25,7 +27,7 @@ var TestingFuncs = []TestFunction{
 func TestSaveNewInbox(t *testing.T, db Database) {
 	i := Inbox{
 		Address:        "test@example.com",
-		ID:             "1234",
+		ID:             uuid.Must(uuid.NewRandom()).String(),
 		CreatedBy:      "192.168.1.1",
 		CreatedAt:      time.Now().Unix(),
 		TTL:            time.Now().Add(5 * time.Minute).Unix(),
@@ -54,7 +56,7 @@ func TestSaveNewInbox(t *testing.T, db Database) {
 func TestGetInboxByID(t *testing.T, db Database) {
 	i := Inbox{
 		Address:        "test@example.com",
-		ID:             "1234",
+		ID:             uuid.Must(uuid.NewRandom()).String(),
 		CreatedBy:      "192.168.1.1",
 		CreatedAt:      time.Now().Unix(),
 		TTL:            time.Now().Add(5 * time.Minute).Unix(),
@@ -83,7 +85,7 @@ func TestGetInboxByID(t *testing.T, db Database) {
 func TestEmailAddressExists(t *testing.T, db Database) {
 	i := Inbox{
 		Address:        "test.1@example.com",
-		ID:             "5678",
+		ID:             uuid.Must(uuid.NewRandom()).String(),
 		CreatedAt:      time.Now().Unix(),
 		CreatedBy:      "192.168.1.1",
 		TTL:            time.Now().Add(5 * time.Minute).Unix(),
@@ -122,7 +124,7 @@ func TestEmailAddressExists(t *testing.T, db Database) {
 func TestSetInboxCreated(t *testing.T, db Database) {
 	i := Inbox{
 		Address:        "test2@example.com",
-		ID:             "9101112",
+		ID:             uuid.Must(uuid.NewRandom()).String(),
 		CreatedAt:      time.Now().Unix(),
 		CreatedBy:      "192.168.1.1",
 		TTL:            time.Now().Add(5 * time.Minute).Unix(),
@@ -161,9 +163,24 @@ func TestSetInboxCreated(t *testing.T, db Database) {
 
 //TestSaveNewMessage verifies that SaveNewMessage works
 func TestSaveNewMessage(t *testing.T, db Database) {
+	i := Inbox{
+		Address:        "test3@example.com",
+		ID:             uuid.Must(uuid.NewRandom()).String(),
+		CreatedAt:      time.Now().Unix(),
+		CreatedBy:      "192.168.1.1",
+		TTL:            time.Now().Add(5 * time.Minute).Unix(),
+		MGRouteID:      "-",
+		FailedToCreate: true,
+	}
+
+	err := db.SaveNewInbox(i)
+	if err != nil {
+		t.Fatalf("%v - TestSaveNewMessage: failed to insert new db: %v", reflect.TypeOf(db), err)
+	}
+
 	m := Message{
-		InboxID:    "1234",
-		ID:         "5678",
+		InboxID:    i.ID,
+		ID:         uuid.Must(uuid.NewRandom()).String(),
 		ReceivedAt: time.Now().Unix(),
 		MGID:       "56789",
 		Sender:     "bob@example.com",
@@ -174,7 +191,7 @@ func TestSaveNewMessage(t *testing.T, db Database) {
 		TTL:        time.Now().Add(5 * time.Minute).Unix(),
 	}
 
-	err := db.SaveNewMessage(m)
+	err = db.SaveNewMessage(m)
 
 	if err != nil {
 		t.Errorf("%v - TestSaveNewMessage: failed to save new message: %v", reflect.TypeOf(db), err)
@@ -193,9 +210,19 @@ func TestSaveNewMessage(t *testing.T, db Database) {
 
 //TestGetMessageByID verifies that GetMessageByID works
 func TestGetMessageByID(t *testing.T, db Database) {
+	i := Inbox{
+		ID:      uuid.Must(uuid.NewRandom()).String(),
+		Address: "test4@example.com",
+	}
+
+	err := db.SaveNewInbox(i)
+	if err != nil {
+		t.Fatalf("%v - TestGetMessageByID: failed to insert new db: %v", reflect.TypeOf(db), err)
+	}
+
 	m := Message{
-		InboxID:    "9101112",
-		ID:         "5678",
+		InboxID:    i.ID,
+		ID:         uuid.Must(uuid.NewRandom()).String(),
 		ReceivedAt: time.Now().Unix(),
 		MGID:       "56789",
 		Sender:     "bob@example.com",
@@ -206,7 +233,7 @@ func TestGetMessageByID(t *testing.T, db Database) {
 		TTL:        time.Now().Add(5 * time.Minute).Unix(),
 	}
 
-	err := db.SaveNewMessage(m)
+	err = db.SaveNewMessage(m)
 
 	if err != nil {
 		t.Errorf("%v - TestGetMessageByID: failed to save new message: %v", reflect.TypeOf(db), err)
@@ -266,7 +293,7 @@ func TestGetMessagesByInboxID(t *testing.T, db Database) {
 
 	m1 := Message{
 		InboxID:    "ddb9ec88-2c11-4731-a433-36a04661de83",
-		ID:         "5678",
+		ID:         uuid.Must(uuid.NewRandom()).String(),
 		ReceivedAt: time.Now().Unix(),
 		MGID:       "56789",
 		Sender:     "bob@example.com",
@@ -279,7 +306,7 @@ func TestGetMessagesByInboxID(t *testing.T, db Database) {
 
 	m2 := Message{
 		InboxID:    "ddb9ec88-2c11-4731-a433-36a04661de83",
-		ID:         "9999",
+		ID:         uuid.Must(uuid.NewRandom()).String(),
 		ReceivedAt: time.Now().Unix(),
 		MGID:       "56789",
 		Sender:     "bob@example.com",
