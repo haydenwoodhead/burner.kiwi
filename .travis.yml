@@ -7,7 +7,10 @@ go:
 install: true
 
 env:
-  - GO111MODULE=on
+  - GO111MODULE=on DATABASE_URL=postgresql://postgres@127.0.0.1/postgres?sslmode=disable
+
+services:
+  - postgresql
 
 # grab dynamodb local, gometalinter, minify and packr
 before_script:
