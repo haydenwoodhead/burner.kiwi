@@ -12,7 +12,7 @@ Check it out here: https://burner.kiwi
 Burner.kiwi is designed to be able to run on both AWS Lambda and normal machines. The __goal__ is to have several backing 
 database implementations and flexible configuration.
 
-At this point it's working on normal machines and in Lambda. There is one production-ready database implementation - DynamoDB 
+At this point it's working on normal machines and in Lambda. There are now two production-ready database implementation - DynamoDB & PostgreSQL
 and a dev/testing implementation - InMemory.
 
 This is definitely still a work in progress, see the To Do section.
@@ -75,7 +75,9 @@ DEVELOPING | Boolean | Set to `true` to disable HSTS and set `Cache-Control` to 
 DOMAINS | []String | Comma separated list of domains connected to Mailgun account and able to receive email
 MG_KEY | String | Mailgun private API key
 MG_DOMAIN | String | One of the domains set up on your Mailgun account
-TABLE | String | Name of the dynamodb table to use for storage
+DB_TYPE | String | One of `memory`, `postgres` or `dynamo` for InMemory, PostgreSQL and DynamoDB respectively 
+DATABASE_URL | String | URL for the PostgreSQL database 
+DYNAMO_TABLE | String | Name of the dynamodb table to use for storage (if using DynamoDB)
 
 If you are using DynamoDB a non AWS environment you need to set these. If you are on AWS you should, of course, should use IAM roles.
 
@@ -108,6 +110,7 @@ Create an issue and outline your plans or bugs.
 
 ## To do
 
+* Code refactor/redo 
 * More tests for server package
 * More database implementations (PSQL, SQLite, etc)
 * Night theme
