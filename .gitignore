@@ -2,6 +2,9 @@
 .idea/
 .vscode/
 
+# ignore bin/
+bin/
+
 #ignore build res
 buildres/
 
