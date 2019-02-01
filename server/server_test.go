@@ -11,12 +11,12 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"gopkg.in/mailgun/mailgun-go.v1"
+	mailgun "gopkg.in/mailgun/mailgun-go.v1"
 )
 
 func TestMustParseTemplates(t *testing.T) {
 	indexFile := template.Must(template.New("index").ParseFiles("../templates/base.html", "../templates/index.html"))
-	indexPackr := MustParseTemplates(templates.String("base.html"), templates.String("index.html"))
+	indexPackr := MustParseTemplates(templates, "base.html", "index.html")
 
 	out := indexOut{}
 
@@ -399,5 +399,17 @@ func (FakeMG) PollEvents(*mailgun.EventsOptions) *mailgun.EventPoller {
 }
 
 func (FakeMG) SetAPIBase(url string) {
+	panic("implement me")
+}
+
+func (f FakeMG) GetStatsTotal(start *time.Time, end *time.Time, resolution string, duration string, event ...string) (*mailgun.StatsTotalResponse, error) {
+	panic("implement me")
+}
+
+func (f FakeMG) GetStoredMessageForURL(url string) (mailgun.StoredMessage, error) {
+	panic("implement me")
+}
+
+func (f FakeMG) GetStoredMessageRawForURL(url string) (mailgun.StoredMessageRaw, error) {
 	panic("implement me")
 }

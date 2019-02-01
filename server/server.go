@@ -16,7 +16,7 @@ import (
 	"github.com/haydenwoodhead/burner.kiwi/generateemail"
 	"github.com/haydenwoodhead/burner.kiwi/token"
 	"github.com/justinas/alice"
-	"gopkg.in/mailgun/mailgun-go.v1"
+	mailgun "gopkg.in/mailgun/mailgun-go.v1"
 )
 
 // Packr boxes for static templates and assets
@@ -70,10 +70,10 @@ func NewServer(n NewServerInput) (*Server, error) {
 	s := Server{}
 
 	// Setup Templates
-	indexTemplate = MustParseTemplates(templates.String("base.html"), templates.String("index.html"))
-	messageHTMLTemplate = MustParseTemplates(templates.String("base.html"), templates.String("message-html.html"))
-	messagePlainTemplate = MustParseTemplates(templates.String("base.html"), templates.String("message-plain.html"))
-	deleteTemplate = MustParseTemplates(templates.String("base.html"), templates.String("delete.html"))
+	indexTemplate = MustParseTemplates(templates, "base.html", "index.html")
+	messageHTMLTemplate = MustParseTemplates(templates, "base.html", "message-html.html")
+	messagePlainTemplate = MustParseTemplates(templates, "base.html", "message-plain.html")
+	deleteTemplate = MustParseTemplates(templates, "base.html", "delete.html")
 
 	s.store = sessions.NewCookieStore([]byte(n.Key))
 	s.store.MaxAge(86402) // set max cookie age to 24 hours + 2 seconds
@@ -240,18 +240,22 @@ func (s *Server) DeleteOldRoutes() ([]mailgun.Route, error) {
 	return failed, nil
 }
 
-//MustParseTemplates parses string templates into one template
+// MustParseTemplates parses string templates into one template
 // Function modified from: https://stackoverflow.com/questions/41856021/how-to-parse-multiple-strings-into-a-template-with-go
-func MustParseTemplates(templs ...string) *template.Template {
+func MustParseTemplates(box packr.Box, templs ...string) *template.Template {
 	t := template.New("templ")
 
 	for i, templ := range templs {
-		_, err := t.New(fmt.Sprintf("%v", i)).Parse(templ)
-
+		templateString, err := box.FindString(templ)
 		if err != nil {
-			panic(err)
+			log.Fatalf("MustParseTemplates: failed to find template: %v", err)
 		}
 
+		_, err = t.New(fmt.Sprintf("%v", i)).Parse(templateString)
+		if err != nil {
+			log.Fatalf("MustParseTemplates: failed to parse template: %v", err)
+
+		}
 	}
 
 	return t
