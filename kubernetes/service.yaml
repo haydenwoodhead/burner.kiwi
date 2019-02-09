@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: burner-kiwi
+spec:
+  selector:
+    matchLabels:
+      app: burner-kiwi
+  template:
+    metadata:
+      labels:
+        app: burner-kiwi
+    spec:
+      containers:
+        - name: burner-kiwi
+          image: haydensw/burner-kiwi:v0.1.13
+          resources:
+            limits:
+              memory: "250M"
+              cpu: "0.25"
+          ports:
+            - containerPort: 8080
+          env:
+            - name: KEY
+              valueFrom:
+                secretKeyRef:
+                  name: burner-kiwi-secrets
+                  key: key
+            - name: WEBSITE_URL
+              value: "https://burner.kiwi"
+            - name: STATIC_URL
+              value: "https://static.burner.kiwi"
+            - name: DOMAINS
+              value:  "rogerin.space, pyrokiwi.xyz"
+            - name: "RESTOREREALIP"
+              value: "true"
+            - name: MG_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: burner-kiwi-secrets
+                  key: mg_key
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef: 
+                  name: burner-kiwi-secrets
+                  key: database_url
+            - name: MG_DOMAIN
+              value: "rogerin.space"
+            - name: DB_TYPE
+              value: "postgres"   
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: burner-kiwi-svc
+spec:
+  selector:
+    app: burner-kiwi
+  ports:
+    - port: 80
+      targetPort: 8080
+  type: ClusterIP
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: burner-kiwi-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/limit-rps: "5"
+spec:
+  rules:
+    - host: burner.kiwi
+      http:
+          paths:
+            - path: /
+              backend:
+                serviceName: burner-kiwi-svc
+                servicePort: 80
