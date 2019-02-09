@@ -52,16 +52,15 @@ func parseStringVar(key string) string {
 }
 
 func parseBoolVar(key string) (bool, error) {
-	val := mustParseStringVar(key)
+	val := parseStringVar(key)
 	return strconv.ParseBool(val)
 }
 
 func mustParseStringVar(key string) (v string) {
 	v = parseStringVar(key)
-	if strings.Compare(v, "") == 0 {
+	if v == "" {
 		log.Fatalf("Env var %v cannot be empty", key)
 	}
-
 	return
 }
 
