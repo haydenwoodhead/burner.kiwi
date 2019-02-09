@@ -67,7 +67,9 @@
             "DEVELOPING": "false",
             "DOMAINS": {"Ref": "Domains"},
             "MG_KEY": {"Ref": "MGKey"},
-            "MG_DOMAIN": {"Ref": "MGDomain"}
+            "MG_DOMAIN": {"Ref": "MGDomain"},
+            "DB_TYPE": "dynamo",
+            "DYNAMO_TABLE": "burner-kiwi"
           }
         },
         "Tags" : {
