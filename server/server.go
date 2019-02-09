@@ -54,15 +54,16 @@ type Server struct {
 
 //NewServerInput contains key configuration parameters to be passed to NewServer()
 type NewServerInput struct {
-	Key         string
-	URL         string
-	StaticURL   string
-	MGDomain    string
-	MGKey       string
-	Domains     []string
-	Developing  bool
-	UsingLambda bool
-	Database    data.Database
+	Key           string
+	URL           string
+	StaticURL     string
+	MGDomain      string
+	MGKey         string
+	Domains       []string
+	Developing    bool
+	UsingLambda   bool
+	RestoreRealIP bool
+	Database      data.Database
 }
 
 // NewServer returns a server with the given settings
@@ -147,6 +148,10 @@ func NewServer(n NewServerInput) (*Server, error) {
 		s.Router.PathPrefix("/static/").Handler(alice.New(CacheControl(0)).Then(fs))
 	} else {
 		s.Router.PathPrefix("/static/").Handler(alice.New(CacheControl(15778463)).Then(fs))
+	}
+
+	if n.RestoreRealIP {
+		s.Router.Use(RestoreRealIP)
 	}
 
 	return &s, nil

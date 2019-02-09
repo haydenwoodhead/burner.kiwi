@@ -35,15 +35,16 @@ func mustParseNewServerInput() server.NewServerInput {
 	}
 
 	return server.NewServerInput{
-		Key:         mustParseStringVar("KEY"),
-		URL:         mustParseStringVar("WEBSITE_URL"),
-		StaticURL:   mustParseStringVar("STATIC_URL"),
-		MGKey:       mustParseStringVar("MG_KEY"),
-		MGDomain:    mustParseStringVar("MG_DOMAIN"),
-		Developing:  parseBoolVarWithDefault("DEVELOPING", false),
-		Domains:     mustParseSliceVar("DOMAINS"),
-		UsingLambda: parseBoolVarWithDefault("LAMBDA", false),
-		Database:    db,
+		Key:           mustParseStringVar("KEY"),
+		URL:           mustParseStringVar("WEBSITE_URL"),
+		StaticURL:     mustParseStringVar("STATIC_URL"),
+		MGKey:         mustParseStringVar("MG_KEY"),
+		MGDomain:      mustParseStringVar("MG_DOMAIN"),
+		Developing:    parseBoolVarWithDefault("DEVELOPING", false),
+		Domains:       mustParseSliceVar("DOMAINS"),
+		UsingLambda:   parseBoolVarWithDefault("LAMBDA", false),
+		RestoreRealIP: parseBoolVarWithDefault("RESTOREREALIP", false),
+		Database:      db,
 	}
 }
 

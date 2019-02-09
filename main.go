@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/context"
 	"github.com/haydenwoodhead/burner.kiwi/server"
@@ -32,7 +33,15 @@ func main() {
 	}
 
 	go func(s *server.Server) {
-		runDeleteFunc(s)
+		if nsi.UsingLambda {
+			runDeleteFunc(s)
+		} else {
+			for {
+				time.Sleep(1 * time.Hour)
+				log.Println("calling run delete func")
+				runDeleteFunc(s)
+			}
+		}
 	}(s)
 
 	if nsi.UsingLambda {

@@ -189,3 +189,14 @@ func SetVersionHeader(h http.Handler) http.Handler {
 		h.ServeHTTP(w, r)
 	})
 }
+
+//RestoreRealIP uses the real ip of the request from theCF-Connecting-IP header
+func RestoreRealIP(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ip := r.Header.Get("CF-Connecting-IP")
+		if ip != "" {
+			r.RemoteAddr = ip
+		}
+		h.ServeHTTP(w, r)
+	})
+}

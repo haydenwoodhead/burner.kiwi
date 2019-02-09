@@ -12,6 +12,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/haydenwoodhead/burner.kiwi/token"
@@ -348,6 +350,22 @@ func TestServer_SecurityHeaders_AllowExt(t *testing.T) {
 		fmt.Println(csp)
 		t.Fatalf("TestServer_SecurityHeaders_AllowExt: csp doesn't match expected. Got %v, expected %v", csp, expectedCSP)
 	}
+}
+
+func TestRestoreRealIP(t *testing.T) {
+	h := func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(r.RemoteAddr))
+	}
+	handler := RestoreRealIP(http.HandlerFunc(h))
+
+	rr := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/", nil)
+	r.RemoteAddr = "8.8.8.8"
+	r.Header.Set("CF-Connecting-IP", "1.1.1.1")
+
+	handler.ServeHTTP(rr, r)
+
+	assert.Equal(t, "1.1.1.1", rr.Body.String())
 }
 
 // Mock handler implementations
