@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
         - name: burner-kiwi
-          image: haydensw/burner-kiwi:v0.1.13
+          image: haydensw/burner-kiwi:v0.1.15
           resources:
             limits:
               memory: "250M"
