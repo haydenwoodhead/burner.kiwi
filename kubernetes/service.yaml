@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
         - name: burner-kiwi
-          image: haydensw/burner-kiwi:v0.1.15
+          image: haydensw/burner-kiwi:v0.1.16
           resources:
             limits:
               memory: "250M"
@@ -47,7 +47,9 @@ spec:
             - name: MG_DOMAIN
               value: "rogerin.space"
             - name: DB_TYPE
-              value: "postgres"   
+              value: "postgres"  
+            - name: "BLACKLISTED"
+              value: "steampowered.com"
 ---
 apiVersion: v1
 kind: Service
