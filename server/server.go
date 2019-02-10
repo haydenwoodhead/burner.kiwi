@@ -40,30 +40,32 @@ var version = "dev"
 
 // Server bundles several data types together for dependency injection into http handlers
 type Server struct {
-	store       *sessions.CookieStore
-	websiteURL  string
-	staticURL   string
-	eg          *generateemail.EmailGenerator
-	mg          mailgun.Mailgun
-	db          data.Database
-	Router      *mux.Router
-	tg          *token.Generator
-	developing  bool
-	usingLambda bool
+	store              *sessions.CookieStore
+	websiteURL         string
+	staticURL          string
+	eg                 *generateemail.EmailGenerator
+	mg                 mailgun.Mailgun
+	db                 data.Database
+	Router             *mux.Router
+	tg                 *token.Generator
+	developing         bool
+	usingLambda        bool
+	blacklistedDomains []string
 }
 
 //NewServerInput contains key configuration parameters to be passed to NewServer()
 type NewServerInput struct {
-	Key           string
-	URL           string
-	StaticURL     string
-	MGDomain      string
-	MGKey         string
-	Domains       []string
-	Developing    bool
-	UsingLambda   bool
-	RestoreRealIP bool
-	Database      data.Database
+	Key                string
+	URL                string
+	StaticURL          string
+	MGDomain           string
+	MGKey              string
+	Domains            []string
+	Developing         bool
+	UsingLambda        bool
+	RestoreRealIP      bool
+	Database           data.Database
+	BlacklistedDomains []string
 }
 
 // NewServer returns a server with the given settings
@@ -93,6 +95,8 @@ func NewServer(n NewServerInput) (*Server, error) {
 	s.tg = token.NewGenerator(n.Key, 24*time.Hour)
 
 	s.db = n.Database
+
+	s.blacklistedDomains = n.BlacklistedDomains
 
 	s.Router = mux.NewRouter()
 	s.Router.StrictSlash(true) // means router will match both "/path" and "/path/"

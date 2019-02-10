@@ -27,8 +27,8 @@ func (s *Server) MailgunIncoming(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.FormValue("sender") == "noreply@steampowered.com" {
-		w.WriteHeader(http.StatusOK)
+	if s.isBlacklisted(r.FormValue("sender")) {
+		w.WriteHeader(http.StatusNotAcceptable)
 		return
 	}
 
@@ -111,4 +111,14 @@ func (s *Server) MailgunIncoming(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+}
+
+func (s *Server) isBlacklisted(email string) bool {
+	emailDomain := strings.Split(email, "@")[1]
+	for _, domain := range s.blacklistedDomains {
+		if domain == emailDomain {
+			return true
+		}
+	}
+	return false
 }

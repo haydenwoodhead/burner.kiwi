@@ -78,7 +78,8 @@ MG_DOMAIN | String | One of the domains set up on your Mailgun account
 DB_TYPE | String | One of `memory`, `postgres` or `dynamo` for InMemory, PostgreSQL and DynamoDB respectively 
 DATABASE_URL | String | URL for the PostgreSQL database 
 DYNAMO_TABLE | String | Name of the dynamodb table to use for storage (if using DynamoDB)
-RESTOREREALIP | String | Restores the real remote ip using the `CF-Connecting-IP` header. Set to `true` to enable, `false` by default
+RESTOREREALIP | Boolean | Restores the real remote ip using the `CF-Connecting-IP` header. Set to `true` to enable, `false` by default
+BLACKLISTED | []String | Comma seperated list of domains to reject email from
 
 If you are using DynamoDB a non AWS environment you need to set these. If you are on AWS you should, of course, should use IAM roles.
 

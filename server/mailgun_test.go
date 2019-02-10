@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/gorilla/mux"
 	"github.com/haydenwoodhead/burner.kiwi/data"
 	"github.com/haydenwoodhead/burner.kiwi/data/inmemory"
@@ -80,6 +82,40 @@ func TestServer_MailgunIncoming_Verified(t *testing.T) {
 	}
 }
 
+func TestServer_MailgunIncoming_Blacklisted(t *testing.T) {
+	s := Server{
+		mg:                 FakeMG{Verify: true},
+		db:                 inmemory.GetInMemoryDB(),
+		blacklistedDomains: []string{"example.com"},
+	}
+
+	s.db.SaveNewInbox(data.Inbox{
+		Address:        "bobby@example.com",
+		ID:             "17b79467-f409-4e7d-86a9-0dc79b77f7c3",
+		CreatedAt:      time.Now().Unix(),
+		TTL:            time.Now().Add(1 * time.Hour).Unix(),
+		FailedToCreate: false,
+		MGRouteID:      "1234",
+	})
+
+	router := mux.NewRouter()
+	router.HandleFunc("/mg/incoming/{inboxID}/", s.MailgunIncoming)
+
+	httpServer := httptest.NewServer(router)
+
+	resp, err := http.PostForm(httpServer.URL+"/mg/incoming/17b79467-f409-4e7d-86a9-0dc79b77f7c3/", url.Values{
+		"message-id": {"1234"},
+		"sender":     {"hayden@example.com"},
+		"from":       {"hayden@example.com"},
+		"subject":    {"Hello there"},
+		"body-plain": {"Hello there"},
+		"body-html":  {`<html><body><a href="https://example.com">Hello there</a></body></html>`},
+	})
+
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusNotAcceptable, resp.StatusCode)
+}
+
 func TestServer_MailgunIncoming_UnVerified(t *testing.T) {
 	s := Server{
 		mg: FakeMG{Verify: false},
@@ -92,5 +128,29 @@ func TestServer_MailgunIncoming_UnVerified(t *testing.T) {
 
 	if rr.Code != http.StatusUnauthorized {
 		t.Fatalf("TestServer_MailgunIncoming_UnVerified: expected status code: %v, got %v", http.StatusUnauthorized, rr.Code)
+	}
+}
+
+func TestIsBlackListed(t *testing.T) {
+	s := Server{
+		blacklistedDomains: []string{"example.com"},
+	}
+
+	tests := []struct {
+		Email    string
+		Expected bool
+	}{
+		{
+			Email:    "test@example.com",
+			Expected: true,
+		},
+		{
+			Email:    "test@example.org",
+			Expected: false,
+		},
+	}
+
+	for _, test := range tests {
+		assert.Equal(t, test.Expected, s.isBlacklisted(test.Email))
 	}
 }

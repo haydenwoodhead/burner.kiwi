@@ -35,16 +35,17 @@ func mustParseNewServerInput() server.NewServerInput {
 	}
 
 	return server.NewServerInput{
-		Key:           mustParseStringVar("KEY"),
-		URL:           mustParseStringVar("WEBSITE_URL"),
-		StaticURL:     mustParseStringVar("STATIC_URL"),
-		MGKey:         mustParseStringVar("MG_KEY"),
-		MGDomain:      mustParseStringVar("MG_DOMAIN"),
-		Developing:    parseBoolVarWithDefault("DEVELOPING", false),
-		Domains:       mustParseSliceVar("DOMAINS"),
-		UsingLambda:   parseBoolVarWithDefault("LAMBDA", false),
-		RestoreRealIP: parseBoolVarWithDefault("RESTOREREALIP", false),
-		Database:      db,
+		Key:                mustParseStringVar("KEY"),
+		URL:                mustParseStringVar("WEBSITE_URL"),
+		StaticURL:          mustParseStringVar("STATIC_URL"),
+		MGKey:              mustParseStringVar("MG_KEY"),
+		MGDomain:           mustParseStringVar("MG_DOMAIN"),
+		Developing:         parseBoolVarWithDefault("DEVELOPING", false),
+		Domains:            mustParseSliceVar("DOMAINS"),
+		UsingLambda:        parseBoolVarWithDefault("LAMBDA", false),
+		RestoreRealIP:      parseBoolVarWithDefault("RESTOREREALIP", false),
+		BlacklistedDomains: parseSliceVar("BLACKLISTED"),
+		Database:           db,
 	}
 }
 
@@ -65,8 +66,8 @@ func mustParseStringVar(key string) (v string) {
 	return
 }
 
-func mustParseSliceVar(key string) (v []string) {
-	val := mustParseStringVar(key)
+func parseSliceVar(key string) (v []string) {
+	val := parseStringVar(key)
 	split := strings.Split(val, ",")
 
 	for _, s := range split {
@@ -74,6 +75,14 @@ func mustParseSliceVar(key string) (v []string) {
 	}
 
 	return
+}
+
+func mustParseSliceVar(key string) []string {
+	v := parseSliceVar(key)
+	if len(v) == 0 {
+		log.Fatalf("Env var %v cannot be empty", key)
+	}
+	return v
 }
 
 func parseBoolVarWithDefault(key string, def bool) bool {
