@@ -10,3 +10,7 @@ buildres/
 
 #ignore packr files
 *-packr.go
+
+#ignore binarys
+burnerkiwi
+burnerkiwi.test

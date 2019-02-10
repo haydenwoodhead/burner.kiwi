@@ -2,6 +2,9 @@ package postgresql
 
 import (
 	"database/sql"
+	"fmt"
+	"log"
+	"time"
 
 	"github.com/haydenwoodhead/burner.kiwi/data"
 	"github.com/jmoiron/sqlx"
@@ -16,8 +19,19 @@ type PostgreSQL struct {
 
 // GetPostgreSQLDB returns a new postgres db or panics
 func GetPostgreSQLDB(dbURL string) *PostgreSQL {
-	db := sqlx.MustOpen("postgres", dbURL)
-	return &PostgreSQL{db}
+	p := &PostgreSQL{sqlx.MustOpen("postgres", dbURL)}
+	go func() {
+		for {
+			time.Sleep(30 * time.Minute)
+			count, err := p.runTTLDelete()
+			if err != nil {
+				log.Println("Failed to delete old rows from db")
+				continue
+			}
+			log.Printf("Deleted %v old inboxes from db\n", count)
+		}
+	}()
+	return p
 }
 
 // SaveNewInbox saves a new inbox
@@ -92,4 +106,14 @@ func (p *PostgreSQL) GetMessageByID(i, m string) (data.Message, error) {
 	}
 
 	return msg, err
+}
+
+func (p *PostgreSQL) runTTLDelete() (int, error) {
+	t := time.Now().Unix()
+	res, err := p.Exec("DELETE from inbox WHERE ttl < $1", t)
+	if err != nil {
+		return -1, fmt.Errorf("Postgres.runTTLDelete failed with err=%v", err)
+	}
+	count, err := res.RowsAffected()
+	return int(count), err
 }
