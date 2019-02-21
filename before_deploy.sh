@@ -7,7 +7,6 @@ mkdir ./buildres/static
 cp ./buildres/burnerkiwi ./buildres/cloudformation
 cd ./buildres/cloudformation
 zip burnerkiwi.zip burnerkiwi
-rm burnerkiwi
 cd ../
 cd ../
 cp cloudformation.json ./buildres/cloudformation/
