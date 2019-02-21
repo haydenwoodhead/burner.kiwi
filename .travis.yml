@@ -89,3 +89,5 @@ deploy:
     local_dir: buildres/static
     on:
       branch: dev
+  - provider: script
+    script: curl -o /dev/null -d '' $DOCKERHUB
