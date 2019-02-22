@@ -31,8 +31,7 @@ script:
   - sed -i '/testsuite.go/d' ./profile.cov
   - goveralls -service=travis-ci -coverprofile=profile.cov || echo "Push to coveralls failed"
 
-before_deploy:
-  - pip install --user awscli
+after_success:
   - ./build.sh
   - ./before_deploy.sh
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
