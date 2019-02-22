@@ -35,6 +35,7 @@ before_deploy:
   - pip install --user awscli
   - ./build.sh
   - ./before_deploy.sh
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
 deploy:
   # Deploy to ap-southeast-2 cloudformation bucket
@@ -90,4 +91,4 @@ deploy:
     on:
       branch: dev
   - provider: script
-    script: curl -o /dev/null -d '' $DOCKERHUB
+    script:  TAG=release-$(git rev-parse --short HEAD) make image-and-push &&  TAG=latest make image-and-push
