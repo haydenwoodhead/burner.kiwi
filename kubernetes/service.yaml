@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: burner-kiwi
+  annotations:
+      keel.sh/policy: "regexp:release-[A-Za-z0-9]{7}"
 spec:
   selector:
     matchLabels:
@@ -13,7 +15,7 @@ spec:
     spec:
       containers:
         - name: burner-kiwi
-          image: haydensw/burner-kiwi:v0.1.16
+          image: haydensw/burner-kiwi:latest
           resources:
             limits:
               memory: "250M"
