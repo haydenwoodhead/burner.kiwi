@@ -4,6 +4,7 @@ metadata:
   name: burner-kiwi
   annotations:
       keel.sh/policy: "regexp:release-[A-Za-z0-9]{7}"
+      prometheus.io/scrape: "true"
 spec:
   selector:
     matchLabels:
@@ -71,6 +72,10 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
     nginx.ingress.kubernetes.io/limit-rps: "5"
+    nginx.org/server-snippets: |-
+      location /metrics {
+          deny all;
+      }
 spec:
   rules:
     - host: burner.kiwi
