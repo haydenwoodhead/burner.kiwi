@@ -22,6 +22,8 @@ func (s *Server) MailgunIncoming(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Printf("MailgunIncoming: failed to verify request: %v", err)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
 	}
 
 	if !ver {
