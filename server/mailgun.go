@@ -6,10 +6,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
+
 	"github.com/PuerkitoBio/goquery"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/haydenwoodhead/burner.kiwi/data"
+	"github.com/haydenwoodhead/burner.kiwi/metrics"
 )
 
 // MailgunIncoming receives incoming email webhooks from mailgun. It saves the email to
@@ -29,6 +32,9 @@ func (s *Server) MailgunIncoming(w http.ResponseWriter, r *http.Request) {
 
 	if s.isBlacklisted(r.FormValue("sender")) {
 		w.WriteHeader(http.StatusNotAcceptable)
+		metrics.IncomingEmails.With(prometheus.Labels{
+			"action": "rejected",
+		}).Inc()
 		return
 	}
 
@@ -111,6 +117,10 @@ func (s *Server) MailgunIncoming(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	metrics.IncomingEmails.With(prometheus.Labels{
+		"action": "accepted",
+	}).Inc()
 }
 
 func (s *Server) isBlacklisted(email string) bool {

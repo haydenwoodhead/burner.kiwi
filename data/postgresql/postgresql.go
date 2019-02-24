@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/haydenwoodhead/burner.kiwi/data"
+	"github.com/haydenwoodhead/burner.kiwi/metrics"
 	"github.com/jmoiron/sqlx"
 
 	_ "github.com/lib/pq" // import lib pq here rather than main
@@ -21,14 +22,24 @@ type PostgreSQL struct {
 func GetPostgreSQLDB(dbURL string) *PostgreSQL {
 	p := &PostgreSQL{sqlx.MustOpen("postgres", dbURL)}
 	go func() {
+		t := time.Now().Unix()
+		var active int
+		err := p.Get(&active, "select count(*) from inbox WHERE ttl > $1", t)
+		if err != nil {
+			log.Println("Failed to get number of active inboxes")
+		}
+
+		metrics.ActiveInboxes.Set(float64(active))
+
 		for {
-			time.Sleep(30 * time.Minute)
 			count, err := p.runTTLDelete()
 			if err != nil {
 				log.Println("Failed to delete old rows from db")
 				continue
 			}
 			log.Printf("Deleted %v old inboxes from db\n", count)
+			metrics.ActiveInboxes.Sub(float64(count))
+			time.Sleep(30 * time.Minute)
 		}
 	}()
 	return p
@@ -48,6 +59,9 @@ func (p *PostgreSQL) SaveNewInbox(i data.Inbox) error {
 			"failed_to_create": i.FailedToCreate,
 		},
 	)
+	if err != nil {
+		metrics.ActiveInboxes.Inc()
+	}
 	return err
 }
 
