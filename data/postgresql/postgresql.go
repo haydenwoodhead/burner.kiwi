@@ -59,7 +59,7 @@ func (p *PostgreSQL) SaveNewInbox(i data.Inbox) error {
 			"failed_to_create": i.FailedToCreate,
 		},
 	)
-	if err != nil {
+	if err == nil {
 		metrics.ActiveInboxes.Inc()
 	}
 	return err
