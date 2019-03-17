@@ -35,7 +35,7 @@ func (s *Server) CheckPermissionJSON(h http.Handler) http.Handler {
 			return
 		} else if err != nil {
 			log.Printf("CheckPermissionJSON: failed to verify token: %v", err)
-			returnJSON500(w, r, "Something went wrong")
+			returnJSONError(w, r, http.StatusInternalServerError, "Something went wrong")
 			return
 		}
 

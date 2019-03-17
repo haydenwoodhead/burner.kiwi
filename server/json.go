@@ -43,29 +43,25 @@ func GetMeta() Meta {
 // NewInboxJSON generates a new email address and returns it to the caller
 func (s *Server) NewInboxJSON(w http.ResponseWriter, r *http.Request) {
 	i := data.NewInbox()
-	resp := Response{Meta: GetMeta()}
-
 	i.Address = s.eg.NewRandom()
 
-	exist, err := s.db.EmailAddressExists(i.Address) // while it's VERY unlikely that the email already exists but lets check anyway
-
+	exists, err := s.db.EmailAddressExists(i.Address) // while it's VERY unlikely that the email already exists but lets check anyway
 	if err != nil {
 		log.Printf("JSON Index: failed to check if email exists: %v", err)
-		returnJSON500(w, r, "Failed to generate email")
+		returnJSONError(w, r, http.StatusInternalServerError, "Failed to generate email")
 		return
 	}
 
-	if exist {
+	if exists {
 		log.Printf("JSON Index: email already exisists: %v", err)
-		returnJSON500(w, r, "Failed to generate email")
+		returnJSONError(w, r, http.StatusInternalServerError, "Failed to generate email")
 		return
 	}
 
 	id, err := uuid.NewRandom()
-
 	if err != nil {
 		log.Printf("JSON Index: failed to generate new random id: %v", err)
-		returnJSON500(w, r, "Failed to generate random id")
+		returnJSONError(w, r, http.StatusInternalServerError, "Failed to generate random id")
 		return
 	}
 
@@ -88,10 +84,9 @@ func (s *Server) NewInboxJSON(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = s.db.SaveNewInbox(i)
-
 	if err != nil {
 		log.Printf("JSON Index: failed to save email: %v", err)
-		returnJSON500(w, r, "Failed to save email")
+		returnJSONError(w, r, http.StatusInternalServerError, "Failed to save email")
 		return
 	}
 
@@ -105,32 +100,17 @@ func (s *Server) NewInboxJSON(w http.ResponseWriter, r *http.Request) {
 		Token: token,
 	}
 
-	resp.Success = true
-	resp.Result = res
-
-	jsonResp, err := json.Marshal(resp)
-
-	if err != nil {
-		log.Printf("JSON Index: failed to marshal result var: %v", err)
-		returnJSON500(w, r, "Failed to marshal response")
-		return
-	}
-
-	_, err = w.Write(jsonResp)
-
-	if err != nil {
-		log.Printf("NewInboxJSON: failed to write response: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusAccepted)
-
 	// if we're using lambda then wait for our create route and update goroutine to finish before exiting the
 	// func and therefore returning a response
 	if s.usingLambda {
 		wg.Wait()
 	}
+
+	returnJSON(w, r, http.StatusOK, Response{
+		Result:  res,
+		Meta:    GetMeta(),
+		Success: true,
+	})
 }
 
 // GetInboxDetailsJSON returns details on a singular inbox by the given inbox id
@@ -139,34 +119,17 @@ func (s *Server) GetInboxDetailsJSON(w http.ResponseWriter, r *http.Request) {
 	id := vars["inboxID"]
 
 	e, err := s.db.GetInboxByID(id)
-
 	if err != nil {
 		log.Printf("GetInboxDetailsJSON: failed to retrieve email from db: %v", err)
-		returnJSON500(w, r, "Failed to get email details")
+		returnJSONError(w, r, http.StatusInternalServerError, "Failed to get email details")
 		return
 	}
 
-	res := Response{
+	returnJSON(w, r, http.StatusOK, Response{
 		Success: true,
 		Result:  e,
 		Meta:    GetMeta(),
-	}
-
-	resJSON, err := json.Marshal(res)
-
-	if err != nil {
-		log.Printf("GetInboxDetailsJSON: failed to marhsal json: %v", err)
-		returnJSON500(w, r, "Failed to marshal response")
-		return
-	}
-
-	_, err = w.Write(resJSON)
-
-	if err != nil {
-		log.Printf("GetInboxDetailsJSON: failed to write response: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	})
 }
 
 // GetAllMessagesJSON returns all messages in json
@@ -178,84 +141,36 @@ func (s *Server) GetAllMessagesJSON(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Printf("GetAllMessagesJSON: failed to get messages with id %v: %v", id, err)
-		returnJSON500(w, r, "Failed to get messages")
+		returnJSONError(w, r, http.StatusInternalServerError, "Failed to get messages")
 		return
 	}
 
-	res := Response{
+	returnJSON(w, r, http.StatusOK, Response{
 		Success: true,
 		Result:  m,
 		Meta:    GetMeta(),
-	}
-
-	resJSON, err := json.Marshal(res)
-
-	if err != nil {
-		log.Printf("GetAllMessagesJSON: failed to marhsal json: %v", err)
-		returnJSON500(w, r, "Failed to marshal response")
-		return
-	}
-
-	_, err = w.Write(resJSON)
-
-	if err != nil {
-		log.Printf("GetAllMessagesJSON: failed to write response: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	})
 }
 
-// returnJSON500 returns json with custom error message
-func returnJSON500(w http.ResponseWriter, r *http.Request, msg string) {
-	resp := Response{}
-	resp.Success = false
-	resp.Result = nil
-	resp.Meta = GetMeta()
-	resp.Errors = Errors{
-		Code: 500,
-		Msg:  "Internal Server Error: " + msg,
-	}
-
-	jsonResp, err := json.Marshal(resp)
-
-	if err != nil {
-		log.Printf("JSON Index: failed to marshal error response: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusInternalServerError)
-	_, err = w.Write(jsonResp)
-
-	if err != nil {
-		log.Printf("returnJSON500: failed to write response: %v", err)
-		return
-	}
-}
-
+// returnJSONError returns json with custom error message
 func returnJSONError(w http.ResponseWriter, r *http.Request, status int, msg string) {
-	resp := Response{}
-	resp.Success = false
-	resp.Result = nil
-	resp.Meta = GetMeta()
-	resp.Errors = Errors{
-		Code: status,
-		Msg:  msg,
-	}
+	returnJSON(w, r, status, Response{
+		Success: false,
+		Result:  nil,
+		Meta:    GetMeta(),
+		Errors: Errors{
+			Code: 500,
+			Msg:  msg,
+		},
+	})
+}
 
-	jsonResp, err := json.Marshal(resp)
-
-	if err != nil {
-		returnJSON500(w, r, "Failed to marshal error response")
-		return
-	}
-
+func returnJSON(w http.ResponseWriter, r *http.Request, status int, resp interface{}) {
 	w.WriteHeader(status)
-
-	_, err = w.Write(jsonResp)
-
+	encoder := json.NewEncoder(w)
+	err := encoder.Encode(resp)
 	if err != nil {
-		log.Printf("returnJSONError: failed to write response: %v", err)
+		log.Printf("returnJSON: failed to write response. err=%v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
