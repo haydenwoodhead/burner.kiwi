@@ -5,7 +5,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -15,10 +15,10 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/haydenwoodhead/burner.kiwi/data"
+	"github.com/haydenwoodhead/burner.kiwi/email"
 	"github.com/haydenwoodhead/burner.kiwi/generateemail"
 	"github.com/haydenwoodhead/burner.kiwi/token"
 	"github.com/justinas/alice"
-	mailgun "gopkg.in/mailgun/mailgun-go.v1"
 )
 
 // Packr boxes for static templates and assets
@@ -46,7 +46,7 @@ type Server struct {
 	websiteURL         string
 	staticURL          string
 	eg                 *generateemail.EmailGenerator
-	mg                 mailgun.Mailgun
+	email              email.Provider
 	db                 data.Database
 	Router             *mux.Router
 	tg                 *token.Generator
@@ -60,8 +60,7 @@ type NewServerInput struct {
 	Key                string
 	URL                string
 	StaticURL          string
-	MGDomain           string
-	MGKey              string
+	Email              email.Provider
 	Domains            []string
 	Developing         bool
 	UsingLambda        bool
@@ -90,8 +89,6 @@ func NewServer(n NewServerInput) (*Server, error) {
 
 	s.usingLambda = n.UsingLambda
 
-	s.mg = mailgun.NewMailgun(n.MGDomain, n.MGKey, "")
-
 	s.eg = generateemail.NewEmailGenerator(n.Domains, 8)
 
 	s.tg = token.NewGenerator(n.Key, 24*time.Hour)
@@ -102,6 +99,9 @@ func NewServer(n NewServerInput) (*Server, error) {
 
 	s.Router = mux.NewRouter()
 	s.Router.StrictSlash(true) // means router will match both "/path" and "/path/"
+
+	s.email = n.Email
+	s.email.Start(s.websiteURL, s.db, s.Router, s.isBlacklisted)
 
 	// HTML - trying to make middleware flow/handler declaration a little more readable
 	s.Router.Handle("/",
@@ -144,9 +144,6 @@ func NewServer(n NewServerInput) (*Server, error) {
 	s.Router.Handle("/api/v1/inbox/{inboxID}/", alice.New(JSONContentType, s.CheckPermissionJSON).ThenFunc(s.GetInboxDetailsJSON)).Methods(http.MethodGet)
 	s.Router.Handle("/api/v1/inbox/{inboxID}/messages/", alice.New(JSONContentType, s.CheckPermissionJSON).ThenFunc(s.GetAllMessagesJSON)).Methods(http.MethodGet)
 
-	// Mailgun Incoming
-	s.Router.HandleFunc("/mg/incoming/{inboxID}/", s.MailgunIncoming).Methods(http.MethodPost)
-
 	// Static File Serving w/ Packr
 	fs := http.StripPrefix("/static/", http.FileServer(staticFS))
 
@@ -175,39 +172,28 @@ const (
 	sessionCTXKey key = iota
 )
 
-// createRoute registers the email route with mailgun
-func (s *Server) createRoute(i *data.Inbox) error {
-	routeAddr := s.websiteURL + "/mg/incoming/" + i.ID + "/"
-
-	route, err := s.mg.CreateRoute(mailgun.Route{
-		Priority:    1,
-		Description: strconv.FormatInt(i.TTL, 10),
-		Expression:  "match_recipient(\"" + i.Address + "\")",
-		Actions:     []string{"forward(\"" + routeAddr + "\")", "store()", "stop()"},
-	})
-
-	if err != nil {
-		i.FailedToCreate = true
-		return fmt.Errorf("createRoute: failed to create mailgun route: %v", err)
+func (s *Server) isBlacklisted(email string) bool {
+	emailDomain := strings.Split(email, "@")[1]
+	for _, domain := range s.blacklistedDomains {
+		if domain == emailDomain {
+			return true
+		}
 	}
-
-	i.MGRouteID = route.ID
-
-	return nil
+	return false
 }
 
 //createRouteAndUpdate is intended to be run in a goroutine. It creates a mailgun route and updates dynamodb with
 //the result. Otherwise it fails silently and this failure is picked up in the next request.
 func (s *Server) createRouteAndUpdate(i data.Inbox) {
-	err := s.createRoute(&i)
-
+	routeID, err := s.email.RegisterRoute(i)
 	if err != nil {
 		log.Printf("Index JSON: failed to create route: %v", err)
 		return
 	}
 
+	i.MGRouteID = routeID
+	i.FailedToCreate = false
 	err = s.db.SetInboxCreated(i)
-
 	if err != nil {
 		log.Printf("Index JSON: failed to update that route is created: %v", err)
 	}
@@ -221,37 +207,8 @@ func (s *Server) lambdaCreateRouteAndUpdate(wg *sync.WaitGroup, i data.Inbox) {
 }
 
 //DeleteOldRoutes deletes routes older than 24 hours
-func (s *Server) DeleteOldRoutes() ([]mailgun.Route, error) {
-	_, rs, err := s.mg.GetRoutes(1000, 0)
-
-	if err != nil {
-		return []mailgun.Route{}, fmt.Errorf("deleteOldRoutes: failed to get routes: %v", err)
-	}
-
-	var failed []mailgun.Route
-
-	for _, r := range rs {
-		tInt, err := strconv.ParseInt(r.Description, 10, 64)
-
-		if err != nil {
-			failed = append(failed, r)
-			continue
-		}
-
-		t := time.Unix(tInt, 0)
-
-		// if our route's ttl (expiration time) is before now... then delete it
-		if t.Before(time.Now()) {
-			err := s.mg.DeleteRoute(r.ID)
-
-			if err != nil {
-				failed = append(failed, r)
-				continue
-			}
-		}
-	}
-
-	return failed, nil
+func (s *Server) DeleteOldRoutes() error {
+	return s.email.DeleteExipredRoutes()
 }
 
 // MustParseTemplates parses string templates into one template

@@ -52,14 +52,9 @@ func main() {
 }
 
 func runDeleteFunc(s *server.Server) {
-	routes, err := s.DeleteOldRoutes()
-
+	err := s.DeleteOldRoutes()
 	if err != nil {
 		log.Printf("Failed to call deleteOldRoutes: %v", err)
-	}
-
-	for _, route := range routes {
-		log.Printf("Failed to process route id: %v; email: %v; desc: %v", route.ID, route.Expression, route.Description)
 	}
 
 	log.Printf("Route Delete finished.")

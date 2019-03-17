@@ -11,18 +11,23 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/haydenwoodhead/burner.kiwi/data"
 	"github.com/haydenwoodhead/burner.kiwi/data/inmemory"
+	"github.com/haydenwoodhead/burner.kiwi/email/testEmail"
 	"github.com/haydenwoodhead/burner.kiwi/generateemail"
 	"github.com/haydenwoodhead/burner.kiwi/token"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestServer_NewInboxJSON(t *testing.T) {
 	db := inmemory.GetInMemoryDB()
 
+	m := new(testEmail.Provider)
+	m.On("RegisterRoute", mock.Anything).Return("1234", nil)
+
 	s := Server{
 		db:          db,
 		tg:          token.NewGenerator("testexample12344", time.Hour),
-		mg:          FakeMG{},
+		email:       m,
 		eg:          generateemail.NewEmailGenerator([]string{"example.com"}, 8),
 		usingLambda: true, // make sure the create route goroutine finishes before we check the result
 	}
@@ -76,6 +81,8 @@ func TestServer_NewInboxJSON(t *testing.T) {
 	if inbox.CreatedBy != "192.168.1.1" {
 		t.Error("TestServer_NewInboxJSON: creators ip not recorded")
 	}
+
+	m.AssertExpectations(t)
 }
 
 func TestServer_GetInboxDetailsJSON(t *testing.T) {
@@ -96,7 +103,6 @@ func TestServer_GetInboxDetailsJSON(t *testing.T) {
 	s := Server{
 		db:          db,
 		tg:          token.NewGenerator("testexample12344", time.Hour),
-		mg:          FakeMG{},
 		eg:          generateemail.NewEmailGenerator([]string{"example.com"}, 8),
 		usingLambda: true, // make sure the create route goroutine finishes before we check the result
 	}
@@ -169,7 +175,6 @@ func TestServer_GetAllMessagesJSON(t *testing.T) {
 	s := Server{
 		db:          db,
 		tg:          token.NewGenerator("testexample12344", time.Hour),
-		mg:          FakeMG{},
 		eg:          generateemail.NewEmailGenerator([]string{"example.com"}, 8),
 		usingLambda: true, // make sure the create route goroutine finishes before we check the result
 	}

@@ -6,19 +6,20 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/haydenwoodhead/burner.kiwi/data"
 	"github.com/haydenwoodhead/burner.kiwi/data/dynamodb"
-
 	"github.com/haydenwoodhead/burner.kiwi/data/inmemory"
 	"github.com/haydenwoodhead/burner.kiwi/data/postgresql"
-
-	"github.com/haydenwoodhead/burner.kiwi/data"
-
+	"github.com/haydenwoodhead/burner.kiwi/email"
+	"github.com/haydenwoodhead/burner.kiwi/email/mailgunmail"
 	"github.com/haydenwoodhead/burner.kiwi/server"
 )
 
 const inMemory = "memory"
 const postgreSQL = "postgres"
 const dynamoDB = "dynamo"
+
+const mailgunProvider = "mailgun"
 
 func mustParseNewServerInput() server.NewServerInput {
 	dbType := parseStringVarWithDefault("DB_TYPE", inMemory)
@@ -34,18 +35,26 @@ func mustParseNewServerInput() server.NewServerInput {
 		db = dynamodb.GetNewDynamoDB(mustParseStringVar("DYNAMO_TABLE"))
 	}
 
+	emailType := parseStringVarWithDefault("EMAIL_TYPE", mailgunProvider)
+
+	var email email.Provider
+
+	switch emailType {
+	case mailgunProvider:
+		email = mailgunmail.NewMailgunProvider(mustParseStringVar("MG_DOMAIN"), mustParseStringVar("MG_KEY"))
+	}
+
 	return server.NewServerInput{
 		Key:                mustParseStringVar("KEY"),
 		URL:                mustParseStringVar("WEBSITE_URL"),
 		StaticURL:          mustParseStringVar("STATIC_URL"),
-		MGKey:              mustParseStringVar("MG_KEY"),
-		MGDomain:           mustParseStringVar("MG_DOMAIN"),
 		Developing:         parseBoolVarWithDefault("DEVELOPING", false),
 		Domains:            mustParseSliceVar("DOMAINS"),
 		UsingLambda:        parseBoolVarWithDefault("LAMBDA", false),
 		RestoreRealIP:      parseBoolVarWithDefault("RESTOREREALIP", false),
 		BlacklistedDomains: parseSliceVar("BLACKLISTED"),
 		Database:           db,
+		Email:              email,
 	}
 }
 
