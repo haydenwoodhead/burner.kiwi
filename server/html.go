@@ -63,7 +63,6 @@ type messageOut struct {
 // Index returns messages in inbox to user
 func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
 	sess, ok := r.Context().Value(sessionCTXKey).(*sessions.Session)
-
 	if !ok {
 		log.Printf("Index: failed to get sess var. Sess not of type sessions.Session actual type: %v", reflect.TypeOf(sess))
 		http.Error(w, "Failed to get session", http.StatusInternalServerError)
@@ -71,7 +70,6 @@ func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id, ok := sess.Values["id"].(string)
-
 	if !ok {
 		log.Printf("Index: failed to get id from session. ID not of type string. ID actual type: %v", reflect.TypeOf(sess.Values["id"]))
 		http.Error(w, "Failed to get session id", http.StatusInternalServerError)
@@ -79,7 +77,6 @@ func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	i, err := s.db.GetInboxByID(id)
-
 	if err != nil {
 		log.Printf("Index: failed to get inbox: %v", err)
 		http.Error(w, "Failed to get inbox", http.StatusInternalServerError)
@@ -90,7 +87,6 @@ func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
 	if i.FailedToCreate {
 		sess.Options.MaxAge = -1
 		err = sess.Save(r, w)
-
 		if err != nil {
 			log.Printf("Index: failed to delete session cookie: %v", err)
 			http.Error(w, "Failed to create inbox. Please clear your cookies.", http.StatusInternalServerError)
@@ -102,7 +98,6 @@ func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	msgs, err := s.db.GetMessagesByInboxID(id)
-
 	if err != nil {
 		log.Printf("Index: failed to get all messages from inbox. %v", err)
 		http.Error(w, "Failed to get messages", http.StatusInternalServerError)
@@ -130,11 +125,9 @@ func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = indexTemplate.ExecuteTemplate(w, "base", io)
-
 	if err != nil {
 		log.Printf("Index: failed to write response: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
 	}
 }
 
@@ -142,7 +135,6 @@ func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
 func (s *Server) NewInbox(w http.ResponseWriter, r *http.Request) {
 	i := data.NewInbox()
 	sess, ok := r.Context().Value(sessionCTXKey).(*sessions.Session)
-
 	if !ok {
 		log.Printf("New Inbox: failed to get sess var. Sess not of type sessions.Session actual type: %v", reflect.TypeOf(sess))
 		http.Error(w, "Failed to generate email", http.StatusInternalServerError)
@@ -152,7 +144,6 @@ func (s *Server) NewInbox(w http.ResponseWriter, r *http.Request) {
 	i.Address = s.eg.NewRandom()
 
 	exist, err := s.db.EmailAddressExists(i.Address) // while it's VERY unlikely that the email address already exists but lets check anyway
-
 	if err != nil {
 		log.Printf("New Inbox: failed to check if email exists: %v", err)
 		http.Error(w, "Failed to generate email", http.StatusInternalServerError)
@@ -166,7 +157,6 @@ func (s *Server) NewInbox(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id, err := uuid.NewRandom()
-
 	if err != nil {
 		log.Printf("Index: failed to generate new random id: %v", err)
 		http.Error(w, "Failed to generate new random id", http.StatusInternalServerError)
@@ -192,16 +182,14 @@ func (s *Server) NewInbox(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = s.db.SaveNewInbox(i)
-
 	if err != nil {
 		log.Printf("NewInbox: failed to save email: %v", err)
-		http.Error(w, "Failed to save new email", http.StatusInternalServerError)
+		http.Error(w, "Failed to save new inbox", http.StatusInternalServerError)
 		return
 	}
 
 	sess.Values["id"] = i.ID
 	err = sess.Save(r, w)
-
 	if err != nil {
 		log.Printf("NewInbox: failed to set session cookie: %v", err)
 		http.Error(w, "Failed to set session cookie", http.StatusInternalServerError)
@@ -219,7 +207,6 @@ func (s *Server) NewInbox(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = indexTemplate.ExecuteTemplate(w, "base", io)
-
 	if err != nil {
 		log.Printf("NewInbox: failed to write response: %v", err)
 		http.Error(w, "Failed to write response", http.StatusInternalServerError)
@@ -236,7 +223,6 @@ func (s *Server) NewInbox(w http.ResponseWriter, r *http.Request) {
 // IndividualMessage returns a singular message to the user
 func (s *Server) IndividualMessage(w http.ResponseWriter, r *http.Request) {
 	sess, ok := r.Context().Value(sessionCTXKey).(*sessions.Session)
-
 	if !ok {
 		log.Printf("IndividualMessage: failed to get sess var. Sess not of type *sessions.Session actual type: %v", reflect.TypeOf(sess))
 		http.Error(w, "Failed to get email", http.StatusInternalServerError)
@@ -247,7 +233,6 @@ func (s *Server) IndividualMessage(w http.ResponseWriter, r *http.Request) {
 	mID := vars["messageID"]
 
 	iID, ok := sess.Values["id"].(string)
-
 	if !ok {
 		log.Printf("IndividualMessage: failed to get inbox id. Id not of type string. Actual type: %v", reflect.TypeOf(iID))
 		http.Error(w, "Failed to get message", http.StatusInternalServerError)
@@ -255,7 +240,6 @@ func (s *Server) IndividualMessage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	m, err := s.db.GetMessageByID(iID, mID)
-
 	if err == data.ErrMessageDoesntExist {
 		http.Error(w, "Message not found on server", http.StatusNotFound)
 		return
@@ -291,7 +275,6 @@ func (s *Server) IndividualMessage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = messageHTMLTemplate.ExecuteTemplate(w, "base", mo)
-
 	if err != nil {
 		log.Printf("IndividualMessage: failed to execute template: %v", err)
 		http.Error(w, "Failed to execute template", http.StatusInternalServerError)
@@ -315,23 +298,13 @@ func (s *Server) DeleteInbox(w http.ResponseWriter, r *http.Request) {
 //ConfirmDeleteInbox removes the user session cookie
 func (s *Server) ConfirmDeleteInbox(w http.ResponseWriter, r *http.Request) {
 	sess, ok := r.Context().Value(sessionCTXKey).(*sessions.Session)
-
 	if !ok {
 		log.Printf("ConfirmDeleteInbox: failed to get sess var. Sess not of type *sessions.Session actual type: %v", reflect.TypeOf(sess))
 		http.Error(w, "Failed to get user session", http.StatusInternalServerError)
 		return
 	}
 
-	err := r.ParseForm()
-
-	if err != nil {
-		log.Printf("ConfirmDeleteInbox: failed to parse form %v", err)
-		http.Error(w, "Failed to parse form", http.StatusInternalServerError)
-		return
-	}
-
-	dlt, err := strconv.ParseBool(r.FormValue("really-delete"))
-
+	dlt, err := strconv.ParseBool(r.PostFormValue("really-delete"))
 	if err != nil {
 		log.Printf("ConfirmDeleteInbox: failed to parse really-delete %v", err)
 		http.Error(w, "Failed to parse really-delete", http.StatusInternalServerError)
@@ -344,7 +317,6 @@ func (s *Server) ConfirmDeleteInbox(w http.ResponseWriter, r *http.Request) {
 
 	sess.Options.MaxAge = -1
 	err = sess.Save(r, w)
-
 	if err != nil {
 		log.Printf("ConfirmDeleteInbox: failed to delete user session %v", err)
 		http.Error(w, "Failed to delete user session", http.StatusInternalServerError)
