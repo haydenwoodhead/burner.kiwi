@@ -34,7 +34,7 @@ spec:
             - name: STATIC_URL
               value: "https://static.burner.kiwi"
             - name: DOMAINS
-              value:  "rogerin.space, pyrokiwi.xyz"
+              value:  "firekiwi.xyz, lovesfire.club"
             - name: "RESTOREREALIP"
               value: "true"
             - name: MG_KEY
@@ -73,7 +73,6 @@ metadata:
   name: burner-kiwi-ingress
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
-    nginx.ingress.kubernetes.io/limit-rps: "5"
     nginx.org/server-snippets: |-
       location /metrics {
           deny all;
