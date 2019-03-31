@@ -175,7 +175,7 @@ func TestMailgun_DeleteExpiredRoutes(t *testing.T) {
 		ID:          "5678",
 	}
 
-	m.DeleteExipredRoutes()
+	m.DeleteExpiredRoutes()
 
 	if _, ok := routes["1234"]; ok {
 		t.Errorf("TestServer_DeleteOldRoutes: Expired route still exists.")

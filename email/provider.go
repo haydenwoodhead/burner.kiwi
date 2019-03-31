@@ -10,6 +10,6 @@ type Provider interface {
 	Start(websiteAddr string, db data.Database, r *mux.Router, isBlacklisted func(string) bool) error
 	Stop() error
 	RegisterRoute(i data.Inbox) (string, error)
-	DeleteExipredRoutes() error
+	DeleteExpiredRoutes() error
 }
 

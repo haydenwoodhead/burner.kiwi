@@ -61,19 +61,19 @@ func (m *MailgunMail) RegisterRoute(i data.Inbox) (string, error) {
 	return route.ID, errors.Wrap(err, "createRoute: failed to create mailgun route")
 }
 
-// DeleteExipredRoutes implements email.Provider DeleteExipredRoutes()
-func (m *MailgunMail) DeleteExipredRoutes() error {
+// DeleteExpiredRoutes implements email.Provider DeleteExpiredRoutes()
+func (m *MailgunMail) DeleteExpiredRoutes() error {
 	_, rs, err := m.mg.GetRoutes(1000, 0)
 
 	if err != nil {
-		return errors.Wrap(err, "Mailgun.DeleteExipredRoutes: failed to get routes")
+		return errors.Wrap(err, "Mailgun.DeleteExpiredRoutes: failed to get routes")
 	}
 
 	for _, r := range rs {
 		tInt, err := strconv.ParseInt(r.Description, 10, 64)
 
 		if err != nil {
-			log.Printf("Mailgun.DeleteExipredRoutes: failed to parse route description as int: id=%v\n", r.ID)
+			log.Printf("Mailgun.DeleteExpiredRoutes: failed to parse route description as int: id=%v\n", r.ID)
 			continue
 		}
 
@@ -84,7 +84,7 @@ func (m *MailgunMail) DeleteExipredRoutes() error {
 			err := m.mg.DeleteRoute(r.ID)
 
 			if err != nil {
-				log.Printf("Mailgun.DeleteExipredRoutes: failed to delete route: id=%v\n", r.ID)
+				log.Printf("Mailgun.DeleteExpiredRoutes: failed to delete route: id=%v\n", r.ID)
 				continue
 			}
 		}

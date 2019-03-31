@@ -208,7 +208,7 @@ func (s *Server) lambdaCreateRouteAndUpdate(wg *sync.WaitGroup, i data.Inbox) {
 
 //DeleteOldRoutes deletes routes older than 24 hours
 func (s *Server) DeleteOldRoutes() error {
-	return s.email.DeleteExipredRoutes()
+	return s.email.DeleteExpiredRoutes()
 }
 
 // MustParseTemplates parses string templates into one template
