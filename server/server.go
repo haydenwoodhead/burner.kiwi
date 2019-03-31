@@ -101,7 +101,10 @@ func NewServer(n NewServerInput) (*Server, error) {
 	s.Router.StrictSlash(true) // means router will match both "/path" and "/path/"
 
 	s.email = n.Email
-	s.email.Start(s.websiteURL, s.db, s.Router, s.isBlacklisted)
+	err := s.email.Start(s.websiteURL, s.db, s.Router, s.isBlacklisted)
+	if err != nil {
+		return nil, err
+	}
 
 	// HTML - trying to make middleware flow/handler declaration a little more readable
 	s.Router.Handle("/",
