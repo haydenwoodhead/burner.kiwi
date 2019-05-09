@@ -125,7 +125,7 @@ func TestServer_GetInboxDetailsJSON(t *testing.T) {
 		{
 			Name:             "inbox doesn't exist",
 			ID:               "Doesntexist",
-			ExpectedResponse: `{"success":false,"errors":{"code":500,"msg":"Internal Server Error: Failed to get email details"},"result":null,"meta":{"version":"dev","by":"Hayden Woodhead"}}`,
+			ExpectedResponse: `{"success":false,"errors":{"code":500,"msg":"Failed to get email details"},"result":null,"meta":{"version":"dev","by":"Hayden Woodhead"}}`,
 			ExpectedCode:     500,
 		},
 	}
@@ -138,7 +138,7 @@ func TestServer_GetInboxDetailsJSON(t *testing.T) {
 			router.ServeHTTP(rr, r)
 
 			assert.Equal(t, test.ExpectedCode, rr.Code)
-			assert.Contains(t, rr.Body.String(), test.ExpectedResponse)
+			assert.JSONEq(t, test.ExpectedResponse, rr.Body.String())
 		})
 	}
 }
@@ -189,5 +189,5 @@ func TestServer_GetAllMessagesJSON(t *testing.T) {
 
 	var expected = `{"success":true,"errors":null,"result":[{"id":"91991919","received_at":1526186100,"sender":"bob@example.com","from":"Bobby Tables \u003cbob@example.com\u003e","subject":"DELETE FROM MESSAGES;","body_html":"\u003chtml\u003e\u003cbody\u003e\u003cp\u003eHello there how are you!\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e","body_plain":"Hello there how are you!","ttl":1526189618}],"meta":{"version":"dev","by":"Hayden Woodhead"}}`
 	assert.Equal(t, http.StatusOK, rr.Code)
-	assert.Contains(t, rr.Body.String(), expected)
+	assert.JSONEq(t, expected, rr.Body.String())
 }
