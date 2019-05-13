@@ -15,7 +15,6 @@ import (
 
 func TestSQLite3(t *testing.T) {
 	db := GetSQLite3DB("test.sqlite3")
-	db.CreateTables()
 
 	// iterate over the testing suite and call the function
 	for _, f := range data.TestingFuncs {
@@ -51,7 +50,7 @@ func testTTLDelete(t *testing.T, db *SQLite3) {
 	err = db.SaveNewInbox(i2)
 	assert.NoError(t, err)
 
-	count, err := db.runTTLDelete()
+	count, err := db.RunTTLDelete()
 	assert.NoError(t, err)
 	assert.Equal(t, 1, count)
 
