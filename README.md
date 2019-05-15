@@ -122,6 +122,10 @@ Create an issue and outline your plans or bugs.
 
 Again, if you think you can help, then create an issue and outline your plans.
 
+## Contributors
+
+Thanks to @cdubz for adding SQLite3 support.
+
 ## License
 
 Copyright 2018 Hayden Woodhead
