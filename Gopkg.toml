@@ -81,6 +81,10 @@
   name = "gopkg.in/mailgun/mailgun-go.v1"
   version = "1.1.1"
 
+[[constraint]]
+  name = "github.com/mattn/go-sqlite3"
+  version = "1.9.0"
+
 [prune]
   go-tests = true
   unused-packages = true

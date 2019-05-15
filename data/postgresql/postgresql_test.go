@@ -2,7 +2,6 @@ package postgresql
 
 import (
 	"database/sql"
-	"io/ioutil"
 	"os"
 	"testing"
 	"time"
@@ -21,13 +20,6 @@ func TestPostgreSQL(t *testing.T) {
 	}
 
 	db := GetPostgreSQLDB(dburl)
-
-	fb, err := ioutil.ReadFile("schema.sql")
-	if err != nil {
-		t.Fatalf("PostgreSQL: failed to read schema file")
-	}
-
-	db.MustExec(string(fb))
 
 	// iterate over the testing suite and call the function
 	for _, f := range data.TestingFuncs {
@@ -57,7 +49,7 @@ func testTTLDelete(t *testing.T, db *PostgreSQL) {
 	err = db.SaveNewInbox(i2)
 	assert.NoError(t, err)
 
-	count, err := db.runTTLDelete()
+	count, err := db.RunTTLDelete()
 	assert.NoError(t, err)
 	assert.Equal(t, 1, count)
 

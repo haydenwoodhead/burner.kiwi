@@ -10,6 +10,7 @@ import (
 	"github.com/haydenwoodhead/burner.kiwi/data/dynamodb"
 	"github.com/haydenwoodhead/burner.kiwi/data/inmemory"
 	"github.com/haydenwoodhead/burner.kiwi/data/postgresql"
+	"github.com/haydenwoodhead/burner.kiwi/data/sqlite3"
 	"github.com/haydenwoodhead/burner.kiwi/email"
 	"github.com/haydenwoodhead/burner.kiwi/email/mailgunmail"
 	"github.com/haydenwoodhead/burner.kiwi/server"
@@ -18,6 +19,7 @@ import (
 const inMemory = "memory"
 const postgreSQL = "postgres"
 const dynamoDB = "dynamo"
+const sqLite3 = "sqlite3"
 
 const mailgunProvider = "mailgun"
 
@@ -33,6 +35,8 @@ func mustParseNewServerInput() server.NewServerInput {
 		db = postgresql.GetPostgreSQLDB(mustParseStringVar("DATABASE_URL"))
 	case dynamoDB:
 		db = dynamodb.GetNewDynamoDB(mustParseStringVar("DYNAMO_TABLE"))
+	case sqLite3:
+		db = sqlite3.GetSQLite3DB(mustParseStringVar("DATABASE_URL"))
 	}
 
 	emailType := parseStringVarWithDefault("EMAIL_TYPE", mailgunProvider)
