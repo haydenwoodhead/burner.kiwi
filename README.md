@@ -12,8 +12,7 @@ Check it out here: https://burner.kiwi
 Burner.kiwi is designed to be able to run on both AWS Lambda and normal machines. The __goal__ is to have several backing 
 database implementations and flexible configuration.
 
-At this point it's working on normal machines and in Lambda. There are now two production-ready database implementation - DynamoDB & PostgreSQL
-and a dev/testing implementation - InMemory.
+At this point it's working on normal machines and in Lambda. There are now three production-ready database implementations - DynamoDB, PostgreSQL and SQLite3.
 
 This is definitely still a work in progress, see the To Do section.
 
@@ -47,19 +46,28 @@ If you want to deploy to another AWS region you will modify the provided cloudfo
 
 Or run it on your own server. Build a binary, set up with the configuration parameters detailed below and run it.
 
+## Test
+
+Run all of burner.kiwi's tests locally:
+
+```bash
+make test
+```
+
 ## Build
 
-### Development
+Run:
 
-To build for development just run `go build` - nothing special here.
+```bash
+make build
+```
+This will create and populate a `build` directory containing the binary file and minified/renamed static assets.
 
-### Production
+If you wish to use SQLite3 you must run:
 
-Building for production is a different beast. We need to give assets cache friendly names, minify them and add their 
-new names to the binary. Check out the included `build.sh` file.
-
-To build run `./build.sh` from the root of the project. This will create and populate a `buildres` directory
-containing the binary file and minified/renamed static assets.
+```bash
+make build-sqlite
+```
 
 ## Configuration Parameters
 
@@ -75,13 +83,13 @@ DEVELOPING | Boolean | Set to `true` to disable HSTS and set `Cache-Control` to 
 DOMAINS | []String | Comma separated list of domains connected to Mailgun account and able to receive email
 MG_KEY | String | Mailgun private API key
 MG_DOMAIN | String | One of the domains set up on your Mailgun account
-DB_TYPE | String | One of `memory`, `postgres` or `dynamo` for InMemory, PostgreSQL and DynamoDB respectively 
-DATABASE_URL | String | URL for the PostgreSQL database 
+DB_TYPE | String | One of `memory`, `postgres`, `sqlite3` or `dynamo` for InMemory, PostgreSQL, SQLite3 (not this requires building with SQLite3 support) and DynamoDB respectively 
+DATABASE_URL | String | URL for the PostgreSQL database or filename for SQLite3 see [documentation here](https://github.com/mattn/go-sqlite3#dsn-examples).
 DYNAMO_TABLE | String | Name of the dynamodb table to use for storage (if using DynamoDB)
 RESTOREREALIP | Boolean | Restores the real remote ip using the `CF-Connecting-IP` header. Set to `true` to enable, `false` by default
 BLACKLISTED | []String | Comma seperated list of domains to reject email from
 
-If you are using DynamoDB a non AWS environment you need to set these. If you are on AWS you should, of course, should use IAM roles.
+If you are using DynamoDB a non AWS environment you need to set these. If you are on AWS you should, of course, use IAM roles.
 
 Parameter | Type | Description
 ----------|------|-------------
@@ -94,16 +102,7 @@ AWS_REGION | String | The AWS region containing the DynamoDB table. Use the appr
 Burner.kiwi creates a new Mailgun route for every inbox and email address. This allows us to delete these routes once the
 inbox expires and prevents the server being unnecessarily burdened by webhooks for inboxes that don't exist anymore. 
 
-Old routes are deleted in the background every time the binary is started. In a Lambda context this means every time we 
-have a cold start, the CloudFormation template sets up a CloudWatch event to call the handler every 6 hours. However, because
-of the fact that burner.kiwi is designed to be platform agnostic we can't differentiate between these CloudWatch events and 
-normal http requests. This means if the CloudWatch event hits a frozen container rather than causing a new container to
-be spawned, we wont trigger the deletion of old routes. Hopefully, a normal http request or CloudWatch event will cause 
-a new container to be spawned often enough that old routes are cleared out. 
-
-If you are deployed on a normal machine you can explicitly cause deletion of old routes without starting the http server. 
-You can set up a cron to run the binary every 6 hours, like so: `burnerkiwi -delete-old-routes`. You will need to ensure
-the binary can still access the environment variables. 
+If you are running outside of AWS Lambda and not using DynamoDB this cleanup is done once every hour automatically.
 
 ## Contributing
 
@@ -112,9 +111,8 @@ Create an issue and outline your plans or bugs.
 
 ## To do
 
-* Code refactor/redo 
+* Code refactor/redo/cleanup
 * More tests for server package
-* More database implementations (PSQL, SQLite, etc)
 * Night theme
 * Print html errors rather than just plain text
 * Better configuration
