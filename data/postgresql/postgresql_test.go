@@ -2,10 +2,14 @@ package postgresql
 
 import (
 	"database/sql"
+	"fmt"
+	"log"
 	"os"
 	"testing"
 	"time"
 
+	"github.com/jmoiron/sqlx"
+	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/google/uuid"
@@ -13,13 +17,42 @@ import (
 	"github.com/haydenwoodhead/burner.kiwi/data"
 )
 
-func TestPostgreSQL(t *testing.T) {
-	dburl := os.Getenv("DATABASE_URL")
-	if dburl == "" {
-		t.Fatalf("PostgreSQL: no datbase url set")
+var dbURL string
+
+func TestMain(m *testing.M) {
+	pool, err := dockertest.NewPool("")
+	if err != nil {
+		log.Fatalf("Could not connect to docker: %s", err)
 	}
 
-	db := GetPostgreSQLDB(dburl)
+	resource, err := pool.Run("postgres", "11.3", []string{"POSTGRES_PASSWORD=password"})
+	if err != nil {
+		log.Fatalf("Could not start resource: %s", err)
+	}
+
+	dbURL = fmt.Sprintf("postgresql://postgres:password@localhost:%s/postgres?sslmode=disable", resource.GetPort("5432/tcp"))
+
+	if err := pool.Retry(func() error {
+		db, err := sqlx.Connect("postgres", dbURL)
+		if err != nil {
+			return err
+		}
+		return db.Ping()
+	}); err != nil {
+		log.Fatalf("Could not connect to docker: %s", err)
+	}
+
+	code := m.Run()
+
+	if err := pool.Purge(resource); err != nil {
+		log.Fatalf("Could not purge resource: %s", err)
+	}
+
+	os.Exit(code)
+}
+
+func TestPostgreSQL(t *testing.T) {
+	db := GetPostgreSQLDB(dbURL)
 
 	// iterate over the testing suite and call the function
 	for _, f := range data.TestingFuncs {
