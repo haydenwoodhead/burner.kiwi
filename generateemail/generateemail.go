@@ -1,6 +1,7 @@
 package generateemail
 
 import (
+	"fmt"
 	"math/rand"
 	"time"
 )
@@ -19,6 +20,21 @@ func NewEmailGenerator(h []string, l int) *EmailGenerator {
 	return &EmailGenerator{hosts: h, l: l}
 }
 
+// GetHosts returns all available hosts
+func (eg *EmailGenerator) GetHosts() []string {
+	return eg.hosts
+}
+
+// HostsContains tells whether host h is in eg.hosts
+func (eg *EmailGenerator) HostsContains(h string) bool {
+	for _, n := range eg.hosts {
+		if h == n {
+			return true
+		}
+	}
+	return false
+}
+
 // NewRandom generates a new random email address. It is the callers responsibility to check for uniqueness
 func (eg *EmailGenerator) NewRandom() string {
 	a := []byte(alphabet)
@@ -31,4 +47,12 @@ func (eg *EmailGenerator) NewRandom() string {
 	domain := eg.hosts[rand.Intn(len(eg.hosts))]
 
 	return string(name) + "@" + domain
+}
+
+// NewFromRouteAndHost generates a new email address from a string and host. It is the callers responsibility to check for uniqueness
+func (eg *EmailGenerator) NewFromRouteAndHost(r string, h string) (string, error) {
+	if eg.HostsContains(h) {
+		return string(r) + "@" + h, nil
+	}
+	return "", fmt.Errorf("invalid host: %s", h)
 }

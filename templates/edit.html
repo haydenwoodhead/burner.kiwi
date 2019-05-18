@@ -1,0 +1,25 @@
+{{define "content"}}
+<section class="container heading">
+
+    <a href="/"><--- Return to inbox</a>
+    <hr>
+
+</section>
+
+<section class="container">
+    <h2>Edit inbox</h2>
+    <p>Enter a new string to use for your inbox address.</p>
+
+    <form action="/edit" method="post">
+        <label for="route">Route:</label>
+        <input type="text" id="route" name="route">
+        <label for="host">Host:</label>
+        <select id="host" name="host">
+        {{ range $host := .Hosts }}
+            <option value="{{$host}}">{{$host}}</option>
+        {{ end }}
+        </select>
+        <button type="submit" class="button button-red">Update Inbox</button>
+    </form>
+</section>
+{{end}}

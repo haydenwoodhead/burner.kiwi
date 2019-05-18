@@ -60,6 +60,12 @@ type messageOut struct {
 	Message          data.Message
 }
 
+// editOut contains data to be rendered by edit template
+type editOut struct {
+	Static staticDetails
+	Hosts  []string
+}
+
 // Index returns messages in inbox to user
 func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
 	sess, ok := r.Context().Value(sessionCTXKey).(*sessions.Session)
@@ -141,7 +147,19 @@ func (s *Server) NewInbox(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	i.Address = s.eg.NewRandom()
+	route := r.PostFormValue("route")
+	host := r.PostFormValue("host")
+	if route != "" {
+		address, err := s.eg.NewFromRouteAndHost(route, host)
+		if err != nil {
+			log.Printf("NewInbox: failed to create new inbox address: %v", err)
+			http.Error(w, "Failed to generate email", http.StatusInternalServerError)
+			return
+		}
+		i.Address = address
+	} else {
+		i.Address = s.eg.NewRandom()
+	}
 
 	exist, err := s.db.EmailAddressExists(i.Address) // while it's VERY unlikely that the email address already exists but lets check anyway
 	if err != nil {
@@ -151,7 +169,7 @@ func (s *Server) NewInbox(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if exist {
-		log.Printf("NewInbox: email already exisists: %v", err)
+		log.Printf("NewInbox: email already exisists: %v", i.Address)
 		http.Error(w, "Failed to generate email", http.StatusInternalServerError)
 		return
 	}
@@ -277,6 +295,21 @@ func (s *Server) IndividualMessage(w http.ResponseWriter, r *http.Request) {
 	err = messageHTMLTemplate.ExecuteTemplate(w, "base", mo)
 	if err != nil {
 		log.Printf("IndividualMessage: failed to execute template: %v", err)
+		http.Error(w, "Failed to execute template", http.StatusInternalServerError)
+	}
+}
+
+//EditInbox prompts the user for a new name for the inbox route
+func (s *Server) EditInbox(w http.ResponseWriter, r *http.Request) {
+	eo := editOut{
+		Static: s.getStaticDetails(),
+		Hosts:  s.eg.GetHosts(),
+	}
+
+	err := editTemplate.ExecuteTemplate(w, "base", eo)
+
+	if err != nil {
+		log.Printf("DeleteInbox: failed to execute template: %v", err)
 		http.Error(w, "Failed to execute template", http.StatusInternalServerError)
 	}
 }

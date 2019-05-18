@@ -30,6 +30,7 @@ var staticFS = packr.NewBox("../static")
 var indexTemplate *template.Template
 var messageHTMLTemplate *template.Template
 var messagePlainTemplate *template.Template
+var editTemplate *template.Template
 var deleteTemplate *template.Template
 
 // Static asset vars - these are overridden at build time to inject a file w/ version info
@@ -78,6 +79,7 @@ func NewServer(n NewServerInput) (*Server, error) {
 	indexTemplate = MustParseTemplates(templates, "base.html", "index.html")
 	messageHTMLTemplate = MustParseTemplates(templates, "base.html", "message-html.html")
 	messagePlainTemplate = MustParseTemplates(templates, "base.html", "message-plain.html")
+	editTemplate = MustParseTemplates(templates, "base.html", "edit.html")
 	deleteTemplate = MustParseTemplates(templates, "base.html", "delete.html")
 
 	s.store = sessions.NewCookieStore([]byte(n.Key))
@@ -126,6 +128,22 @@ func NewServer(n NewServerInput) (*Server, error) {
 			s.SecurityHeaders(true),
 		).ThenFunc(s.IndividualMessage),
 	).Methods(http.MethodGet)
+
+	s.Router.Handle("/edit",
+		alice.New(
+			s.CheckCookieExists,
+			SetVersionHeader,
+			s.SecurityHeaders(false),
+		).ThenFunc(s.EditInbox),
+	).Methods(http.MethodGet)
+
+	s.Router.Handle("/edit",
+		alice.New(
+			s.CheckCookieExists,
+			SetVersionHeader,
+			s.SecurityHeaders(false),
+		).ThenFunc(s.NewInbox),
+	).Methods(http.MethodPost)
 
 	s.Router.Handle("/delete",
 		alice.New(
