@@ -38,7 +38,7 @@ func GetDatabase(dbType string, dbURL string) *SQLDatabase {
 			}
 			log.Printf("Deleted %v old inboxes from db\n", count)
 			metrics.ActiveInboxes.Sub(float64(count))
-			time.Sleep(30 * time.Minute)
+			time.Sleep(1 * time.Hour)
 		}
 	}()
 	return s
