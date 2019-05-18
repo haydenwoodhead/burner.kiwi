@@ -24,6 +24,9 @@ ifndef _dep_golangci
 endif	
 	golangci-lint run ./... --skip-dirs vendor/ --skip-files [A-Za-z]*_test.go --enable misspell --enable gocyclo
 
+test:
+	go test -race ./...
+
 build_dir:
 	mkdir ./build
 

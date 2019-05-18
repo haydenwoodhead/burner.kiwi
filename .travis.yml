@@ -16,7 +16,7 @@ before_script:
 
 script:
   - make lint
-  - go test -v -race ./...
+  - make test
   - go test -covermode=count -coverprofile=profile.cov ./...
   # remove testsuite.go coverage results from profile.cov -- seen as coveralls doesn't have a convenient way to do it
   - sed -i '/testsuite.go/d' ./profile.cov
