@@ -1,11 +1,12 @@
 # A whole bunch of helper stuff including building, testing and 
 # pushing to docker hub.
 
-# This script requires that github.com/tdewolff/minify/tree/master/cmd/minify and 
-# that https://github.com/gobuffalo/packr is installed
+# This makefile has few dependencies which need to be installed before
+# you can use most of the functionality 
 _dep_minify := $(shell which minify 2> /dev/null)
 _dep_packr := $(shell which packr 2> /dev/null)
 _dep_zip := $(shell which zip 2> /dev/null)
+_dep_golangci := $(shell which golangci-lint 2> /dev/null)
 
 check_deps:
 ifndef _dep_minify
@@ -16,6 +17,12 @@ ifndef _dep_packr
 endif	
 
 git_commit := $(shell git rev-parse --short HEAD)
+
+lint:
+ifndef _dep_golangci 
+	$(error github.com/golangci/golangci-lint is required to lint burner.kiwi)
+endif	
+	golangci-lint run ./... --skip-dirs vendor/ --skip-files [A-Za-z]*_test.go --enable misspell --enable gocyclo
 
 build_dir:
 	mkdir ./build
