@@ -60,7 +60,7 @@ prepare-docker:
 	mv build/burnerkiwi .
 
 image: TAG ?= latest
-image: build prepare
+image: build prepare-docker
 image: 
 	docker build -t haydensw/burner-kiwi:$(TAG) .
 
