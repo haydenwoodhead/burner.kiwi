@@ -1,18 +1,22 @@
 language: go
 
 go:
-  - "1.11"
+  - "1.12"
 
-# skip install to grab dependencies from /vendor
+# skip install to grab dependencies
 install: true
+
+env:
+  - GO111MODULE=on GOPROXY=https://proxy.golang.org
 
 # grab dynamodb local, gometalinter, minify and packr
 before_script:
-  - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.12.5
-  - go get github.com/tdewolff/minify/cmd/minify
-  - go get -u github.com/gobuffalo/packr/...
-  - go get golang.org/x/tools/cmd/cover
-  - go get github.com/mattn/goveralls
+  - go mod verify
+  - go install github.com/golangci/golangci-lint/cmd/golangci-lint
+  - go install github.com/tdewolff/minify/cmd/minify
+  - go install github.com/gobuffalo/packr
+  - go install golang.org/x/tools/cmd/cover
+  - go install github.com/mattn/goveralls
 
 script:
   - make lint
@@ -21,6 +25,10 @@ script:
   # remove testsuite.go coverage results from profile.cov -- seen as coveralls doesn't have a convenient way to do it
   - sed -i '/testsuite.go/d' ./profile.cov
   - goveralls -service=travis-ci -coverprofile=profile.cov || echo "Push to coveralls failed"
+
+cache:
+  directories:
+  - $GOPATH/pkg/mod
 
 after_success:
   - make build
