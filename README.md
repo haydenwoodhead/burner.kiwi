@@ -122,7 +122,9 @@ Again, if you think you can help, then create an issue and outline your plans.
 
 ## Contributors
 
-Thanks to @cdubz for adding SQLite3 support.
+Thanks to:
+* cdubz for adding SQLite3 support
+* lopezator for switching to go modules
 
 ## License
 
