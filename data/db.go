@@ -11,6 +11,7 @@ type Database interface {
 	GetInboxByID(string) (Inbox, error)
 	EmailAddressExists(string) (bool, error)
 	SetInboxCreated(Inbox) error
+	SetInboxFailed(Inbox) error
 	SaveNewMessage(Message) error
 	GetMessagesByInboxID(string) ([]Message, error)
 	GetMessageByID(string, string) (Message, error)

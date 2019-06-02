@@ -19,10 +19,10 @@ type Inbox struct {
 	FailedToCreate bool   `dynamodbav:"failed_to_create" json:"-" db:"failed_to_create"`
 }
 
-// NewInbox returns an inbox with failed to create and route id set. Upon successful registration of the mailgun route we set these as true.
+// NewInbox returns an inbox with failed to create and route id set.
 func NewInbox() Inbox {
 	return Inbox{
-		FailedToCreate: true,
+		FailedToCreate: false,
 		MGRouteID:      "-",
 	}
 }

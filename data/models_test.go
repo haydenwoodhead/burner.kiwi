@@ -9,7 +9,7 @@ import (
 func TestNewInbox(t *testing.T) {
 	i := NewInbox()
 
-	if !i.FailedToCreate {
+	if i.FailedToCreate {
 		t.Errorf("TestNewInbox: failed to create not true")
 	}
 

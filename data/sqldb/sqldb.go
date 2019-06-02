@@ -112,6 +112,12 @@ func (s *SQLDatabase) SetInboxCreated(i data.Inbox) error {
 	return err
 }
 
+// SetInboxFailed sets a given inbox as having failed to register with the mail provider
+func (s *SQLDatabase) SetInboxFailed(i data.Inbox) error {
+	_, err := s.Exec("UPDATE inbox SET failed_to_create = 'true' WHERE id = $1", i.ID)
+	return err
+}
+
 // SaveNewMessage saves a new message to the db
 func (s *SQLDatabase) SaveNewMessage(m data.Message) error {
 	_, err := s.NamedExec("INSERT INTO message (inbox_id, message_id, received_at, mg_id, sender, from_address, subject, body_html, body_plain, ttl) VALUES (:inbox_id, :message_id, :received_at, :mg_id, :sender, :from_address, :subject, :body_html, :body_plain, :ttl)",

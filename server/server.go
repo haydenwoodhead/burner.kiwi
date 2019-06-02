@@ -190,7 +190,14 @@ func (s *Server) isBlacklisted(email string) bool {
 func (s *Server) createRouteAndUpdate(i data.Inbox) {
 	routeID, err := s.email.RegisterRoute(i)
 	if err != nil {
-		log.Printf("Index JSON: failed to create route: %v", err)
+		log.Printf("createRouteAndUpdate: failed to create route: %v", err)
+
+		i.FailedToCreate = true
+		err = s.db.SetInboxFailed(i)
+		if err != nil {
+			log.Printf("createRouteAndUpdate: failed to set route as having failed to create: %v", err)
+		}
+
 		return
 	}
 

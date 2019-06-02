@@ -122,6 +122,17 @@ func (im *InMemory) SetInboxCreated(i data.Inbox) error {
 	return nil
 }
 
+// SetInboxFailed sets a given inbox as having failed to register with the mail provider
+func (im *InMemory) SetInboxFailed(i data.Inbox) error {
+	im.m.Lock()
+	defer im.m.Unlock()
+
+	i.FailedToCreate = true
+	im.emails[i.ID] = i
+
+	return nil
+}
+
 //SaveNewMessage saves a given message to memory
 func (im *InMemory) SaveNewMessage(m data.Message) error {
 	im.m.Lock()

@@ -144,6 +144,35 @@ func (d *DynamoDB) SetInboxCreated(i data.Inbox) error {
 	return nil
 }
 
+// SetInboxFailed sets a given inbox as having failed to register with the mail provider
+func (d *DynamoDB) SetInboxFailed(i data.Inbox) error {
+	u := &dynamodb.UpdateItemInput{
+		ExpressionAttributeNames: map[string]*string{
+			"#F": aws.String("failed_to_create"),
+		},
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":f": {
+				BOOL: aws.Bool(true),
+			},
+		},
+		Key: map[string]*dynamodb.AttributeValue{
+			"id": {
+				S: aws.String(i.ID),
+			},
+		},
+		TableName:        aws.String(d.emailsTableName),
+		UpdateExpression: aws.String("SET #F = :f"),
+	}
+
+	_, err := d.dynDB.UpdateItem(u)
+
+	if err != nil {
+		return fmt.Errorf("SetInboxFailed: failed to mark email as failed: %v", err)
+	}
+
+	return nil
+}
+
 //SaveNewMessage saves a given message to dynamodb
 func (d *DynamoDB) SaveNewMessage(m data.Message) error {
 	mv, err := dynamodbattribute.MarshalMap(m)
