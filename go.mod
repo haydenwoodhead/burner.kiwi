@@ -32,9 +32,7 @@ require (
 	github.com/haydenwoodhead/gateway v1.2.1
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/justinas/alice v0.0.0-20171023064455-03f45bd4b7da
-	github.com/kr/pty v1.1.3 // indirect
 	github.com/lib/pq v1.0.0
-	github.com/markbates/deplist v1.0.5 // indirect
 	github.com/matryer/try v0.0.0-20161228173917-9ac251b645a2 // indirect
 	github.com/mattn/go-isatty v0.0.4 // indirect
 	github.com/mattn/go-sqlite3 v1.10.0
