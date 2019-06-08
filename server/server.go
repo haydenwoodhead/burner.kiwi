@@ -3,13 +3,14 @@ package server
 import (
 	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+
+	"log"
 
 	"github.com/gobuffalo/packr"
 	"github.com/gorilla/mux"
@@ -163,7 +164,17 @@ func NewServer(n NewServerInput) (*Server, error) {
 	// Metrics
 	s.Router.Handle("/metrics", promhttp.Handler())
 
+	s.Router.HandleFunc("/ping", s.Ping)
+
 	return &s, nil
+}
+
+// Ping returns PONG when called
+func (s *Server) Ping(w http.ResponseWriter, r *http.Request) {
+	_, err := w.Write([]byte("PONG"))
+	if err != nil {
+		log.Printf("ping - failed to write out response: %v", err)
+	}
 }
 
 // Session Related constants
