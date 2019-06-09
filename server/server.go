@@ -116,7 +116,7 @@ func NewServer(n NewServerInput) (*Server, error) {
 			CacheControl(14),
 			SetVersionHeader,
 			s.SecurityHeaders(false),
-			s.IsNew(http.HandlerFunc(s.NewInbox)),
+			s.IsNew(http.HandlerFunc(s.NewRandomInbox)),
 		).ThenFunc(s.Index),
 	).Methods(http.MethodGet)
 
@@ -142,7 +142,7 @@ func NewServer(n NewServerInput) (*Server, error) {
 			s.CheckCookieExists,
 			SetVersionHeader,
 			s.SecurityHeaders(false),
-		).ThenFunc(s.NewInbox),
+		).ThenFunc(s.NewNamedInbox),
 	).Methods(http.MethodPost)
 
 	s.Router.Handle("/delete",
