@@ -247,13 +247,13 @@ func (s *Server) CreateRouteFromInbox(w http.ResponseWriter, r *http.Request, i 
 		return
 	}
 
-	http.Redirect(w, r, "/", http.StatusFound)
-
 	// if we're using lambda then wait for our create route and update goroutine to finish before exiting the
 	// func and therefore returning a response
 	if s.usingLambda {
 		wg.Wait()
 	}
+
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 // IndividualMessage returns a singular message to the user
