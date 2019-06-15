@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"reflect"
@@ -150,8 +151,8 @@ func (s *Server) NewRandomInbox(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if exist {
-		log.Printf("NewRandomInbox: email already exisists: %v", i.Address)
-		http.Error(w, "Failed to generate email", http.StatusInternalServerError)
+		log.Printf("NewRandomInbox: email already exists: %v", i.Address)
+		http.Error(w, fmt.Sprintf("The email address %v is already in use.", i.Address), http.StatusInternalServerError)
 		return
 	}
 
@@ -191,7 +192,7 @@ func (s *Server) NewNamedInbox(w http.ResponseWriter, r *http.Request) {
 
 	if exist {
 		log.Printf("NewNamedInbox: email already exisists: %v", i.Address)
-		http.Error(w, "Failed to generate email", http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("The email address %v is already in use.", i.Address), http.StatusInternalServerError)
 		return
 	}
 
