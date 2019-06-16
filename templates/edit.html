@@ -6,6 +6,12 @@
 
 </section>
 
+{{if .Error}}
+<section class="container error">
+    <strong>Error</strong>: {{.Error}}
+</section>
+{{end}}
+
 <section class="container">
     <h2>Edit inbox</h2>
     <p>Enter a new string to use for your inbox address.</p>

@@ -110,3 +110,8 @@ iframe {
     height: 50vh;
     margin-bottom: 3%;
 }
+
+.error {
+    color: #f53333;
+    padding: 1rem 2rem;
+}

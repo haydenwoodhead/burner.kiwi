@@ -65,6 +65,7 @@ type messageOut struct {
 type editOut struct {
 	Static staticDetails
 	Hosts  []string
+	Error  string
 }
 
 // Index returns messages in inbox to user
@@ -161,20 +162,20 @@ func (s *Server) NewRandomInbox(w http.ResponseWriter, r *http.Request) {
 
 // NewNamedInbox generates a new Inbox with a specific route and host.
 func (s *Server) NewNamedInbox(w http.ResponseWriter, r *http.Request) {
+	errs := ""
+
 	route := r.PostFormValue("route")
 	err := s.eg.VerifyRoute(route)
 	if err != nil {
 		log.Printf("NewNamedInbox: failed to verify route: %v", err)
-		http.Error(w, "Invalid route provided.", http.StatusInternalServerError)
-		return
+		errs = err.Error()
 	}
 
 	host := r.PostFormValue("host")
 	err = s.eg.VerifyHost(host)
 	if err != nil {
 		log.Printf("NewNamedInbox: failed to verify host: %v", err)
-		http.Error(w, "Invalid host provided.", http.StatusInternalServerError)
-		return
+		errs = err.Error()
 	}
 
 	address, err := s.eg.NewFromRouteAndHost(route, host)
@@ -196,11 +197,25 @@ func (s *Server) NewNamedInbox(w http.ResponseWriter, r *http.Request) {
 
 	if exist {
 		log.Printf("NewNamedInbox: email already exisists: %v", i.Address)
-		http.Error(w, fmt.Sprintf("The email address %v is already in use.", i.Address), http.StatusInternalServerError)
-		return
+		errs = fmt.Sprintf("address already in use: %v", i.Address)
 	}
 
-	s.CreateRouteFromInbox(w, r, i)
+	if errs != "" {
+		eo := editOut{
+			Static: s.getStaticDetails(),
+			Hosts:  s.eg.GetHosts(),
+			Error:  errs,
+		}
+
+		err := editTemplate.ExecuteTemplate(w, "base", eo)
+
+		if err != nil {
+			log.Printf("NewNamedInbox: failed to execute template: %v", err)
+			http.Error(w, "Failed to execute template", http.StatusInternalServerError)
+		}
+	} else {
+		s.CreateRouteFromInbox(w, r, i)
+	}
 }
 
 //CreateRouteFromInbox creates a new route based on Inbox settings and redirects to Index.
@@ -327,6 +342,7 @@ func (s *Server) EditInbox(w http.ResponseWriter, r *http.Request) {
 	eo := editOut{
 		Static: s.getStaticDetails(),
 		Hosts:  s.eg.GetHosts(),
+		Error:  "",
 	}
 
 	err := editTemplate.ExecuteTemplate(w, "base", eo)
