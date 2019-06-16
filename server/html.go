@@ -162,14 +162,18 @@ func (s *Server) NewRandomInbox(w http.ResponseWriter, r *http.Request) {
 // NewNamedInbox generates a new Inbox with a specific route and host.
 func (s *Server) NewNamedInbox(w http.ResponseWriter, r *http.Request) {
 	route := r.PostFormValue("route")
-	host := r.PostFormValue("host")
-	if route == "" {
-		log.Printf("NewNamedInbox: missing required `route` parameter")
-		http.Error(w, "Failed to generate email", http.StatusInternalServerError)
+	err := s.eg.VerifyRoute(route)
+	if err != nil {
+		log.Printf("NewNamedInbox: failed to verify route: %v", err)
+		http.Error(w, "Invalid route provided.", http.StatusInternalServerError)
 		return
-	} else if host == "" {
-		log.Printf("NewNamedInbox: missing required `host` parameter")
-		http.Error(w, "Failed to generate email", http.StatusInternalServerError)
+	}
+
+	host := r.PostFormValue("host")
+	err = s.eg.VerifyHost(host)
+	if err != nil {
+		log.Printf("NewNamedInbox: failed to verify host: %v", err)
+		http.Error(w, "Invalid host provided.", http.StatusInternalServerError)
 		return
 	}
 
