@@ -24,7 +24,7 @@ import (
 
 // Packr boxes for static templates and assets
 var templates = packr.NewBox("../templates")
-var staticFS = packr.NewBox("../static")
+var staticFS = packr.NewBox("../build/static")
 
 // Templates
 var indexTemplate *template.Template
@@ -38,6 +38,7 @@ var milligram = "milligram.css"
 var logo = "roger-proportional.svg"
 var normalize = "normalize.css"
 var custom = "custom.css"
+var icons = "icons.css"
 
 // version number - this is also overridden at build time to inject the commit hash
 var version = "dev"

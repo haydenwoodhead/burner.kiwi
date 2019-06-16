@@ -25,6 +25,7 @@ type staticDetails struct {
 	Logo      string
 	Normalize string
 	Custom    string
+	Icons     string
 }
 
 //getStaticDetails returns current static details
@@ -35,6 +36,7 @@ func (s *Server) getStaticDetails() staticDetails {
 		Logo:      logo,
 		Normalize: normalize,
 		Custom:    custom,
+		Icons:     icons,
 	}
 }
 

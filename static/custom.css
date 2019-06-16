@@ -115,3 +115,7 @@ iframe {
     color: #f53333;
     padding: 1rem 2rem;
 }
+
+.inbox-address a {
+    font-size: 2.5rem;
+}
