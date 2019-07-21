@@ -24,7 +24,7 @@ import (
 
 // Packr boxes for static templates and assets
 var templates = packr.NewBox("../templates")
-var staticFS = packr.NewBox("../build/static")
+var staticFS = packr.NewBox("../static")
 
 // Templates
 var indexTemplate *template.Template

@@ -14,3 +14,6 @@ build/
 #ignore binarys
 burnerkiwi
 burnerkiwi.test
+
+#ignore sqlite dbs
+*.db

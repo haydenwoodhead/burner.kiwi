@@ -1,11 +1,11 @@
 @font-face {
   font-family: 'burner-kiwi-icons';
-  src: url('fonts/burner-kiwi-icons.eot?19621605');
-  src: url('fonts/burner-kiwi-icons.eot?19621605#iefix') format('embedded-opentype'),
-       url('fonts/burner-kiwi-icons.woff2?19621605') format('woff2'),
-       url('fonts/burner-kiwi-icons.woff?19621605') format('woff'),
-       url('fonts/burner-kiwi-icons.ttf?19621605') format('truetype'),
-       url('fonts/burner-kiwi-icons.svg?19621605#burner-kiwi-icons') format('svg');
+  src: url('icons/burner-kiwi-icons.eot?19621605');
+  src: url('icons/burner-kiwi-icons.eot?19621605#iefix') format('embedded-opentype'),
+       url('icons/burner-kiwi-icons.woff2?19621605') format('woff2'),
+       url('icons/burner-kiwi-icons.woff?19621605') format('woff'),
+       url('icons/burner-kiwi-icons.ttf?19621605') format('truetype'),
+       url('icons/burner-kiwi-icons.svg?19621605#burner-kiwi-icons') format('svg');
   font-weight: normal;
   font-style: normal;
 }
