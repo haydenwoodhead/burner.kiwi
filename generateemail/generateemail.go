@@ -68,7 +68,7 @@ func (eg *EmailGenerator) VerifyRoute(r string) error {
 		return fmt.Errorf("route must be fewer than 64 characters: %s", r)
 	} else if !isAlphaNumeric(r) {
 		return fmt.Errorf("route may only contain letters (a-z, A-Z) and numbers (0-9): %s", r)
-	} else if r == "webmaster" {
+	} else if r == "webmaster" || r == "admin" || r == "postmaster" || r == "administrator" || r == "root" {
 		return fmt.Errorf("route is blacklisted: %s", r)
 	}
 	return nil
