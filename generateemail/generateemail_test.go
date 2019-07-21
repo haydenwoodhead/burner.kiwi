@@ -5,6 +5,8 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 var H = []string{
@@ -42,6 +44,61 @@ func TestEmailGenerator_NewRandom(t *testing.T) {
 
 	if !match {
 		t.Fatalf("TestEmailGenerator_NewRandom: email contains illegal chars. Email: %v", s)
+	}
+}
+
+func TestEmailGenerator_NewFromRouteAndHost(t *testing.T) {
+	g := NewEmailGenerator([]string{
+		"example.com",
+		"example.org",
+	}, 8)
+
+	tests := []struct {
+		Name      string
+		In        string
+		ExpectErr bool
+	}{
+		{
+			Name:      "less than 3 chars",
+			In:        "a",
+			ExpectErr: true,
+		},
+		{
+			Name:      "longer than 64 chars",
+			In:        alphabet + alphabet + alphabet + alphabet,
+			ExpectErr: true,
+		},
+		{
+			Name:      "contains space",
+			In:        "firstname lastname",
+			ExpectErr: true,
+		},
+		{
+			Name:      "contains non alphanumeric chars",
+			In:        "bob!@#",
+			ExpectErr: true,
+		},
+		{
+			Name:      "blacklisted email",
+			In:        "postmaster",
+			ExpectErr: true,
+		},
+		{
+			Name:      "normal email",
+			In:        "firstnamelastname",
+			ExpectErr: false,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.Name, func(t *testing.T) {
+			err := g.VerifyRoute(test.In)
+			if test.ExpectErr {
+				assert.NotNil(t, err)
+			} else {
+				assert.Nil(t, err)
+			}
+		})
 	}
 }
 
