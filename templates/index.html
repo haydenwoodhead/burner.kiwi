@@ -2,11 +2,16 @@
 <section class="container heading">
 
     <div class="row">
-        <div class="column">
-            <h1>{{.Inbox.Address}}</h1>
+        <div class="column column-75">
+            <h1 class="inbox-address">
+                {{.Inbox.Address}}
+                <a href="/edit">
+                    <i class="icon icon-edit" aria-hidden="true"></i>
+                </a>
+            </h1>
             <h4>Expires in {{.Expires.Hours}} hours and {{.Expires.Minutes}} minutes</h4>
         </div>
-        <div class="column">
+        <div class="column column-25">
             <a class="button button-red button-outline float-right-large" href="/delete">Delete Inbox</a>
         </div>
     </div>

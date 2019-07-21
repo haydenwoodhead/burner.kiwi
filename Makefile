@@ -18,6 +18,7 @@ endif
 
 git_commit = $(shell git rev-parse --short HEAD)
 custom_css = custom.$(shell md5sum ./static/custom.css | cut -c -32).min.css
+icons_css = icons.$(shell md5sum ./static/icons/icons.css | cut -c -32).min.css
 milligram_css = milligram.$(shell md5sum ./static/milligram.css | cut -c -32).min.css
 normalize_css = normalize.$(shell md5sum ./static/normalize.css | cut -c -32).min.css
 
@@ -38,21 +39,25 @@ clean:
 
 minify:
 	minify -o ./static/${custom_css} ./static/custom.css
+	minify -o ./static/${icons_css} ./static/icons/icons.css
 	minify -o ./static/${milligram_css} ./static/milligram.css
 	minify -o ./static/${normalize_css} ./static/normalize.css
 
 do-build: check_deps clean build_dir minify
-	CGO_ENABLED=0 packr build -ldflags "-X github.com/haydenwoodhead/burner.kiwi/server.version=${git_commit} -X github.com/haydenwoodhead/burner.kiwi/server.milligram=${milligram_css} -X github.com/haydenwoodhead/burner.kiwi/server.custom=${custom_css} -X github.com/haydenwoodhead/burner.kiwi/server.normalize=${normalize_css}" -o "./build/burnerkiwi"
+	CGO_ENABLED=0 packr build -ldflags "-X github.com/haydenwoodhead/burner.kiwi/server.version=${git_commit} -X github.com/haydenwoodhead/burner.kiwi/server.milligram=${milligram_css} -X github.com/haydenwoodhead/burner.kiwi/server.custom=${custom_css} -X github.com/haydenwoodhead/burner.kiwi/server.icons=${icons_css} -X github.com/haydenwoodhead/burner.kiwi/server.normalize=${normalize_css}" -o "./build/burnerkiwi"
 
 do-build-sqlite: check_deps clean build_dir minify
-	CGO_ENABLED=1 packr build -ldflags "-X github.com/haydenwoodhead/burner.kiwi/server.version=${git_commit} -X github.com/haydenwoodhead/burner.kiwi/server.milligram=${milligram_css} -X github.com/haydenwoodhead/burner.kiwi/server.custom=${custom_css} -X github.com/haydenwoodhead/burner.kiwi/server.normalize=${normalize_css}" -o "./build/burnerkiwi"
+	CGO_ENABLED=1 packr build -ldflags "-X github.com/haydenwoodhead/burner.kiwi/server.version=${git_commit} -X github.com/haydenwoodhead/burner.kiwi/server.milligram=${milligram_css} -X github.com/haydenwoodhead/burner.kiwi/server.custom=${custom_css} -X github.com/haydenwoodhead/burner.kiwi/server.icons=${icons_css} -X github.com/haydenwoodhead/burner.kiwi/server.normalize=${normalize_css}" -o "./build/burnerkiwi"
 
 # clean up static dir after build
 build build-sqlite:  %: do-%
 	mv ./static/${custom_css} ./build/static/
+	mv ./static/${icons_css} ./build/static/
 	mv ./static/${milligram_css} ./build/static/
 	mv ./static/${normalize_css} ./build/static/
 	cp ./static/roger-proportional.svg ./build/static
+	mkdir -p ./build/static/fonts
+	cp -r ./static/icons/font/* ./build/static/fonts/
 
 prepare-aws:
 ifndef _dep_zip

@@ -1,0 +1,12 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg">
+<metadata>Copyright (C) 2019 by original authors @ fontello.com</metadata>
+<defs>
+<font id="burner-kiwi-icons" horiz-adv-x="1000" >
+<font-face font-family="burner-kiwi-icons" font-weight="400" font-stretch="normal" units-per-em="1000" ascent="850" descent="-150" />
+<missing-glyph horiz-adv-x="1000" />
+<glyph glyph-name="edit" unicode="&#xe801;" d="M496 189l64 65-85 85-64-65v-31h53v-54h32z m245 402q-9 9-18 0l-196-196q-9-9 0-18t18 0l196 196q9 9 0 18z m45-331v-106q0-67-47-114t-114-47h-464q-67 0-114 47t-47 114v464q0 66 47 113t114 48h464q35 0 65-14 9-4 10-13 2-10-5-16l-27-28q-8-8-18-4-13 3-25 3h-464q-37 0-63-26t-27-63v-464q0-37 27-63t63-27h464q37 0 63 27t26 63v70q0 7 5 12l36 36q8 8 20 4t11-16z m-54 411l161-160-375-375h-161v160z m248-73l-51-52-161 161 51 52q16 15 38 15t38-15l85-85q16-16 16-38t-16-38z" horiz-adv-x="1000" />
+</font>
+</defs>
+</svg>

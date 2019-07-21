@@ -1,0 +1,16 @@
+{
+  "name": "burner-kiwi-icons",
+  "css_prefix_text": "icon-",
+  "css_use_suffix": false,
+  "hinting": true,
+  "units_per_em": 1000,
+  "ascent": 850,
+  "glyphs": [
+    {
+      "uid": "41087bc74d4b20b55059c60a33bf4008",
+      "css": "edit",
+      "code": 59393,
+      "src": "fontawesome"
+    }
+  ]
+}

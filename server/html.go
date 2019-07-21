@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"reflect"
@@ -24,6 +25,7 @@ type staticDetails struct {
 	Logo      string
 	Normalize string
 	Custom    string
+	Icons     string
 }
 
 //getStaticDetails returns current static details
@@ -34,6 +36,7 @@ func (s *Server) getStaticDetails() staticDetails {
 		Logo:      logo,
 		Normalize: normalize,
 		Custom:    custom,
+		Icons:     icons,
 	}
 }
 
@@ -58,6 +61,13 @@ type messageOut struct {
 	ReceivedTimeDiff string
 	ReceivedAt       string
 	Message          data.Message
+}
+
+// editOut contains data to be rendered by edit template
+type editOut struct {
+	Static staticDetails
+	Hosts  []string
+	Error  string
 }
 
 // Index returns messages in inbox to user
@@ -131,34 +141,97 @@ func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// NewInbox creates a new inbox and returns details to the user
-func (s *Server) NewInbox(w http.ResponseWriter, r *http.Request) {
+// NewRandomInbox generates a new Inbox with a random route and host from availabile options.
+func (s *Server) NewRandomInbox(w http.ResponseWriter, r *http.Request) {
 	i := data.NewInbox()
-	sess, ok := r.Context().Value(sessionCTXKey).(*sessions.Session)
-	if !ok {
-		log.Printf("New Inbox: failed to get sess var. Sess not of type sessions.Session actual type: %v", reflect.TypeOf(sess))
-		http.Error(w, "Failed to generate email", http.StatusInternalServerError)
-		return
-	}
-
 	i.Address = s.eg.NewRandom()
 
 	exist, err := s.db.EmailAddressExists(i.Address) // while it's VERY unlikely that the email address already exists but lets check anyway
 	if err != nil {
-		log.Printf("New Inbox: failed to check if email exists: %v", err)
+		log.Printf("NewRandomInbox: failed to check if email exists: %v", err)
 		http.Error(w, "Failed to generate email", http.StatusInternalServerError)
 		return
 	}
 
 	if exist {
-		log.Printf("NewInbox: email already exisists: %v", err)
+		log.Printf("NewRandomInbox: email already exists: %v", i.Address)
+		http.Error(w, fmt.Sprintf("The email address %v is already in use.", i.Address), http.StatusInternalServerError)
+		return
+	}
+
+	s.CreateRouteFromInbox(w, r, i)
+}
+
+// NewNamedInbox generates a new Inbox with a specific route and host.
+func (s *Server) NewNamedInbox(w http.ResponseWriter, r *http.Request) {
+	errs := ""
+
+	route := r.PostFormValue("route")
+	err := s.eg.VerifyRoute(route)
+	if err != nil {
+		log.Printf("NewNamedInbox: failed to verify route: %v", err)
+		errs = err.Error()
+	}
+
+	host := r.PostFormValue("host")
+	err = s.eg.VerifyHost(host)
+	if err != nil {
+		log.Printf("NewNamedInbox: failed to verify host: %v", err)
+		errs = err.Error()
+	}
+
+	address, err := s.eg.NewFromRouteAndHost(route, host)
+	if err != nil {
+		log.Printf("NewNamedInbox: failed to create new inbox address: %v", err)
+		http.Error(w, "Failed to generate email", http.StatusInternalServerError)
+		return
+	}
+
+	i := data.NewInbox()
+	i.Address = address
+
+	exist, err := s.db.EmailAddressExists(i.Address)
+	if err != nil {
+		log.Printf("NewNamedInbox: failed to check if email exists: %v", err)
+		http.Error(w, "Failed to generate email", http.StatusInternalServerError)
+		return
+	}
+
+	if exist {
+		log.Printf("NewNamedInbox: email already exisists: %v", i.Address)
+		errs = fmt.Sprintf("address already in use: %v", i.Address)
+	}
+
+	if errs != "" {
+		eo := editOut{
+			Static: s.getStaticDetails(),
+			Hosts:  s.eg.GetHosts(),
+			Error:  errs,
+		}
+
+		err := editTemplate.ExecuteTemplate(w, "base", eo)
+
+		if err != nil {
+			log.Printf("NewNamedInbox: failed to execute template: %v", err)
+			http.Error(w, "Failed to execute template", http.StatusInternalServerError)
+		}
+	} else {
+		s.CreateRouteFromInbox(w, r, i)
+	}
+}
+
+//CreateRouteFromInbox creates a new route based on Inbox settings and redirects to Index.
+func (s *Server) CreateRouteFromInbox(w http.ResponseWriter, r *http.Request, i data.Inbox) {
+	sess, ok := r.Context().Value(sessionCTXKey).(*sessions.Session)
+	if !ok {
+		log.Printf("CreateRouteFromInbox: failed to get sess var. Sess not of type sessions.Session actual type: %v", reflect.TypeOf(sess))
 		http.Error(w, "Failed to generate email", http.StatusInternalServerError)
 		return
 	}
 
 	id, err := uuid.NewRandom()
 	if err != nil {
-		log.Printf("Index: failed to generate new random id: %v", err)
+		log.Printf("CreateRouteFromInbox: failed to generate new random id: %v", err)
 		http.Error(w, "Failed to generate new random id", http.StatusInternalServerError)
 		return
 	}
@@ -183,7 +256,7 @@ func (s *Server) NewInbox(w http.ResponseWriter, r *http.Request) {
 
 	err = s.db.SaveNewInbox(i)
 	if err != nil {
-		log.Printf("NewInbox: failed to save email: %v", err)
+		log.Printf("CreateRouteFromInbox: failed to save email: %v", err)
 		http.Error(w, "Failed to save new inbox", http.StatusInternalServerError)
 		return
 	}
@@ -191,25 +264,8 @@ func (s *Server) NewInbox(w http.ResponseWriter, r *http.Request) {
 	sess.Values["id"] = i.ID
 	err = sess.Save(r, w)
 	if err != nil {
-		log.Printf("NewInbox: failed to set session cookie: %v", err)
+		log.Printf("CreateRouteFromInbox: failed to set session cookie: %v", err)
 		http.Error(w, "Failed to set session cookie", http.StatusInternalServerError)
-		return
-	}
-
-	io := indexOut{
-		Static:   s.getStaticDetails(),
-		Messages: nil,
-		Inbox:    i,
-		Expires: expires{
-			Hours:   "23",
-			Minutes: "59",
-		},
-	}
-
-	err = indexTemplate.ExecuteTemplate(w, "base", io)
-	if err != nil {
-		log.Printf("NewInbox: failed to write response: %v", err)
-		http.Error(w, "Failed to write response", http.StatusInternalServerError)
 		return
 	}
 
@@ -218,6 +274,8 @@ func (s *Server) NewInbox(w http.ResponseWriter, r *http.Request) {
 	if s.usingLambda {
 		wg.Wait()
 	}
+
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 // IndividualMessage returns a singular message to the user
@@ -277,6 +335,22 @@ func (s *Server) IndividualMessage(w http.ResponseWriter, r *http.Request) {
 	err = messageHTMLTemplate.ExecuteTemplate(w, "base", mo)
 	if err != nil {
 		log.Printf("IndividualMessage: failed to execute template: %v", err)
+		http.Error(w, "Failed to execute template", http.StatusInternalServerError)
+	}
+}
+
+//EditInbox prompts the user for a new name for the inbox route
+func (s *Server) EditInbox(w http.ResponseWriter, r *http.Request) {
+	eo := editOut{
+		Static: s.getStaticDetails(),
+		Hosts:  s.eg.GetHosts(),
+		Error:  "",
+	}
+
+	err := editTemplate.ExecuteTemplate(w, "base", eo)
+
+	if err != nil {
+		log.Printf("DeleteInbox: failed to execute template: %v", err)
 		http.Error(w, "Failed to execute template", http.StatusInternalServerError)
 	}
 }
