@@ -7,7 +7,7 @@ go:
 install: true
 
 env:
-  - GO111MODULE=on GOPROXY=https://proxy.golang.org
+  - GO111MODULE=on
 
 # grab dynamodb local, gometalinter, minify and packr
 before_script:
