@@ -51,7 +51,7 @@ func TestServer_IsNew(t *testing.T) {
 		t.Errorf("TestServer_IsNew: Failed to read body: %v", err)
 	}
 
-	if strings.Compare(string(body), NEWHANDLERRESP) != 0 {
+	if string(body) != NEWHANDLERRESP {
 		t.Fatalf("TestServer_IsNew: First request not matching. Expected %v, got %v.", NEWHANDLERRESP, string(body))
 	}
 
@@ -68,7 +68,7 @@ func TestServer_IsNew(t *testing.T) {
 		t.Errorf("TestServer_IsNew: Failed to read 2nd body: %v", err)
 	}
 
-	if strings.Compare(string(body2), FAKEHANDLERRESP) != 0 {
+	if string(body2) != FAKEHANDLERRESP {
 		t.Fatalf("TestServer_IsNew: Second request not matching. Expected '%v', got '%v'.", FAKEHANDLERRESP, string(body2))
 	}
 }
@@ -128,7 +128,7 @@ func TestServer_CheckPermissionJSON(t *testing.T) {
 			t.Errorf("TestServer_CheckPermissionJSON: %v - Status code different. Expected %v, got %v", i, test.ExpectedStatus, rr.Code)
 		}
 
-		if strings.Compare(test.ExpectedMsg, DONTCHECK) != 0 {
+		if test.ExpectedMsg != DONTCHECK {
 			resp := Response{}
 
 			err := json.Unmarshal(rr.Body.Bytes(), &resp)
@@ -149,7 +149,7 @@ func TestServer_CheckPermissionJSON(t *testing.T) {
 				t.Errorf("TestServer_CheckPermissionJSON: %v - failed to assert that Msg is a string. It's actually: %v", i, reflect.TypeOf(msg))
 			}
 
-			if strings.Compare(msg, test.ExpectedMsg) != 0 {
+			if msg != test.ExpectedMsg {
 				t.Errorf("TestServer_CheckPermissionJSON: %v - Message different. Expected %v, got %v", i, test.ExpectedMsg, msg)
 			}
 		}
@@ -189,7 +189,7 @@ func TestServer_CheckCookieExists(t *testing.T) {
 	}
 
 	// http.Error adds a trailing newline to our message so we need to add it here in our comparison
-	if strings.Compare(string(body1), checkCookieExistsErrorResponse+"\n") != 0 {
+	if string(body1) != checkCookieExistsErrorResponse+"\n" {
 		t.Fatalf("TestServer_CheckCookieExists: Body1 not expected. Expected %T, got %T", checkCookieExistsErrorResponse, string(body1))
 	}
 
@@ -207,7 +207,7 @@ func TestServer_CheckCookieExists(t *testing.T) {
 		t.Fatalf("TestServer_CheckCookieExists: Failed to read body2: %v", err)
 	}
 
-	if strings.Compare(string(body2), "success") != 0 {
+	if string(body2) != "success" {
 		t.Fatalf("TestServer_CheckCookieExists: Body2 not expected. Expected %v, got %v", "success", string(body2))
 	}
 
@@ -225,7 +225,7 @@ func TestServer_CheckCookieExists(t *testing.T) {
 		t.Fatalf("TestServer_CheckCookieExists: Failed to read body3: %v", err)
 	}
 
-	if strings.Compare(string(body3), "success") != 0 {
+	if string(body3) != "success" {
 		t.Fatalf("TestServer_CheckCookieExists: Body3 not expected. Expected %v, got %v", "success", string(body3))
 	}
 }

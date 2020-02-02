@@ -62,7 +62,7 @@ func TestTokenGenerator_Parse(t *testing.T) {
 			p, err = tg.VerifyToken(test.ToParse)
 		}
 
-		if strings.Compare(p, test.ExpectedRes) != 0 {
+		if p != test.ExpectedRes {
 			t.Errorf("%v - Expected result %v, got %v", i, test.ExpectedRes, p)
 		}
 

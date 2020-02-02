@@ -3,7 +3,6 @@ package burner
 import (
 	"html/template"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -26,7 +25,7 @@ func TestMustParseTemplates(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if strings.Compare(fRecorder.Body.String(), pRecorder.Body.String()) != 0 {
+	if fRecorder.Body.String() != pRecorder.Body.String() {
 		t.Fatal("rendered html doesn't match")
 	}
 }

@@ -1,7 +1,6 @@
 package burner
 
 import (
-	"strings"
 	"testing"
 	"time"
 )
@@ -13,7 +12,7 @@ func TestNewInbox(t *testing.T) {
 		t.Errorf("TestNewInbox: failed to create not true")
 	}
 
-	if strings.Compare(i.MGRouteID, "-") != 0 {
+	if i.MGRouteID != "-" {
 		t.Errorf("TestNewInbox: route id not -")
 	}
 }
@@ -60,15 +59,15 @@ func TestGetReceivedDetails(t *testing.T) {
 
 	details := GetReceivedDetails(msgs)
 
-	if strings.Compare(details[0], "Less than 30s ago") != 0 {
+	if details[0] != "Less than 30s ago" {
 		t.Errorf("TestGetReceivedDetails: details[0] incorrect. Should be 'Less than 30s ago' is: %v", details[0])
 	}
 
-	if strings.Compare(details[1], "30m ago") != 0 {
+	if details[1] != "30m ago" {
 		t.Errorf("TestGetReceivedDetails: details[1] incorrect. Should be '30m ago' is: %v", details[1])
 	}
 
-	if strings.Compare(details[2], "2h 30m ago") != 0 {
+	if details[2] != "2h 30m ago" {
 		t.Errorf("TestGetReceivedDetails: details[2] incorrect. Should be '2h 30m ago' is: %v", details[2])
 	}
 }

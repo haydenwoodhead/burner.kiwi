@@ -2,7 +2,6 @@ package burner
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/haydenwoodhead/burner.kiwi/stringduration"
@@ -62,7 +61,7 @@ func GetReceivedDetails(msgs []Message) []string {
 
 		h, min := stringduration.GetHoursAndMinutes(diff)
 
-		if strings.Compare(h, "0") != 0 {
+		if h != "0" {
 			received = append(received, fmt.Sprintf("%vh %vm ago", h, min))
 			continue
 		}

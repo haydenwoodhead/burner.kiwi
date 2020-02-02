@@ -2,7 +2,6 @@ package data
 
 import (
 	"reflect"
-	"strings"
 	"testing"
 	"time"
 
@@ -153,7 +152,7 @@ func TestSetInboxCreated(t *testing.T, db burner.Database) {
 		t.Errorf("%v - TestSetInboxCreated: failed to get inbox back: %v", reflect.TypeOf(db), err)
 	}
 
-	if strings.Compare(ret.MGRouteID, i.MGRouteID) != 0 {
+	if ret.MGRouteID != i.MGRouteID {
 		t.Errorf("%v - TestSetInboxCreated: mg route id not same. Expected %v, got %v", reflect.TypeOf(db), i.MGRouteID, ret.MGRouteID)
 	}
 

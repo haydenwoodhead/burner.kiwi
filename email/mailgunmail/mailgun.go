@@ -144,7 +144,7 @@ func (m *MailgunMail) mailgunIncoming(w http.ResponseWriter, r *http.Request) {
 
 	// Check to see if there is anything in html before we modify it. Otherwise we end up setting a blank html doc
 	// on all plaintext emails preventing them from being displayed.
-	if strings.Compare(html, "") != 0 {
+	if html != "" {
 		sr := strings.NewReader(html)
 
 		var doc *goquery.Document
