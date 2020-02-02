@@ -1,4 +1,4 @@
-package server
+package burner
 
 import (
 	"fmt"
@@ -298,7 +298,7 @@ func (s *Server) IndividualMessage(w http.ResponseWriter, r *http.Request) {
 
 	m, err := s.db.GetMessageByID(iID, mID)
 	if err == ErrMessageDoesntExist {
-		http.Error(w, "Message not found on server", http.StatusNotFound)
+		http.Error(w, "Message not found on burner", http.StatusNotFound)
 		return
 	} else if err != nil {
 		log.Printf("IndividualMessage: failed to get message. Error: %v", err)

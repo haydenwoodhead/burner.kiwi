@@ -10,18 +10,18 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"github.com/haydenwoodhead/burner.kiwi/server"
+	"github.com/haydenwoodhead/burner.kiwi/burner"
 	"github.com/pkg/errors"
 	mailgun "gopkg.in/mailgun/mailgun-go.v1"
 )
 
-var _ server.EmailProvider = &MailgunMail{}
+var _ burner.EmailProvider = &MailgunMail{}
 
 // MailgunMail is a mailgun implementation of the Mail inter
 type MailgunMail struct {
 	websiteAddr   string
 	mg            mailgun.Mailgun
-	db            server.Database
+	db            burner.Database
 	isBlacklisted func(string) bool
 }
 
@@ -33,7 +33,7 @@ func NewMailgunProvider(domain string, key string) *MailgunMail {
 }
 
 // Start implements email.MockEmailProvider Start()
-func (m *MailgunMail) Start(websiteAddr string, db server.Database, r *mux.Router, isBlackisted func(string) bool) error {
+func (m *MailgunMail) Start(websiteAddr string, db burner.Database, r *mux.Router, isBlackisted func(string) bool) error {
 	m.db = db
 	m.isBlacklisted = isBlackisted
 	m.websiteAddr = websiteAddr
@@ -47,7 +47,7 @@ func (m *MailgunMail) Stop() error {
 }
 
 // RegisterRoute implements email.MockEmailProvider RegisterRoute()
-func (m *MailgunMail) RegisterRoute(i server.Inbox) (string, error) {
+func (m *MailgunMail) RegisterRoute(i burner.Inbox) (string, error) {
 	routeAddr := m.websiteAddr + "/mg/incoming/" + i.ID + "/"
 	route, err := m.mg.CreateRoute(mailgun.Route{
 		Priority:    1,
@@ -120,7 +120,7 @@ func (m *MailgunMail) mailgunIncoming(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var msg server.Message
+	var msg burner.Message
 
 	msg.InboxID = i.ID
 	msg.TTL = i.TTL

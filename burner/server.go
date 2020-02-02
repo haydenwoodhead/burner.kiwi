@@ -1,4 +1,4 @@
-package server
+package burner
 
 import (
 	"fmt"
@@ -54,8 +54,8 @@ type Server struct {
 	blacklistedDomains []string
 }
 
-//NewServerInput contains key configuration parameters to be passed to NewServer()
-type NewServerInput struct {
+//NewInput contains key configuration parameters to be passed to New()
+type NewInput struct {
 	Key                string
 	URL                string
 	StaticURL          string
@@ -68,8 +68,8 @@ type NewServerInput struct {
 	BlacklistedDomains []string
 }
 
-// NewServer returns a server with the given settings
-func NewServer(n NewServerInput) (*Server, error) {
+// New returns a burner with the given settings
+func New(n NewInput) (*Server, error) {
 	s := Server{}
 
 	// Setup Templates

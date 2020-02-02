@@ -7,23 +7,23 @@ import (
 	"time"
 
 	"github.com/gorilla/context"
-	"github.com/haydenwoodhead/burner.kiwi/server"
+	"github.com/haydenwoodhead/burner.kiwi/burner"
 	"github.com/haydenwoodhead/gateway"
 )
 
 var runDelete bool
 
 func init() {
-	flag.BoolVar(&runDelete, "delete-old-routes", false, "when true will not run the server only delete old routes")
+	flag.BoolVar(&runDelete, "delete-old-routes", false, "when true will not run the burner only delete old routes")
 	flag.Parse()
 }
 
 func main() {
 	nsi := mustParseNewServerInput()
 
-	s, err := server.NewServer(nsi)
+	s, err := burner.New(nsi)
 	if err != nil {
-		log.Fatalf("Failed to setup new server: %v", err)
+		log.Fatalf("Failed to setup new burner: %v", err)
 	}
 
 	// if we are just running route delete then do so and return. Otherwise run runDeleteFunc in a goroutine
@@ -32,7 +32,7 @@ func main() {
 		return
 	}
 
-	go func(s *server.Server) {
+	go func(s *burner.Server) {
 		if nsi.UsingLambda {
 			runDeleteFunc(s)
 		} else {
@@ -51,7 +51,7 @@ func main() {
 	}
 }
 
-func runDeleteFunc(s *server.Server) {
+func runDeleteFunc(s *burner.Server) {
 	err := s.DeleteOldRoutes()
 	if err != nil {
 		log.Printf("Failed to call deleteOldRoutes: %v", err)

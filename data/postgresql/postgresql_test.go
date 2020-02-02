@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/haydenwoodhead/burner.kiwi/server"
+	"github.com/haydenwoodhead/burner.kiwi/burner"
 	"github.com/jmoiron/sqlx"
 	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/assert"
@@ -67,7 +67,7 @@ func testTTLDelete(t *testing.T, db *PostgreSQL) {
 	db.MustExec("DELETE FROM inbox")
 	db.MustExec("DELETE FROM message")
 
-	i1 := server.Inbox{
+	i1 := burner.Inbox{
 		ID:      uuid.Must(uuid.NewRandom()).String(),
 		Address: "hayden@example.com",
 		TTL:     time.Now().Add(-1 * time.Hour).Unix(),
@@ -75,7 +75,7 @@ func testTTLDelete(t *testing.T, db *PostgreSQL) {
 	err := db.SaveNewInbox(i1)
 	assert.NoError(t, err)
 
-	i2 := server.Inbox{
+	i2 := burner.Inbox{
 		ID:      uuid.Must(uuid.NewRandom()).String(),
 		Address: "bobby@example.com",
 		TTL:     time.Now().Add(1 * time.Hour).Unix(),

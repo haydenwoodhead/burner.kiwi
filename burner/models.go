@@ -1,4 +1,4 @@
-package server
+package burner
 
 import (
 	"fmt"
@@ -27,7 +27,7 @@ func NewInbox() Inbox {
 	}
 }
 
-// Message contains details of an individual email message received by the server
+// Message contains details of an individual email message received by the burner
 type Message struct {
 	InboxID    string `dynamodbav:"inbox_id" json:"-" db:"inbox_id"`
 	ID         string `dynamodbav:"message_id" json:"id" db:"message_id"`

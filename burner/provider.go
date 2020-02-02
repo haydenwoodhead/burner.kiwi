@@ -1,4 +1,4 @@
-package server
+package burner
 
 import (
 	"github.com/gorilla/mux"

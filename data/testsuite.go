@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/haydenwoodhead/burner.kiwi/server"
+	"github.com/haydenwoodhead/burner.kiwi/burner"
 )
 
 // TestFunction is the signature for a testing function
-type TestFunction = func(t *testing.T, db server.Database)
+type TestFunction = func(t *testing.T, db burner.Database)
 
 // TestingFuncs contain the suite of funcs that a db implementation should be tested against
 var TestingFuncs = []TestFunction{
@@ -25,8 +25,8 @@ var TestingFuncs = []TestFunction{
 }
 
 // TestSaveNewInbox verifies that SaveNewInbox works
-func TestSaveNewInbox(t *testing.T, db server.Database) {
-	i := server.Inbox{
+func TestSaveNewInbox(t *testing.T, db burner.Database) {
+	i := burner.Inbox{
 		Address:        "test.1@example.com",
 		ID:             uuid.Must(uuid.NewRandom()).String(),
 		CreatedBy:      "192.168.1.1",
@@ -54,8 +54,8 @@ func TestSaveNewInbox(t *testing.T, db server.Database) {
 }
 
 // TestGetInboxByID verifies that GetInboxByID works
-func TestGetInboxByID(t *testing.T, db server.Database) {
-	i := server.Inbox{
+func TestGetInboxByID(t *testing.T, db burner.Database) {
+	i := burner.Inbox{
 		Address:        "test.2@example.com",
 		ID:             uuid.Must(uuid.NewRandom()).String(),
 		CreatedBy:      "192.168.1.1",
@@ -83,8 +83,8 @@ func TestGetInboxByID(t *testing.T, db server.Database) {
 }
 
 // TestEmailAddressExists verifies that EmailAddressExists works
-func TestEmailAddressExists(t *testing.T, db server.Database) {
-	i := server.Inbox{
+func TestEmailAddressExists(t *testing.T, db burner.Database) {
+	i := burner.Inbox{
 		Address:        "test.3@example.com",
 		ID:             uuid.Must(uuid.NewRandom()).String(),
 		CreatedAt:      time.Now().Unix(),
@@ -122,8 +122,8 @@ func TestEmailAddressExists(t *testing.T, db server.Database) {
 }
 
 //TestSetInboxCreated verifies that SetInboxCreated works
-func TestSetInboxCreated(t *testing.T, db server.Database) {
-	i := server.Inbox{
+func TestSetInboxCreated(t *testing.T, db burner.Database) {
+	i := burner.Inbox{
 		Address:        "test.4@example.com",
 		ID:             uuid.Must(uuid.NewRandom()).String(),
 		CreatedAt:      time.Now().Unix(),
@@ -163,8 +163,8 @@ func TestSetInboxCreated(t *testing.T, db server.Database) {
 }
 
 //TestSaveNewMessage verifies that SaveNewMessage works
-func TestSaveNewMessage(t *testing.T, db server.Database) {
-	i := server.Inbox{
+func TestSaveNewMessage(t *testing.T, db burner.Database) {
+	i := burner.Inbox{
 		Address:        "test.5@example.com",
 		ID:             uuid.Must(uuid.NewRandom()).String(),
 		CreatedAt:      time.Now().Unix(),
@@ -179,7 +179,7 @@ func TestSaveNewMessage(t *testing.T, db server.Database) {
 		t.Fatalf("%v - TestSaveNewMessage: failed to insert new db: %v", reflect.TypeOf(db), err)
 	}
 
-	m := server.Message{
+	m := burner.Message{
 		InboxID:    i.ID,
 		ID:         uuid.Must(uuid.NewRandom()).String(),
 		ReceivedAt: time.Now().Unix(),
@@ -210,8 +210,8 @@ func TestSaveNewMessage(t *testing.T, db server.Database) {
 }
 
 //TestGetMessageByID verifies that GetMessageByID works
-func TestGetMessageByID(t *testing.T, db server.Database) {
-	i := server.Inbox{
+func TestGetMessageByID(t *testing.T, db burner.Database) {
+	i := burner.Inbox{
 		ID:      uuid.Must(uuid.NewRandom()).String(),
 		Address: "test.6@example.com",
 	}
@@ -221,7 +221,7 @@ func TestGetMessageByID(t *testing.T, db server.Database) {
 		t.Fatalf("%v - TestGetMessageByID: failed to insert new db: %v", reflect.TypeOf(db), err)
 	}
 
-	m := server.Message{
+	m := burner.Message{
 		InboxID:    i.ID,
 		ID:         uuid.Must(uuid.NewRandom()).String(),
 		ReceivedAt: time.Now().Unix(),
@@ -243,7 +243,7 @@ func TestGetMessageByID(t *testing.T, db server.Database) {
 	tests := []struct {
 		InboxID     string
 		MessageID   string
-		ExpectedRes server.Message
+		ExpectedRes burner.Message
 		ExpectedErr error
 	}{
 		{
@@ -255,8 +255,8 @@ func TestGetMessageByID(t *testing.T, db server.Database) {
 		{
 			InboxID:     uuid.Must(uuid.NewRandom()).String(), // doesn't exist
 			MessageID:   uuid.Must(uuid.NewRandom()).String(),
-			ExpectedRes: server.Message{},
-			ExpectedErr: server.ErrMessageDoesntExist,
+			ExpectedRes: burner.Message{},
+			ExpectedErr: burner.ErrMessageDoesntExist,
 		},
 	}
 
@@ -275,8 +275,8 @@ func TestGetMessageByID(t *testing.T, db server.Database) {
 
 //TestGetMessagesByInboxID verifies that GetMessagesByInboxID works
 //nolint
-func TestGetMessagesByInboxID(t *testing.T, db server.Database) {
-	i := server.Inbox{
+func TestGetMessagesByInboxID(t *testing.T, db burner.Database) {
+	i := burner.Inbox{
 		Address:        "test.7@example.com",
 		ID:             "ddb9ec88-2c11-4731-a433-36a04661de83",
 		CreatedAt:      time.Now().Unix(),
@@ -292,7 +292,7 @@ func TestGetMessagesByInboxID(t *testing.T, db server.Database) {
 		t.Errorf("%v - TestGetMessagesByInboxID: failed to save: %v", reflect.TypeOf(db), err)
 	}
 
-	m1 := server.Message{
+	m1 := burner.Message{
 		InboxID:    "ddb9ec88-2c11-4731-a433-36a04661de83",
 		ID:         uuid.Must(uuid.NewRandom()).String(),
 		ReceivedAt: time.Now().Unix(),
@@ -305,7 +305,7 @@ func TestGetMessagesByInboxID(t *testing.T, db server.Database) {
 		TTL:        time.Now().Add(5 * time.Minute).Unix(),
 	}
 
-	m2 := server.Message{
+	m2 := burner.Message{
 		InboxID:    "ddb9ec88-2c11-4731-a433-36a04661de83",
 		ID:         uuid.Must(uuid.NewRandom()).String(),
 		ReceivedAt: time.Now().Unix(),

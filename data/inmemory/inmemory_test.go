@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/haydenwoodhead/burner.kiwi/burner"
 	"github.com/haydenwoodhead/burner.kiwi/data"
-	"github.com/haydenwoodhead/burner.kiwi/server"
 )
 
 func TestInMemoryDB(t *testing.T) {
@@ -20,12 +20,12 @@ func TestInMemoryDB(t *testing.T) {
 func TestInMemory_DeleteExpiredData(t *testing.T) {
 	db := GetInMemoryDB()
 
-	i1 := server.Inbox{
+	i1 := burner.Inbox{
 		ID:  "1234",
 		TTL: time.Now().Add(-1 * time.Second).Unix(),
 	}
 
-	i2 := server.Inbox{
+	i2 := burner.Inbox{
 		ID:  "5678",
 		TTL: time.Now().Add(1 * time.Hour).Unix(),
 	}
@@ -33,13 +33,13 @@ func TestInMemory_DeleteExpiredData(t *testing.T) {
 	_ = db.SaveNewInbox(i1)
 	_ = db.SaveNewInbox(i2)
 
-	m1 := server.Message{
+	m1 := burner.Message{
 		InboxID: "1234",
 		ID:      "1234",
 		TTL:     time.Now().Add(-1 * time.Second).Unix(),
 	}
 
-	m2 := server.Message{
+	m2 := burner.Message{
 		InboxID: "5678",
 		ID:      "5678",
 		TTL:     time.Now().Add(1 * time.Hour).Unix(),
@@ -78,7 +78,7 @@ func TestInMemory_DeleteExpiredData(t *testing.T) {
 	}{
 		{
 			ID:          "1234",
-			ExpectedErr: server.ErrMessageDoesntExist,
+			ExpectedErr: burner.ErrMessageDoesntExist,
 		},
 		{
 			ID:          "5678",

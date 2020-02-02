@@ -1,4 +1,4 @@
-package server
+package burner
 
 func InboxMatcher(i Inbox) func(Inbox) bool {
 	return func(e Inbox) bool {

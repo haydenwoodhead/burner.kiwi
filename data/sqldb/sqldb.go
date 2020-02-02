@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/haydenwoodhead/burner.kiwi/server"
+	"github.com/haydenwoodhead/burner.kiwi/burner"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -69,7 +69,7 @@ func (s *SQLDatabase) CreateTables() {
 }
 
 // SaveNewInbox saves a new inbox
-func (s *SQLDatabase) SaveNewInbox(i server.Inbox) error {
+func (s *SQLDatabase) SaveNewInbox(i burner.Inbox) error {
 	_, err := s.NamedExec(
 		"INSERT INTO inbox (id, address, created_at, created_by, mg_routeid, ttl, failed_to_create) VALUES (:id, :address, :created_at, :created_by, :mg_routeid, :ttl, :failed_to_create)",
 		map[string]interface{}{
@@ -87,8 +87,8 @@ func (s *SQLDatabase) SaveNewInbox(i server.Inbox) error {
 }
 
 // GetInboxByID gets an inbox by id
-func (s *SQLDatabase) GetInboxByID(id string) (server.Inbox, error) {
-	var i server.Inbox
+func (s *SQLDatabase) GetInboxByID(id string) (burner.Inbox, error) {
+	var i burner.Inbox
 	err := s.Get(&i, "SELECT id, address, created_at, created_by, mg_routeid, ttl, failed_to_create FROM inbox WHERE id = $1", id)
 	return i, err
 }
@@ -101,19 +101,19 @@ func (s *SQLDatabase) EmailAddressExists(email string) (bool, error) {
 }
 
 // SetInboxCreated creates a new inbox
-func (s *SQLDatabase) SetInboxCreated(i server.Inbox) error {
+func (s *SQLDatabase) SetInboxCreated(i burner.Inbox) error {
 	_, err := s.Exec("UPDATE inbox SET failed_to_create = 'false', mg_routeid = $1 WHERE id = $2", i.MGRouteID, i.ID)
 	return err
 }
 
 // SetInboxFailed sets a given inbox as having failed to register with the mail provider
-func (s *SQLDatabase) SetInboxFailed(i server.Inbox) error {
+func (s *SQLDatabase) SetInboxFailed(i burner.Inbox) error {
 	_, err := s.Exec("UPDATE inbox SET failed_to_create = 'true' WHERE id = $1", i.ID)
 	return err
 }
 
 // SaveNewMessage saves a new message to the db
-func (s *SQLDatabase) SaveNewMessage(m server.Message) error {
+func (s *SQLDatabase) SaveNewMessage(m burner.Message) error {
 	_, err := s.NamedExec("INSERT INTO message (inbox_id, message_id, received_at, mg_id, sender, from_address, subject, body_html, body_plain, ttl) VALUES (:inbox_id, :message_id, :received_at, :mg_id, :sender, :from_address, :subject, :body_html, :body_plain, :ttl)",
 		map[string]interface{}{
 			"inbox_id":     m.InboxID,
@@ -132,18 +132,18 @@ func (s *SQLDatabase) SaveNewMessage(m server.Message) error {
 }
 
 // GetMessagesByInboxID gets all messages for an inbox
-func (s *SQLDatabase) GetMessagesByInboxID(id string) ([]server.Message, error) {
-	var msgs []server.Message
+func (s *SQLDatabase) GetMessagesByInboxID(id string) ([]burner.Message, error) {
+	var msgs []burner.Message
 	err := s.Select(&msgs, "SELECT inbox_id, message_id, received_at, mg_id, sender, from_address, subject, body_html, body_plain, ttl FROM message WHERE inbox_id = $1", id)
 	return msgs, err
 }
 
 // GetMessageByID gets a single message
-func (s *SQLDatabase) GetMessageByID(i, m string) (server.Message, error) {
-	var msg server.Message
+func (s *SQLDatabase) GetMessageByID(i, m string) (burner.Message, error) {
+	var msg burner.Message
 	err := s.Get(&msg, "SELECT inbox_id, message_id, received_at, mg_id, sender, from_address, subject, body_html, body_plain, ttl FROM message WHERE inbox_id = $1 and message_id = $2", i, m)
 	if err == sql.ErrNoRows {
-		return msg, server.ErrMessageDoesntExist
+		return msg, burner.ErrMessageDoesntExist
 	}
 
 	return msg, err
