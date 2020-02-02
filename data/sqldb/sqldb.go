@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/haydenwoodhead/burner.kiwi/data"
-	"github.com/haydenwoodhead/burner.kiwi/metrics"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -28,8 +27,6 @@ func GetDatabase(dbType string, dbURL string) *SQLDatabase {
 			log.Println("Failed to get number of active inboxes")
 		}
 
-		metrics.ActiveInboxes.Set(float64(active))
-
 		for {
 			count, err := s.RunTTLDelete()
 			if err != nil {
@@ -37,7 +34,6 @@ func GetDatabase(dbType string, dbURL string) *SQLDatabase {
 				break
 			}
 			log.Printf("Deleted %v old inboxes from db\n", count)
-			metrics.ActiveInboxes.Sub(float64(count))
 			time.Sleep(1 * time.Hour)
 		}
 	}()
@@ -86,9 +82,7 @@ func (s *SQLDatabase) SaveNewInbox(i data.Inbox) error {
 			"failed_to_create": i.FailedToCreate,
 		},
 	)
-	if err == nil {
-		metrics.ActiveInboxes.Inc()
-	}
+
 	return err
 }
 

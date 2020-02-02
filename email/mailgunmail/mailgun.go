@@ -12,9 +12,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/haydenwoodhead/burner.kiwi/data"
 	"github.com/haydenwoodhead/burner.kiwi/email"
-	"github.com/haydenwoodhead/burner.kiwi/metrics"
 	"github.com/pkg/errors"
-	"github.com/prometheus/client_golang/prometheus"
 	mailgun "gopkg.in/mailgun/mailgun-go.v1"
 )
 
@@ -109,9 +107,6 @@ func (m *MailgunMail) mailgunIncoming(w http.ResponseWriter, r *http.Request) {
 
 	if m.isBlacklisted(r.FormValue("sender")) {
 		w.WriteHeader(http.StatusNotAcceptable)
-		metrics.IncomingEmails.With(prometheus.Labels{
-			"action": "rejected",
-		}).Inc()
 		return
 	}
 
@@ -192,8 +187,4 @@ func (m *MailgunMail) mailgunIncoming(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
-	metrics.IncomingEmails.With(prometheus.Labels{
-		"action": "accepted",
-	}).Inc()
 }

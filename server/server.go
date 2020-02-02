@@ -8,8 +8,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-
 	"log"
 
 	"github.com/gobuffalo/packr"
@@ -179,9 +177,6 @@ func NewServer(n NewServerInput) (*Server, error) {
 	if n.RestoreRealIP {
 		s.Router.Use(RestoreRealIP)
 	}
-
-	// Metrics
-	s.Router.Handle("/metrics", promhttp.Handler())
 
 	s.Router.HandleFunc("/ping", s.Ping)
 
