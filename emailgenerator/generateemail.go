@@ -1,4 +1,4 @@
-package generateemail
+package emailgenerator
 
 import (
 	"errors"
@@ -16,8 +16,8 @@ type EmailGenerator struct {
 	L     int
 }
 
-// NewEmailGenerator returns an email generator that creates emails with the given Hosts and minimum length user part
-func NewEmailGenerator(h []string, l int) *EmailGenerator {
+// New returns an email generator that creates emails with the given Hosts and minimum length user part
+func New(h []string, l int) *EmailGenerator {
 	rand.Seed(time.Now().UTC().UnixNano())
 	return &EmailGenerator{Hosts: h, L: l}
 }

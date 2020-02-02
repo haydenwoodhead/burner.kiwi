@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/haydenwoodhead/burner.kiwi/generateemail"
+	"github.com/haydenwoodhead/burner.kiwi/emailgenerator"
 	"github.com/haydenwoodhead/burner.kiwi/token"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -34,7 +34,7 @@ func TestServer_NewInboxJSON(t *testing.T) {
 		db:          mDB,
 		tg:          token.NewGenerator("testexample12344", time.Hour),
 		email:       mEP,
-		eg:          &generateemail.EmailGenerator{Hosts: []string{"example.com"}, L: 8},
+		eg:          &emailgenerator.EmailGenerator{Hosts: []string{"example.com"}, L: 8},
 		usingLambda: true, // make sure the create route goroutine finishes before we check the result
 	}
 
@@ -89,7 +89,7 @@ func TestServer_GetInboxDetailsJSON(t *testing.T) {
 	s := Server{
 		db:          mDB,
 		tg:          token.NewGenerator("testexample12344", time.Hour),
-		eg:          generateemail.NewEmailGenerator([]string{"example.com"}, 8),
+		eg:          emailgenerator.New([]string{"example.com"}, 8),
 		usingLambda: true, // make sure the create route goroutine finishes before we check the result
 	}
 
@@ -149,7 +149,7 @@ func TestServer_GetAllMessagesJSON(t *testing.T) {
 	s := Server{
 		db:          mDB,
 		tg:          token.NewGenerator("testexample12344", time.Hour),
-		eg:          generateemail.NewEmailGenerator([]string{"example.com"}, 8),
+		eg:          emailgenerator.New([]string{"example.com"}, 8),
 		usingLambda: true, // make sure the create route goroutine finishes before we check the result
 	}
 

@@ -1,4 +1,4 @@
-package generateemail
+package emailgenerator
 
 import (
 	"reflect"
@@ -16,7 +16,7 @@ var H = []string{
 }
 
 func TestNewEmailGenerator(t *testing.T) {
-	g := NewEmailGenerator(H, 8)
+	g := New(H, 8)
 
 	if !reflect.DeepEqual(g.Hosts, H) {
 		t.Fatalf("TestNewEmailGenerator: Hosts not being saved correctly. Expected %v, got %v", H, g.Hosts)
@@ -24,7 +24,7 @@ func TestNewEmailGenerator(t *testing.T) {
 }
 
 func TestEmailGenerator_NewRandom(t *testing.T) {
-	g := NewEmailGenerator(H, 8)
+	g := New(H, 8)
 
 	s := g.NewRandom()
 
@@ -48,7 +48,7 @@ func TestEmailGenerator_NewRandom(t *testing.T) {
 }
 
 func TestEmailGenerator_NewFromRouteAndHost(t *testing.T) {
-	g := NewEmailGenerator([]string{
+	g := New([]string{
 		"example.com",
 		"example.org",
 	}, 8)

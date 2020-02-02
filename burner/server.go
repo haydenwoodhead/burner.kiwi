@@ -13,7 +13,7 @@ import (
 	"github.com/gobuffalo/packr"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
-	"github.com/haydenwoodhead/burner.kiwi/generateemail"
+	"github.com/haydenwoodhead/burner.kiwi/emailgenerator"
 	"github.com/haydenwoodhead/burner.kiwi/token"
 	"github.com/justinas/alice"
 )
@@ -44,7 +44,7 @@ type Server struct {
 	store              *sessions.CookieStore
 	websiteURL         string
 	staticURL          string
-	eg                 *generateemail.EmailGenerator
+	eg                 *emailgenerator.EmailGenerator
 	email              EmailProvider
 	db                 Database
 	Router             *mux.Router
@@ -89,7 +89,7 @@ func New(n NewInput) (*Server, error) {
 
 	s.usingLambda = n.UsingLambda
 
-	s.eg = generateemail.NewEmailGenerator(n.Domains, 8)
+	s.eg = emailgenerator.New(n.Domains, 8)
 
 	s.tg = token.NewGenerator(n.Key, 24*time.Hour)
 
