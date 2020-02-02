@@ -14,7 +14,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
-	"github.com/haydenwoodhead/burner.kiwi/data"
 	"github.com/haydenwoodhead/burner.kiwi/stringduration"
 )
 
@@ -43,9 +42,9 @@ func (s *Server) getStaticDetails() staticDetails {
 // indexOut contains data to be rendered by the index template
 type indexOut struct {
 	Static     staticDetails
-	Messages   []data.Message
+	Messages   []Message
 	ReceivedAt []string
-	Inbox      data.Inbox
+	Inbox      Inbox
 	Expires    expires
 }
 
@@ -60,7 +59,7 @@ type messageOut struct {
 	Static           staticDetails
 	ReceivedTimeDiff string
 	ReceivedAt       string
-	Message          data.Message
+	Message          Message
 }
 
 // editOut contains data to be rendered by edit template
@@ -118,7 +117,7 @@ func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
 		return msgs[i].ReceivedAt > msgs[j].ReceivedAt
 	})
 
-	received := data.GetReceivedDetails(msgs)
+	received := GetReceivedDetails(msgs)
 
 	expiration := time.Until(time.Unix(i.TTL, 0))
 	h, m := stringduration.GetHoursAndMinutes(expiration)
@@ -143,7 +142,7 @@ func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
 
 // NewRandomInbox generates a new Inbox with a random route and host from availabile options.
 func (s *Server) NewRandomInbox(w http.ResponseWriter, r *http.Request) {
-	i := data.NewInbox()
+	i := NewInbox()
 	i.Address = s.eg.NewRandom()
 
 	exist, err := s.db.EmailAddressExists(i.Address) // while it's VERY unlikely that the email address already exists but lets check anyway
@@ -187,7 +186,7 @@ func (s *Server) NewNamedInbox(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	i := data.NewInbox()
+	i := NewInbox()
 	i.Address = address
 
 	exist, err := s.db.EmailAddressExists(i.Address)
@@ -221,7 +220,7 @@ func (s *Server) NewNamedInbox(w http.ResponseWriter, r *http.Request) {
 }
 
 //CreateRouteFromInbox creates a new route based on Inbox settings and redirects to Index.
-func (s *Server) CreateRouteFromInbox(w http.ResponseWriter, r *http.Request, i data.Inbox) {
+func (s *Server) CreateRouteFromInbox(w http.ResponseWriter, r *http.Request, i Inbox) {
 	sess, ok := r.Context().Value(sessionCTXKey).(*sessions.Session)
 	if !ok {
 		log.Printf("CreateRouteFromInbox: failed to get sess var. Sess not of type sessions.Session actual type: %v", reflect.TypeOf(sess))
@@ -298,7 +297,7 @@ func (s *Server) IndividualMessage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	m, err := s.db.GetMessageByID(iID, mID)
-	if err == data.ErrMessageDoesntExist {
+	if err == ErrMessageDoesntExist {
 		http.Error(w, "Message not found on server", http.StatusNotFound)
 		return
 	} else if err != nil {
@@ -307,7 +306,7 @@ func (s *Server) IndividualMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rtd := data.GetReceivedDetails([]data.Message{m})
+	rtd := GetReceivedDetails([]Message{m})
 
 	ra := time.Unix(m.ReceivedAt, 0)
 

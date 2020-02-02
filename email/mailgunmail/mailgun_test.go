@@ -10,11 +10,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/haydenwoodhead/burner.kiwi/server"
 	"github.com/stretchr/testify/assert"
 	mailgun "gopkg.in/mailgun/mailgun-go.v1"
 
 	"github.com/gorilla/mux"
-	"github.com/haydenwoodhead/burner.kiwi/data"
 	"github.com/haydenwoodhead/burner.kiwi/data/inmemory"
 )
 
@@ -27,7 +27,7 @@ func TestMailgun_MailgunIncoming_Verified(t *testing.T) {
 		},
 	}
 
-	m.db.SaveNewInbox(data.Inbox{
+	m.db.SaveNewInbox(server.Inbox{
 		Address:        "bobby@example.com",
 		ID:             "17b79467-f409-4e7d-86a9-0dc79b77f7c3",
 		CreatedAt:      time.Now().Unix(),
@@ -98,7 +98,7 @@ func TestMailgun_MailgunIncoming_Blacklisted(t *testing.T) {
 		},
 	}
 
-	m.db.SaveNewInbox(data.Inbox{
+	m.db.SaveNewInbox(server.Inbox{
 		Address:        "bobby@example.com",
 		ID:             "17b79467-f409-4e7d-86a9-0dc79b77f7c3",
 		CreatedAt:      time.Now().Unix(),

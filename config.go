@@ -6,12 +6,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/haydenwoodhead/burner.kiwi/data"
 	"github.com/haydenwoodhead/burner.kiwi/data/dynamodb"
 	"github.com/haydenwoodhead/burner.kiwi/data/inmemory"
 	"github.com/haydenwoodhead/burner.kiwi/data/postgresql"
 	"github.com/haydenwoodhead/burner.kiwi/data/sqlite3"
-	"github.com/haydenwoodhead/burner.kiwi/email"
 	"github.com/haydenwoodhead/burner.kiwi/email/mailgunmail"
 	"github.com/haydenwoodhead/burner.kiwi/server"
 )
@@ -26,7 +24,7 @@ const mailgunProvider = "mailgun"
 func mustParseNewServerInput() server.NewServerInput {
 	dbType := parseStringVarWithDefault("DB_TYPE", inMemory)
 
-	var db data.Database
+	var db server.Database
 
 	switch dbType {
 	case inMemory:
@@ -41,7 +39,7 @@ func mustParseNewServerInput() server.NewServerInput {
 
 	emailType := parseStringVarWithDefault("EMAIL_TYPE", mailgunProvider)
 
-	var email email.Provider
+	var email server.EmailProvider
 
 	switch emailType {
 	case mailgunProvider:

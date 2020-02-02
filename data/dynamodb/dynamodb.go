@@ -8,10 +8,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
-	"github.com/haydenwoodhead/burner.kiwi/data"
+	"github.com/haydenwoodhead/burner.kiwi/server"
 )
 
-var _ data.Database = &DynamoDB{}
+var _ server.Database = &DynamoDB{}
 
 // DynamoDB implements the db interface
 type DynamoDB struct {
@@ -33,7 +33,7 @@ func GetNewDynamoDB(table string) *DynamoDB {
 }
 
 // SaveNewInbox saves a given inbox to dynamodb
-func (d *DynamoDB) SaveNewInbox(i data.Inbox) error {
+func (d *DynamoDB) SaveNewInbox(i server.Inbox) error {
 	av, err := dynamodbattribute.MarshalMap(i)
 
 	// Insert an empty messages attribute so we can add messages later
@@ -59,8 +59,8 @@ func (d *DynamoDB) SaveNewInbox(i data.Inbox) error {
 }
 
 //GetInboxByID gets an inbox by the given inbox id
-func (d *DynamoDB) GetInboxByID(id string) (data.Inbox, error) {
-	var i data.Inbox
+func (d *DynamoDB) GetInboxByID(id string) (server.Inbox, error) {
+	var i server.Inbox
 
 	o, err := d.dynDB.GetItem(&dynamodb.GetItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
@@ -72,13 +72,13 @@ func (d *DynamoDB) GetInboxByID(id string) (data.Inbox, error) {
 	})
 
 	if err != nil {
-		return data.Inbox{}, err
+		return server.Inbox{}, err
 	}
 
 	err = dynamodbattribute.UnmarshalMap(o.Item, &i)
 
 	if err != nil {
-		return data.Inbox{}, err
+		return server.Inbox{}, err
 	}
 
 	return i, nil
@@ -112,7 +112,7 @@ func (d *DynamoDB) EmailAddressExists(a string) (bool, error) {
 }
 
 // SetInboxCreated updates the given inbox to reflect its created status
-func (d *DynamoDB) SetInboxCreated(i data.Inbox) error {
+func (d *DynamoDB) SetInboxCreated(i server.Inbox) error {
 	u := &dynamodb.UpdateItemInput{
 		ExpressionAttributeNames: map[string]*string{
 			"#F": aws.String("failed_to_create"),
@@ -145,7 +145,7 @@ func (d *DynamoDB) SetInboxCreated(i data.Inbox) error {
 }
 
 // SetInboxFailed sets a given inbox as having failed to register with the mail provider
-func (d *DynamoDB) SetInboxFailed(i data.Inbox) error {
+func (d *DynamoDB) SetInboxFailed(i server.Inbox) error {
 	u := &dynamodb.UpdateItemInput{
 		ExpressionAttributeNames: map[string]*string{
 			"#F": aws.String("failed_to_create"),
@@ -174,7 +174,7 @@ func (d *DynamoDB) SetInboxFailed(i data.Inbox) error {
 }
 
 //SaveNewMessage saves a given message to dynamodb
-func (d *DynamoDB) SaveNewMessage(m data.Message) error {
+func (d *DynamoDB) SaveNewMessage(m server.Message) error {
 	mv, err := dynamodbattribute.MarshalMap(m)
 
 	if err != nil {
@@ -208,9 +208,9 @@ func (d *DynamoDB) SaveNewMessage(m data.Message) error {
 }
 
 //GetMessagesByInboxID returns all messages in a given inbox
-func (d *DynamoDB) GetMessagesByInboxID(i string) ([]data.Message, error) {
-	var ret map[string]map[string]data.Message
-	var msgs []data.Message
+func (d *DynamoDB) GetMessagesByInboxID(i string) ([]server.Message, error) {
+	var ret map[string]map[string]server.Message
+	var msgs []server.Message
 
 	gi := &dynamodb.GetItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
@@ -225,13 +225,13 @@ func (d *DynamoDB) GetMessagesByInboxID(i string) ([]data.Message, error) {
 	res, err := d.dynDB.GetItem(gi)
 
 	if err != nil {
-		return []data.Message{}, fmt.Errorf("GetAllMessagesByInboxID: failed to query dynamodb: %v", err)
+		return []server.Message{}, fmt.Errorf("GetAllMessagesByInboxID: failed to query dynamodb: %v", err)
 	}
 
 	err = dynamodbattribute.UnmarshalMap(res.Item, &ret)
 
 	if err != nil {
-		return []data.Message{}, fmt.Errorf("GetAllMessagesByInboxID: failed to unmarshal result: %v", err)
+		return []server.Message{}, fmt.Errorf("GetAllMessagesByInboxID: failed to unmarshal result: %v", err)
 	}
 
 	for _, v := range ret["messages"] {
@@ -242,8 +242,8 @@ func (d *DynamoDB) GetMessagesByInboxID(i string) ([]data.Message, error) {
 }
 
 //GetMessageByID gets a single message by the given inbox and message id
-func (d *DynamoDB) GetMessageByID(i, m string) (data.Message, error) {
-	var ret map[string]data.Message
+func (d *DynamoDB) GetMessageByID(i, m string) (server.Message, error) {
+	var ret map[string]server.Message
 
 	gi := &dynamodb.GetItemInput{
 		ExpressionAttributeNames: map[string]*string{
@@ -261,7 +261,7 @@ func (d *DynamoDB) GetMessageByID(i, m string) (data.Message, error) {
 	res, err := d.dynDB.GetItem(gi)
 
 	if err != nil {
-		return data.Message{}, fmt.Errorf("GetMessageByID: failed to query dynamodb: %v", err)
+		return server.Message{}, fmt.Errorf("GetMessageByID: failed to query dynamodb: %v", err)
 	}
 
 	// Despite only returning one message it is nested under messages and then it's id. We must unmarshal this response
@@ -269,13 +269,13 @@ func (d *DynamoDB) GetMessageByID(i, m string) (data.Message, error) {
 	err = dynamodbattribute.Unmarshal(res.Item["messages"], &ret)
 
 	if err != nil {
-		return data.Message{}, fmt.Errorf("GetMessageByID: failed to unmarshal result: %v", err)
+		return server.Message{}, fmt.Errorf("GetMessageByID: failed to unmarshal result: %v", err)
 	}
 
 	msg, ok := ret[m]
 
 	if !ok {
-		return data.Message{}, data.ErrMessageDoesntExist
+		return server.Message{}, server.ErrMessageDoesntExist
 	}
 
 	return msg, nil

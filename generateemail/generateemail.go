@@ -10,26 +10,26 @@ import (
 
 const alphabet = "abcdefghijklmnopqrstuvwxyz1234567890"
 
-// EmailGenerator keeps track of hosts and min length needed by email generator methods
+// EmailGenerator keeps track of Hosts and min length needed by email generator methods
 type EmailGenerator struct {
-	hosts []string
-	l     int
+	Hosts []string
+	L     int
 }
 
-// NewEmailGenerator returns an email generator that creates emails with the given hosts and minimum length user part
+// NewEmailGenerator returns an email generator that creates emails with the given Hosts and minimum length user part
 func NewEmailGenerator(h []string, l int) *EmailGenerator {
 	rand.Seed(time.Now().UTC().UnixNano())
-	return &EmailGenerator{hosts: h, l: l}
+	return &EmailGenerator{Hosts: h, L: l}
 }
 
-// GetHosts returns all available hosts
+// GetHosts returns all available Hosts
 func (eg *EmailGenerator) GetHosts() []string {
-	return eg.hosts
+	return eg.Hosts
 }
 
-// HostsContains tells whether host h is in eg.hosts
+// HostsContains tells whether host h is in eg.Hosts
 func (eg *EmailGenerator) HostsContains(h string) bool {
-	for _, n := range eg.hosts {
+	for _, n := range eg.Hosts {
 		if h == n {
 			return true
 		}
@@ -40,13 +40,13 @@ func (eg *EmailGenerator) HostsContains(h string) bool {
 // NewRandom generates a new random email address. It is the callers responsibility to check for uniqueness
 func (eg *EmailGenerator) NewRandom() string {
 	a := []byte(alphabet)
-	name := make([]byte, eg.l)
+	name := make([]byte, eg.L)
 
 	for i := range name {
 		name[i] = a[rand.Intn(len(a))]
 	}
 
-	domain := eg.hosts[rand.Intn(len(eg.hosts))]
+	domain := eg.Hosts[rand.Intn(len(eg.Hosts))]
 
 	return string(name) + "@" + domain
 }
@@ -80,7 +80,7 @@ func (eg *EmailGenerator) VerifyHost(h string) error {
 	if h == "" {
 		return errors.New("host must not be an empty string")
 	} else if !eg.HostsContains(h) {
-		return fmt.Errorf("host not in list of known hosts: %s", h)
+		return fmt.Errorf("host not in list of known Hosts: %s", h)
 	}
 	return nil
 }

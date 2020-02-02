@@ -13,8 +13,6 @@ import (
 	"github.com/gobuffalo/packr"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
-	"github.com/haydenwoodhead/burner.kiwi/data"
-	"github.com/haydenwoodhead/burner.kiwi/email"
 	"github.com/haydenwoodhead/burner.kiwi/generateemail"
 	"github.com/haydenwoodhead/burner.kiwi/token"
 	"github.com/justinas/alice"
@@ -47,8 +45,8 @@ type Server struct {
 	websiteURL         string
 	staticURL          string
 	eg                 *generateemail.EmailGenerator
-	email              email.Provider
-	db                 data.Database
+	email              EmailProvider
+	db                 Database
 	Router             *mux.Router
 	tg                 *token.Generator
 	developing         bool
@@ -61,12 +59,12 @@ type NewServerInput struct {
 	Key                string
 	URL                string
 	StaticURL          string
-	Email              email.Provider
+	Email              EmailProvider
 	Domains            []string
 	Developing         bool
 	UsingLambda        bool
 	RestoreRealIP      bool
-	Database           data.Database
+	Database           Database
 	BlacklistedDomains []string
 }
 
@@ -212,7 +210,7 @@ func (s *Server) isBlacklisted(email string) bool {
 
 //createRouteAndUpdate is intended to be run in a goroutine. It creates a mailgun route and updates dynamodb with
 //the result. Otherwise it fails silently and this failure is picked up in the next request.
-func (s *Server) createRouteAndUpdate(i data.Inbox) {
+func (s *Server) createRouteAndUpdate(i Inbox) {
 	routeID, err := s.email.RegisterRoute(i)
 	if err != nil {
 		log.Printf("createRouteAndUpdate: failed to create route: %v", err)
@@ -236,7 +234,7 @@ func (s *Server) createRouteAndUpdate(i data.Inbox) {
 
 //lambdaCreateRouteAndUpdate makes use of the waitgroup then calls createRouteAndUpdate. This is because lambda
 //will exit as soon as we return the response so we must make it wait
-func (s *Server) lambdaCreateRouteAndUpdate(wg *sync.WaitGroup, i data.Inbox) {
+func (s *Server) lambdaCreateRouteAndUpdate(wg *sync.WaitGroup, i Inbox) {
 	defer wg.Done()
 	s.createRouteAndUpdate(i)
 }

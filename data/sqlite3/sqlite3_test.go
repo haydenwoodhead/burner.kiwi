@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/haydenwoodhead/burner.kiwi/server"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/google/uuid"
@@ -34,7 +35,7 @@ func testTTLDelete(t *testing.T, db *SQLite3) {
 	db.MustExec("DELETE FROM inbox")
 	db.MustExec("DELETE FROM message")
 
-	i1 := data.Inbox{
+	i1 := server.Inbox{
 		ID:      uuid.Must(uuid.NewRandom()).String(),
 		Address: "hayden@example.com",
 		TTL:     time.Now().Add(-1 * time.Hour).Unix(),
@@ -42,7 +43,7 @@ func testTTLDelete(t *testing.T, db *SQLite3) {
 	err := db.SaveNewInbox(i1)
 	assert.NoError(t, err)
 
-	i2 := data.Inbox{
+	i2 := server.Inbox{
 		ID:      uuid.Must(uuid.NewRandom()).String(),
 		Address: "bobby@example.com",
 		TTL:     time.Now().Add(1 * time.Hour).Unix(),

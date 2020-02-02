@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -9,9 +10,6 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/haydenwoodhead/burner.kiwi/data"
-	"github.com/haydenwoodhead/burner.kiwi/data/inmemory"
-	"github.com/haydenwoodhead/burner.kiwi/email/testemail"
 	"github.com/haydenwoodhead/burner.kiwi/generateemail"
 	"github.com/haydenwoodhead/burner.kiwi/token"
 	"github.com/stretchr/testify/assert"
@@ -19,16 +17,24 @@ import (
 )
 
 func TestServer_NewInboxJSON(t *testing.T) {
-	db := inmemory.GetInMemoryDB()
+	mDB := new(MockDatabase)
+	inbox := Inbox{
+		Address:   "fpllngzi@example.com",
+		CreatedBy: "192.168.1.1",
+		MGRouteID: "1234",
+	}
+	mDB.On("EmailAddressExists", "fpllngzi@example.com").Return(false, nil)
+	mDB.On("SaveNewInbox", mock.MatchedBy(InboxMatcher(inbox))).Return(nil)
+	mDB.On("SetInboxCreated", mock.MatchedBy(InboxMatcher(inbox))).Return(nil)
 
-	m := new(testemail.Provider)
-	m.On("RegisterRoute", mock.Anything).Return("1234", nil)
+	mEP := new(MockEmailProvider)
+	mEP.On("RegisterRoute", mock.Anything).Return("1234", nil)
 
 	s := Server{
-		db:          db,
+		db:          mDB,
 		tg:          token.NewGenerator("testexample12344", time.Hour),
-		email:       m,
-		eg:          generateemail.NewEmailGenerator([]string{"example.com"}, 8),
+		email:       mEP,
+		eg:          &generateemail.EmailGenerator{Hosts: []string{"example.com"}, L: 8},
 		usingLambda: true, // make sure the create route goroutine finishes before we check the result
 	}
 
@@ -43,52 +49,33 @@ func TestServer_NewInboxJSON(t *testing.T) {
 	}
 
 	var res Response
-
 	err := json.Unmarshal(rr.Body.Bytes(), &res)
-
 	if err != nil {
 		t.Errorf("TestServer_NewInboxJSON: failed to unmarshal response: %v", err)
 	}
 
 	resMap, ok := res.Result.(map[string]interface{})
-
 	if !ok {
 		t.Errorf("TestServer_NewInboxJSON: response.Result not map[string]interface{} actually %v", reflect.TypeOf(res.Result))
 	}
 
 	resEmail, ok := resMap["email"].(map[string]interface{})
-
 	if !ok {
 		t.Errorf("TestServer_NewInboxJSON: response.Result.Email not map[string]interface{} actually %v", reflect.TypeOf(resMap["email"]))
 	}
 
-	resID, ok := resEmail["id"].(string)
-
+	_, ok = resEmail["id"].(string)
 	if !ok {
 		t.Errorf("TestServer_NewInboxJSON: response.Result.Email.ID not string actually %v", reflect.TypeOf(resMap["email"]))
 	}
 
-	inbox, err := db.GetInboxByID(resID)
-
-	if err != nil {
-		t.Errorf("TestServer_NewInboxJSON: failed to retireve inbox from db. Error: %v", err)
-	}
-
-	if inbox.FailedToCreate {
-		t.Error("TestServer_NewInboxJSON: inbox not set as created")
-	}
-
-	if inbox.CreatedBy != "192.168.1.1" {
-		t.Error("TestServer_NewInboxJSON: creators ip not recorded")
-	}
-
-	m.AssertExpectations(t)
+	mEP.AssertExpectations(t)
+	mDB.AssertExpectations(t)
 }
 
 func TestServer_GetInboxDetailsJSON(t *testing.T) {
-	db := inmemory.GetInMemoryDB()
-
-	in := data.Inbox{
+	mDB := new(MockDatabase)
+	mDB.On("GetInboxByID", "1234").Return(Inbox{
 		Address:        "1234@example.com",
 		ID:             "1234",
 		CreatedAt:      1526186018,
@@ -96,12 +83,11 @@ func TestServer_GetInboxDetailsJSON(t *testing.T) {
 		TTL:            1526189618,
 		MGRouteID:      "1234",
 		FailedToCreate: false,
-	}
-
-	db.SaveNewInbox(in)
+	}, nil)
+	mDB.On("GetInboxByID", "Doesntexist").Return(Inbox{}, errors.New("inbox doesn't exist"))
 
 	s := Server{
-		db:          db,
+		db:          mDB,
 		tg:          token.NewGenerator("testexample12344", time.Hour),
 		eg:          generateemail.NewEmailGenerator([]string{"example.com"}, 8),
 		usingLambda: true, // make sure the create route goroutine finishes before we check the result
@@ -141,23 +127,13 @@ func TestServer_GetInboxDetailsJSON(t *testing.T) {
 			assert.JSONEq(t, test.ExpectedResponse, rr.Body.String())
 		})
 	}
+
+	mDB.AssertExpectations(t)
 }
 
 func TestServer_GetAllMessagesJSON(t *testing.T) {
-	db := inmemory.GetInMemoryDB()
-
-	in := data.Inbox{
-		Address:        "1234@example.com",
-		ID:             "1234",
-		CreatedAt:      1526186018,
-		TTL:            1526189618,
-		MGRouteID:      "1234",
-		FailedToCreate: false,
-	}
-
-	db.SaveNewInbox(in)
-
-	message := data.Message{
+	mDB := new(MockDatabase)
+	mDB.On("GetMessagesByInboxID", "1234").Return([]Message{{
 		InboxID:    "1234",
 		ID:         "91991919",
 		ReceivedAt: 1526186100,
@@ -168,12 +144,10 @@ func TestServer_GetAllMessagesJSON(t *testing.T) {
 		BodyPlain:  "Hello there how are you!",
 		BodyHTML:   "<html><body><p>Hello there how are you!</p></body></html>",
 		TTL:        1526189618,
-	}
-
-	db.SaveNewMessage(message)
+	}}, nil)
 
 	s := Server{
-		db:          db,
+		db:          mDB,
 		tg:          token.NewGenerator("testexample12344", time.Hour),
 		eg:          generateemail.NewEmailGenerator([]string{"example.com"}, 8),
 		usingLambda: true, // make sure the create route goroutine finishes before we check the result
@@ -190,4 +164,6 @@ func TestServer_GetAllMessagesJSON(t *testing.T) {
 	var expected = `{"success":true,"errors":null,"result":[{"id":"91991919","received_at":1526186100,"sender":"bob@example.com","from":"Bobby Tables \u003cbob@example.com\u003e","subject":"DELETE FROM MESSAGES;","body_html":"\u003chtml\u003e\u003cbody\u003e\u003cp\u003eHello there how are you!\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e","body_plain":"Hello there how are you!","ttl":1526189618}],"meta":{"version":"dev","by":"Hayden Woodhead"}}`
 	assert.Equal(t, http.StatusOK, rr.Code)
 	assert.JSONEq(t, expected, rr.Body.String())
+
+	mDB.AssertExpectations(t)
 }

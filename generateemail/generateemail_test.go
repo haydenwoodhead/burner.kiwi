@@ -18,8 +18,8 @@ var H = []string{
 func TestNewEmailGenerator(t *testing.T) {
 	g := NewEmailGenerator(H, 8)
 
-	if !reflect.DeepEqual(g.hosts, H) {
-		t.Fatalf("TestNewEmailGenerator: hosts not being saved correctly. Expected %v, got %v", H, g.hosts)
+	if !reflect.DeepEqual(g.Hosts, H) {
+		t.Fatalf("TestNewEmailGenerator: Hosts not being saved correctly. Expected %v, got %v", H, g.Hosts)
 	}
 }
 
@@ -33,7 +33,7 @@ func TestEmailGenerator_NewRandom(t *testing.T) {
 	inH := inArray(sections[1], H)
 
 	if !inH {
-		t.Fatalf("TestEmailGenerator_NewRandom: domain not in given hosts. Expected %v, got %v", H, sections[1])
+		t.Fatalf("TestEmailGenerator_NewRandom: domain not in given Hosts. Expected %v, got %v", H, sections[1])
 	}
 
 	match, err := regexp.Match("[a-z0-9]*", []byte(sections[0]))

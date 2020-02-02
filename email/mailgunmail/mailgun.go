@@ -10,31 +10,30 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"github.com/haydenwoodhead/burner.kiwi/data"
-	"github.com/haydenwoodhead/burner.kiwi/email"
+	"github.com/haydenwoodhead/burner.kiwi/server"
 	"github.com/pkg/errors"
 	mailgun "gopkg.in/mailgun/mailgun-go.v1"
 )
 
-var _ email.Provider = &MailgunMail{}
+var _ server.EmailProvider = &MailgunMail{}
 
 // MailgunMail is a mailgun implementation of the Mail inter
 type MailgunMail struct {
 	websiteAddr   string
 	mg            mailgun.Mailgun
-	db            data.Database
+	db            server.Database
 	isBlacklisted func(string) bool
 }
 
-// NewMailgunProvider creates a new Mailgun email.Provider
+// NewMailgunProvider creates a new Mailgun email.MockEmailProvider
 func NewMailgunProvider(domain string, key string) *MailgunMail {
 	return &MailgunMail{
 		mg: mailgun.NewMailgun(domain, key, ""),
 	}
 }
 
-// Start implements email.Provider Start()
-func (m *MailgunMail) Start(websiteAddr string, db data.Database, r *mux.Router, isBlackisted func(string) bool) error {
+// Start implements email.MockEmailProvider Start()
+func (m *MailgunMail) Start(websiteAddr string, db server.Database, r *mux.Router, isBlackisted func(string) bool) error {
 	m.db = db
 	m.isBlacklisted = isBlackisted
 	m.websiteAddr = websiteAddr
@@ -42,13 +41,13 @@ func (m *MailgunMail) Start(websiteAddr string, db data.Database, r *mux.Router,
 	return nil
 }
 
-// Stop implements email.Provider Stop()
+// Stop implements email.MockEmailProvider Stop()
 func (m *MailgunMail) Stop() error {
 	return nil
 }
 
-// RegisterRoute implements email.Provider RegisterRoute()
-func (m *MailgunMail) RegisterRoute(i data.Inbox) (string, error) {
+// RegisterRoute implements email.MockEmailProvider RegisterRoute()
+func (m *MailgunMail) RegisterRoute(i server.Inbox) (string, error) {
 	routeAddr := m.websiteAddr + "/mg/incoming/" + i.ID + "/"
 	route, err := m.mg.CreateRoute(mailgun.Route{
 		Priority:    1,
@@ -59,7 +58,7 @@ func (m *MailgunMail) RegisterRoute(i data.Inbox) (string, error) {
 	return route.ID, errors.Wrap(err, "createRoute: failed to create mailgun route")
 }
 
-// DeleteExpiredRoutes implements email.Provider DeleteExpiredRoutes()
+// DeleteExpiredRoutes implements email.MockEmailProvider DeleteExpiredRoutes()
 func (m *MailgunMail) DeleteExpiredRoutes() error {
 	_, rs, err := m.mg.GetRoutes(1000, 0)
 
@@ -121,7 +120,7 @@ func (m *MailgunMail) mailgunIncoming(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var msg data.Message
+	var msg server.Message
 
 	msg.InboxID = i.ID
 	msg.TTL = i.TTL
