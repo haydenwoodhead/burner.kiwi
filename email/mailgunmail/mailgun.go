@@ -17,7 +17,7 @@ import (
 
 var _ burner.EmailProvider = &MailgunMail{}
 
-// MailgunMail is a mailgun implementation of the Mail inter
+// MailgunMail is a mailgun implementation of the Mail interface
 type MailgunMail struct {
 	websiteAddr   string
 	mg            mailgun.Mailgun
@@ -25,7 +25,7 @@ type MailgunMail struct {
 	isBlacklisted func(string) bool
 }
 
-// NewMailgunProvider creates a new Mailgun email.MockEmailProvider
+// NewMailgunProvider creates a new Mailgun EmailProvider
 func NewMailgunProvider(domain string, key string) *MailgunMail {
 	return &MailgunMail{
 		mg: mailgun.NewMailgun(domain, key, ""),
