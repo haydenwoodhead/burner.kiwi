@@ -239,11 +239,6 @@ func (s *Server) lambdaCreateRouteAndUpdate(wg *sync.WaitGroup, i Inbox) {
 	s.createRouteAndUpdate(i)
 }
 
-//DeleteOldRoutes deletes routes older than 24 hours
-func (s *Server) DeleteOldRoutes() error {
-	return s.email.DeleteExpiredRoutes()
-}
-
 // MustParseTemplates parses string templates into one template
 // Function modified from: https://stackoverflow.com/questions/41856021/how-to-parse-multiple-strings-into-a-template-with-go
 func MustParseTemplates(box packr.Box, templs ...string) *template.Template {

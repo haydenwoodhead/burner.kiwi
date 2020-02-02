@@ -9,5 +9,4 @@ type EmailProvider interface {
 	Start(websiteAddr string, db Database, r *mux.Router, isBlacklisted func(string) bool) error
 	Stop() error
 	RegisterRoute(i Inbox) (string, error)
-	DeleteExpiredRoutes() error
 }

@@ -27,12 +27,26 @@ type MailgunMail struct {
 
 // NewMailgunProvider creates a new Mailgun EmailProvider
 func NewMailgunProvider(domain string, key string) *MailgunMail {
-	return &MailgunMail{
+	mg := &MailgunMail{
 		mg: mailgun.NewMailgun(domain, key, ""),
 	}
+
+	go func() {
+		for {
+			log.Printf("Mailgun: deleting expired routes")
+			err := mg.deleteExpiredRoutes()
+			if err != nil {
+				log.Printf("Mailgun: failed to delete expired routes")
+			}
+			log.Printf("Mailgun: deleted expired routes")
+			time.Sleep(1 * time.Hour)
+		}
+	}()
+
+	return mg
 }
 
-// Start implements email.MockEmailProvider Start()
+// Start implements EmailProvider Start()
 func (m *MailgunMail) Start(websiteAddr string, db burner.Database, r *mux.Router, isBlackisted func(string) bool) error {
 	m.db = db
 	m.isBlacklisted = isBlackisted
@@ -41,12 +55,12 @@ func (m *MailgunMail) Start(websiteAddr string, db burner.Database, r *mux.Route
 	return nil
 }
 
-// Stop implements email.MockEmailProvider Stop()
+// Stop implements EmailProvider Stop()
 func (m *MailgunMail) Stop() error {
 	return nil
 }
 
-// RegisterRoute implements email.MockEmailProvider RegisterRoute()
+// RegisterRoute implements RegisterRoute()
 func (m *MailgunMail) RegisterRoute(i burner.Inbox) (string, error) {
 	routeAddr := m.websiteAddr + "/mg/incoming/" + i.ID + "/"
 	route, err := m.mg.CreateRoute(mailgun.Route{
@@ -58,8 +72,7 @@ func (m *MailgunMail) RegisterRoute(i burner.Inbox) (string, error) {
 	return route.ID, errors.Wrap(err, "createRoute: failed to create mailgun route")
 }
 
-// DeleteExpiredRoutes implements email.MockEmailProvider DeleteExpiredRoutes()
-func (m *MailgunMail) DeleteExpiredRoutes() error {
+func (m *MailgunMail) deleteExpiredRoutes() error {
 	_, rs, err := m.mg.GetRoutes(1000, 0)
 
 	if err != nil {
