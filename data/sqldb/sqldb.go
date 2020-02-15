@@ -97,7 +97,7 @@ func (s *SQLDatabase) GetInboxByID(id string) (burner.Inbox, error) {
 func (s *SQLDatabase) EmailAddressExists(email string) (bool, error) {
 	var count int
 	err := s.Get(&count, "SELECT COUNT(*) FROM inbox WHERE address = $1", email)
-	return count == 1, err
+	return count > 0, err
 }
 
 // SetInboxCreated creates a new inbox
