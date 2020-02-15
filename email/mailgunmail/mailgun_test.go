@@ -28,12 +28,12 @@ func TestMailgun_MailgunIncoming_Verified(t *testing.T) {
 	}
 
 	m.db.SaveNewInbox(burner.Inbox{
-		Address:        "bobby@example.com",
-		ID:             "17b79467-f409-4e7d-86a9-0dc79b77f7c3",
-		CreatedAt:      time.Now().Unix(),
-		TTL:            time.Now().Add(1 * time.Hour).Unix(),
-		FailedToCreate: false,
-		MGRouteID:      "1234",
+		Address:              "bobby@example.com",
+		ID:                   "17b79467-f409-4e7d-86a9-0dc79b77f7c3",
+		CreatedAt:            time.Now().Unix(),
+		TTL:                  time.Now().Add(1 * time.Hour).Unix(),
+		FailedToCreate:       false,
+		EmailProviderRouteID: "1234",
 	})
 
 	router := mux.NewRouter()
@@ -66,7 +66,7 @@ func TestMailgun_MailgunIncoming_Verified(t *testing.T) {
 
 	msg := msgs[0]
 
-	if msg.MGID != "1234" {
+	if msg.EmailProviderID != "1234" {
 		t.Fatalf("TestServer_MailgunIncoming_Verified: mailgun message id not set to 1234. Actually %v", msg.ID)
 	}
 
@@ -99,12 +99,12 @@ func TestMailgun_MailgunIncoming_Blacklisted(t *testing.T) {
 	}
 
 	m.db.SaveNewInbox(burner.Inbox{
-		Address:        "bobby@example.com",
-		ID:             "17b79467-f409-4e7d-86a9-0dc79b77f7c3",
-		CreatedAt:      time.Now().Unix(),
-		TTL:            time.Now().Add(1 * time.Hour).Unix(),
-		FailedToCreate: false,
-		MGRouteID:      "1234",
+		Address:              "bobby@example.com",
+		ID:                   "17b79467-f409-4e7d-86a9-0dc79b77f7c3",
+		CreatedAt:            time.Now().Unix(),
+		TTL:                  time.Now().Add(1 * time.Hour).Unix(),
+		FailedToCreate:       false,
+		EmailProviderRouteID: "1234",
 	})
 
 	router := mux.NewRouter()

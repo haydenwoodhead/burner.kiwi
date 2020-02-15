@@ -12,7 +12,7 @@ func TestNewInbox(t *testing.T) {
 		t.Errorf("TestNewInbox: failed to create not true")
 	}
 
-	if i.MGRouteID != "-" {
+	if i.EmailProviderRouteID != "-" {
 		t.Errorf("TestNewInbox: route id not -")
 	}
 }
@@ -20,40 +20,40 @@ func TestNewInbox(t *testing.T) {
 func TestGetReceivedDetails(t *testing.T) {
 	msgs := []Message{
 		{
-			InboxID:    "9101112",
-			ID:         "5678",
-			ReceivedAt: time.Now().Unix(),
-			MGID:       "56789",
-			Sender:     "bob@example.com",
-			From:       "Bobby Tables <bob@example.com>",
-			Subject:    "DELETE FROM MESSAGES;",
-			BodyPlain:  "Hello there how are you!",
-			BodyHTML:   "<html><body><p>Hello there how are you!</p></body></html>",
-			TTL:        time.Now().Add(5 * time.Minute).Unix(),
+			InboxID:         "9101112",
+			ID:              "5678",
+			ReceivedAt:      time.Now().Unix(),
+			EmailProviderID: "56789",
+			Sender:          "bob@example.com",
+			From:            "Bobby Tables <bob@example.com>",
+			Subject:         "DELETE FROM MESSAGES;",
+			BodyPlain:       "Hello there how are you!",
+			BodyHTML:        "<html><body><p>Hello there how are you!</p></body></html>",
+			TTL:             time.Now().Add(5 * time.Minute).Unix(),
 		},
 		{
-			InboxID:    "9101112",
-			ID:         "9999",
-			ReceivedAt: time.Now().Add(-30 * time.Minute).Unix(),
-			MGID:       "56789",
-			Sender:     "bob@example.com",
-			From:       "Bobby Tables <bob@example.com>",
-			Subject:    "DELETE FROM MESSAGES;",
-			BodyPlain:  "Hello there how are you!",
-			BodyHTML:   "<html><body><p>Hello there how are you!</p></body></html>",
-			TTL:        time.Now().Add(5 * time.Minute).Unix(),
+			InboxID:         "9101112",
+			ID:              "9999",
+			ReceivedAt:      time.Now().Add(-30 * time.Minute).Unix(),
+			EmailProviderID: "56789",
+			Sender:          "bob@example.com",
+			From:            "Bobby Tables <bob@example.com>",
+			Subject:         "DELETE FROM MESSAGES;",
+			BodyPlain:       "Hello there how are you!",
+			BodyHTML:        "<html><body><p>Hello there how are you!</p></body></html>",
+			TTL:             time.Now().Add(5 * time.Minute).Unix(),
 		},
 		{
-			InboxID:    "9101112",
-			ID:         "9999",
-			ReceivedAt: time.Now().Add(-10 * time.Second).Add(-30 * time.Minute).Add(-2 * time.Hour).Unix(),
-			MGID:       "56789",
-			Sender:     "bob@example.com",
-			From:       "Bobby Tables <bob@example.com>",
-			Subject:    "DELETE FROM MESSAGES;",
-			BodyPlain:  "Hello there how are you!",
-			BodyHTML:   "<html><body><p>Hello there how are you!</p></body></html>",
-			TTL:        time.Now().Add(5 * time.Minute).Unix(),
+			InboxID:         "9101112",
+			ID:              "9999",
+			ReceivedAt:      time.Now().Add(-10 * time.Second).Add(-30 * time.Minute).Add(-2 * time.Hour).Unix(),
+			EmailProviderID: "56789",
+			Sender:          "bob@example.com",
+			From:            "Bobby Tables <bob@example.com>",
+			Subject:         "DELETE FROM MESSAGES;",
+			BodyPlain:       "Hello there how are you!",
+			BodyHTML:        "<html><body><p>Hello there how are you!</p></body></html>",
+			TTL:             time.Now().Add(5 * time.Minute).Unix(),
 		},
 	}
 

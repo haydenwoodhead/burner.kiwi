@@ -224,7 +224,7 @@ func (s *Server) createRouteAndUpdate(i Inbox) {
 		return
 	}
 
-	i.MGRouteID = routeID
+	i.EmailProviderRouteID = routeID
 	i.FailedToCreate = false
 	err = s.db.SetInboxCreated(i)
 	if err != nil {

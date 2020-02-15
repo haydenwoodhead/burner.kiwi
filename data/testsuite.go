@@ -26,13 +26,13 @@ var TestingFuncs = []TestFunction{
 // TestSaveNewInbox verifies that SaveNewInbox works
 func TestSaveNewInbox(t *testing.T, db burner.Database) {
 	i := burner.Inbox{
-		Address:        "test.1@example.com",
-		ID:             uuid.Must(uuid.NewRandom()).String(),
-		CreatedBy:      "192.168.1.1",
-		CreatedAt:      time.Now().Unix(),
-		TTL:            time.Now().Add(5 * time.Minute).Unix(),
-		MGRouteID:      "-",
-		FailedToCreate: true,
+		Address:              "test.1@example.com",
+		ID:                   uuid.Must(uuid.NewRandom()).String(),
+		CreatedBy:            "192.168.1.1",
+		CreatedAt:            time.Now().Unix(),
+		TTL:                  time.Now().Add(5 * time.Minute).Unix(),
+		EmailProviderRouteID: "-",
+		FailedToCreate:       true,
 	}
 
 	err := db.SaveNewInbox(i)
@@ -55,13 +55,13 @@ func TestSaveNewInbox(t *testing.T, db burner.Database) {
 // TestGetInboxByID verifies that GetInboxByID works
 func TestGetInboxByID(t *testing.T, db burner.Database) {
 	i := burner.Inbox{
-		Address:        "test.2@example.com",
-		ID:             uuid.Must(uuid.NewRandom()).String(),
-		CreatedBy:      "192.168.1.1",
-		CreatedAt:      time.Now().Unix(),
-		TTL:            time.Now().Add(5 * time.Minute).Unix(),
-		MGRouteID:      "-",
-		FailedToCreate: true,
+		Address:              "test.2@example.com",
+		ID:                   uuid.Must(uuid.NewRandom()).String(),
+		CreatedBy:            "192.168.1.1",
+		CreatedAt:            time.Now().Unix(),
+		TTL:                  time.Now().Add(5 * time.Minute).Unix(),
+		EmailProviderRouteID: "-",
+		FailedToCreate:       true,
 	}
 
 	err := db.SaveNewInbox(i)
@@ -84,13 +84,13 @@ func TestGetInboxByID(t *testing.T, db burner.Database) {
 // TestEmailAddressExists verifies that EmailAddressExists works
 func TestEmailAddressExists(t *testing.T, db burner.Database) {
 	i := burner.Inbox{
-		Address:        "test.3@example.com",
-		ID:             uuid.Must(uuid.NewRandom()).String(),
-		CreatedAt:      time.Now().Unix(),
-		CreatedBy:      "192.168.1.1",
-		TTL:            time.Now().Add(5 * time.Minute).Unix(),
-		MGRouteID:      "-",
-		FailedToCreate: true,
+		Address:              "test.3@example.com",
+		ID:                   uuid.Must(uuid.NewRandom()).String(),
+		CreatedAt:            time.Now().Unix(),
+		CreatedBy:            "192.168.1.1",
+		TTL:                  time.Now().Add(5 * time.Minute).Unix(),
+		EmailProviderRouteID: "-",
+		FailedToCreate:       true,
 	}
 
 	err := db.SaveNewInbox(i)
@@ -123,13 +123,13 @@ func TestEmailAddressExists(t *testing.T, db burner.Database) {
 //TestSetInboxCreated verifies that SetInboxCreated works
 func TestSetInboxCreated(t *testing.T, db burner.Database) {
 	i := burner.Inbox{
-		Address:        "test.4@example.com",
-		ID:             uuid.Must(uuid.NewRandom()).String(),
-		CreatedAt:      time.Now().Unix(),
-		CreatedBy:      "192.168.1.1",
-		TTL:            time.Now().Add(5 * time.Minute).Unix(),
-		MGRouteID:      "-",
-		FailedToCreate: true,
+		Address:              "test.4@example.com",
+		ID:                   uuid.Must(uuid.NewRandom()).String(),
+		CreatedAt:            time.Now().Unix(),
+		CreatedBy:            "192.168.1.1",
+		TTL:                  time.Now().Add(5 * time.Minute).Unix(),
+		EmailProviderRouteID: "-",
+		FailedToCreate:       true,
 	}
 
 	err := db.SaveNewInbox(i)
@@ -138,7 +138,7 @@ func TestSetInboxCreated(t *testing.T, db burner.Database) {
 		t.Errorf("%v - TestSetInboxCreated: failed to save: %v", reflect.TypeOf(db), err)
 	}
 
-	i.MGRouteID = "mg12345"
+	i.EmailProviderRouteID = "mg12345"
 
 	err = db.SetInboxCreated(i)
 
@@ -152,8 +152,8 @@ func TestSetInboxCreated(t *testing.T, db burner.Database) {
 		t.Errorf("%v - TestSetInboxCreated: failed to get inbox back: %v", reflect.TypeOf(db), err)
 	}
 
-	if ret.MGRouteID != i.MGRouteID {
-		t.Errorf("%v - TestSetInboxCreated: mg route id not same. Expected %v, got %v", reflect.TypeOf(db), i.MGRouteID, ret.MGRouteID)
+	if ret.EmailProviderRouteID != i.EmailProviderRouteID {
+		t.Errorf("%v - TestSetInboxCreated: mg route id not same. Expected %v, got %v", reflect.TypeOf(db), i.EmailProviderRouteID, ret.EmailProviderRouteID)
 	}
 
 	if ret.FailedToCreate {
@@ -164,13 +164,13 @@ func TestSetInboxCreated(t *testing.T, db burner.Database) {
 //TestSaveNewMessage verifies that SaveNewMessage works
 func TestSaveNewMessage(t *testing.T, db burner.Database) {
 	i := burner.Inbox{
-		Address:        "test.5@example.com",
-		ID:             uuid.Must(uuid.NewRandom()).String(),
-		CreatedAt:      time.Now().Unix(),
-		CreatedBy:      "192.168.1.1",
-		TTL:            time.Now().Add(5 * time.Minute).Unix(),
-		MGRouteID:      "-",
-		FailedToCreate: true,
+		Address:              "test.5@example.com",
+		ID:                   uuid.Must(uuid.NewRandom()).String(),
+		CreatedAt:            time.Now().Unix(),
+		CreatedBy:            "192.168.1.1",
+		TTL:                  time.Now().Add(5 * time.Minute).Unix(),
+		EmailProviderRouteID: "-",
+		FailedToCreate:       true,
 	}
 
 	err := db.SaveNewInbox(i)
@@ -179,16 +179,16 @@ func TestSaveNewMessage(t *testing.T, db burner.Database) {
 	}
 
 	m := burner.Message{
-		InboxID:    i.ID,
-		ID:         uuid.Must(uuid.NewRandom()).String(),
-		ReceivedAt: time.Now().Unix(),
-		MGID:       "56789",
-		Sender:     "bob@example.com",
-		From:       "Bobby Tables <bob@example.com>",
-		Subject:    "DELETE FROM MESSAGES;",
-		BodyPlain:  "Hello there how are you!",
-		BodyHTML:   "<html><body><p>Hello there how are you!</p></body></html>",
-		TTL:        time.Now().Add(5 * time.Minute).Unix(),
+		InboxID:         i.ID,
+		ID:              uuid.Must(uuid.NewRandom()).String(),
+		ReceivedAt:      time.Now().Unix(),
+		EmailProviderID: "56789",
+		Sender:          "bob@example.com",
+		From:            "Bobby Tables <bob@example.com>",
+		Subject:         "DELETE FROM MESSAGES;",
+		BodyPlain:       "Hello there how are you!",
+		BodyHTML:        "<html><body><p>Hello there how are you!</p></body></html>",
+		TTL:             time.Now().Add(5 * time.Minute).Unix(),
 	}
 
 	err = db.SaveNewMessage(m)
@@ -221,16 +221,16 @@ func TestGetMessageByID(t *testing.T, db burner.Database) {
 	}
 
 	m := burner.Message{
-		InboxID:    i.ID,
-		ID:         uuid.Must(uuid.NewRandom()).String(),
-		ReceivedAt: time.Now().Unix(),
-		MGID:       "56789",
-		Sender:     "bob@example.com",
-		From:       "Bobby Tables <bob@example.com>",
-		Subject:    "DELETE FROM MESSAGES;",
-		BodyPlain:  "Hello there how are you!",
-		BodyHTML:   "<html><body><p>Hello there how are you!</p></body></html>",
-		TTL:        time.Now().Add(5 * time.Minute).Unix(),
+		InboxID:         i.ID,
+		ID:              uuid.Must(uuid.NewRandom()).String(),
+		ReceivedAt:      time.Now().Unix(),
+		EmailProviderID: "56789",
+		Sender:          "bob@example.com",
+		From:            "Bobby Tables <bob@example.com>",
+		Subject:         "DELETE FROM MESSAGES;",
+		BodyPlain:       "Hello there how are you!",
+		BodyHTML:        "<html><body><p>Hello there how are you!</p></body></html>",
+		TTL:             time.Now().Add(5 * time.Minute).Unix(),
 	}
 
 	err = db.SaveNewMessage(m)
@@ -276,13 +276,13 @@ func TestGetMessageByID(t *testing.T, db burner.Database) {
 //nolint
 func TestGetMessagesByInboxID(t *testing.T, db burner.Database) {
 	i := burner.Inbox{
-		Address:        "test.7@example.com",
-		ID:             "ddb9ec88-2c11-4731-a433-36a04661de83",
-		CreatedAt:      time.Now().Unix(),
-		CreatedBy:      "192.168.1.1",
-		TTL:            time.Now().Add(5 * time.Minute).Unix(),
-		MGRouteID:      "ddb9ec88-2c11-4731-a433-36a04661de83",
-		FailedToCreate: false,
+		Address:              "test.7@example.com",
+		ID:                   "ddb9ec88-2c11-4731-a433-36a04661de83",
+		CreatedAt:            time.Now().Unix(),
+		CreatedBy:            "192.168.1.1",
+		TTL:                  time.Now().Add(5 * time.Minute).Unix(),
+		EmailProviderRouteID: "ddb9ec88-2c11-4731-a433-36a04661de83",
+		FailedToCreate:       false,
 	}
 
 	err := db.SaveNewInbox(i)
@@ -292,29 +292,29 @@ func TestGetMessagesByInboxID(t *testing.T, db burner.Database) {
 	}
 
 	m1 := burner.Message{
-		InboxID:    "ddb9ec88-2c11-4731-a433-36a04661de83",
-		ID:         uuid.Must(uuid.NewRandom()).String(),
-		ReceivedAt: time.Now().Unix(),
-		MGID:       "56789",
-		Sender:     "bob@example.com",
-		From:       "Bobby Tables <bob@example.com>",
-		Subject:    "DELETE FROM MESSAGES;",
-		BodyPlain:  "Hello there how are you!",
-		BodyHTML:   "<html><body><p>Hello there how are you!</p></body></html>",
-		TTL:        time.Now().Add(5 * time.Minute).Unix(),
+		InboxID:         "ddb9ec88-2c11-4731-a433-36a04661de83",
+		ID:              uuid.Must(uuid.NewRandom()).String(),
+		ReceivedAt:      time.Now().Unix(),
+		EmailProviderID: "56789",
+		Sender:          "bob@example.com",
+		From:            "Bobby Tables <bob@example.com>",
+		Subject:         "DELETE FROM MESSAGES;",
+		BodyPlain:       "Hello there how are you!",
+		BodyHTML:        "<html><body><p>Hello there how are you!</p></body></html>",
+		TTL:             time.Now().Add(5 * time.Minute).Unix(),
 	}
 
 	m2 := burner.Message{
-		InboxID:    "ddb9ec88-2c11-4731-a433-36a04661de83",
-		ID:         uuid.Must(uuid.NewRandom()).String(),
-		ReceivedAt: time.Now().Unix(),
-		MGID:       "56789",
-		Sender:     "bob@example.com",
-		From:       "Bobby Tables <bob@example.com>",
-		Subject:    "DELETE FROM MESSAGES;",
-		BodyPlain:  "Hello there how are you!",
-		BodyHTML:   "<html><body><p>Hello there how are you!</p></body></html>",
-		TTL:        time.Now().Add(5 * time.Minute).Unix(),
+		InboxID:         "ddb9ec88-2c11-4731-a433-36a04661de83",
+		ID:              uuid.Must(uuid.NewRandom()).String(),
+		ReceivedAt:      time.Now().Unix(),
+		EmailProviderID: "56789",
+		Sender:          "bob@example.com",
+		From:            "Bobby Tables <bob@example.com>",
+		Subject:         "DELETE FROM MESSAGES;",
+		BodyPlain:       "Hello there how are you!",
+		BodyHTML:        "<html><body><p>Hello there how are you!</p></body></html>",
+		TTL:             time.Now().Add(5 * time.Minute).Unix(),
 	}
 
 	err = db.SaveNewMessage(m1)

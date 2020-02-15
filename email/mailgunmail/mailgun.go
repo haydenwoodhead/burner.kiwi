@@ -147,7 +147,7 @@ func (m *MailgunMail) mailgunIncoming(w http.ResponseWriter, r *http.Request) {
 
 	msg.ID = mID.String()
 	msg.ReceivedAt = time.Now().Unix()
-	msg.MGID = r.FormValue("message-id")
+	msg.EmailProviderID = r.FormValue("message-id")
 	msg.Sender = r.FormValue("sender")
 	msg.From = r.FormValue("from")
 	msg.Subject = r.FormValue("subject")

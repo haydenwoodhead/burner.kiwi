@@ -116,14 +116,14 @@ func (d *DynamoDB) SetInboxCreated(i burner.Inbox) error {
 	u := &dynamodb.UpdateItemInput{
 		ExpressionAttributeNames: map[string]*string{
 			"#F": aws.String("failed_to_create"),
-			"#M": aws.String("mg_routeid"),
+			"#M": aws.String("ep_routeid"),
 		},
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":f": {
 				BOOL: aws.Bool(false),
 			},
 			":m": {
-				S: aws.String(i.MGRouteID),
+				S: aws.String(i.EmailProviderRouteID),
 			},
 		},
 		Key: map[string]*dynamodb.AttributeValue{

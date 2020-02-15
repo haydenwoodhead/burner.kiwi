@@ -19,9 +19,9 @@ import (
 func TestServer_NewInboxJSON(t *testing.T) {
 	mDB := new(MockDatabase)
 	inbox := Inbox{
-		Address:   "fpllngzi@example.com",
-		CreatedBy: "192.168.1.1",
-		MGRouteID: "1234",
+		Address:              "fpllngzi@example.com",
+		CreatedBy:            "192.168.1.1",
+		EmailProviderRouteID: "1234",
 	}
 	mDB.On("EmailAddressExists", "fpllngzi@example.com").Return(false, nil)
 	mDB.On("SaveNewInbox", mock.MatchedBy(InboxMatcher(inbox))).Return(nil)
@@ -76,13 +76,13 @@ func TestServer_NewInboxJSON(t *testing.T) {
 func TestServer_GetInboxDetailsJSON(t *testing.T) {
 	mDB := new(MockDatabase)
 	mDB.On("GetInboxByID", "1234").Return(Inbox{
-		Address:        "1234@example.com",
-		ID:             "1234",
-		CreatedAt:      1526186018,
-		CreatedBy:      "192.168.1.1",
-		TTL:            1526189618,
-		MGRouteID:      "1234",
-		FailedToCreate: false,
+		Address:              "1234@example.com",
+		ID:                   "1234",
+		CreatedAt:            1526186018,
+		CreatedBy:            "192.168.1.1",
+		TTL:                  1526189618,
+		EmailProviderRouteID: "1234",
+		FailedToCreate:       false,
 	}, nil)
 	mDB.On("GetInboxByID", "Doesntexist").Return(Inbox{}, errors.New("inbox doesn't exist"))
 
@@ -134,16 +134,16 @@ func TestServer_GetInboxDetailsJSON(t *testing.T) {
 func TestServer_GetAllMessagesJSON(t *testing.T) {
 	mDB := new(MockDatabase)
 	mDB.On("GetMessagesByInboxID", "1234").Return([]Message{{
-		InboxID:    "1234",
-		ID:         "91991919",
-		ReceivedAt: 1526186100,
-		MGID:       "56789",
-		Sender:     "bob@example.com",
-		From:       "Bobby Tables <bob@example.com>",
-		Subject:    "DELETE FROM MESSAGES;",
-		BodyPlain:  "Hello there how are you!",
-		BodyHTML:   "<html><body><p>Hello there how are you!</p></body></html>",
-		TTL:        1526189618,
+		InboxID:         "1234",
+		ID:              "91991919",
+		ReceivedAt:      1526186100,
+		EmailProviderID: "56789",
+		Sender:          "bob@example.com",
+		From:            "Bobby Tables <bob@example.com>",
+		Subject:         "DELETE FROM MESSAGES;",
+		BodyPlain:       "Hello there how are you!",
+		BodyHTML:        "<html><body><p>Hello there how are you!</p></body></html>",
+		TTL:             1526189618,
 	}}, nil)
 
 	s := Server{
