@@ -17,7 +17,7 @@ var errInboxDoesntExist = errors.New("failed to get inbox. It doesn't exist")
 type InMemory struct {
 	emails   map[string]burner.Inbox
 	messages map[string]map[string]burner.Message
-	m        sync.Mutex
+	m        sync.RWMutex
 }
 
 // GetInMemoryDB returns a new InMemoryDB to use
@@ -41,6 +41,7 @@ func GetInMemoryDB() *InMemory {
 // DeleteExpiredData deletes data that has expired according to its TTL
 func (im *InMemory) DeleteExpiredData() {
 	im.m.Lock()
+	defer im.m.Unlock()
 
 	for k, v := range im.emails {
 		t := time.Unix(v.TTL, 0)
@@ -64,8 +65,6 @@ func (im *InMemory) DeleteExpiredData() {
 			delete(im.messages, iK)
 		}
 	}
-
-	im.m.Unlock()
 }
 
 // SaveNewInbox saves a given inbox to memory
@@ -84,8 +83,8 @@ func (im *InMemory) SaveNewInbox(i burner.Inbox) error {
 
 //GetInboxByID gets an inbox by the given inbox id
 func (im *InMemory) GetInboxByID(id string) (burner.Inbox, error) {
-	im.m.Lock()
-	defer im.m.Unlock()
+	im.m.RLock()
+	defer im.m.RUnlock()
 
 	i, ok := im.emails[id]
 
@@ -96,11 +95,25 @@ func (im *InMemory) GetInboxByID(id string) (burner.Inbox, error) {
 	return i, nil
 }
 
+//GetInboxByAddress gets an inbox by the given address
+func (im *InMemory) GetInboxByAddress(address string) (burner.Inbox, error) {
+	im.m.RLock()
+	defer im.m.RUnlock()
+
+	for _, v := range im.emails {
+		if v.Address == address {
+			return v, nil
+		}
+	}
+
+	return burner.Inbox{}, errInboxDoesntExist
+}
+
 //EmailAddressExists returns a bool depending on whether or not the given email address
 // is already assigned to an inbox
 func (im *InMemory) EmailAddressExists(a string) (bool, error) {
-	im.m.Lock()
-	defer im.m.Unlock()
+	im.m.RLock()
+	defer im.m.RUnlock()
 
 	for _, v := range im.emails {
 		if strings.Compare(a, v.Address) == 0 {
@@ -149,8 +162,8 @@ func (im *InMemory) SaveNewMessage(m burner.Message) error {
 
 //GetMessagesByInboxID returns all messages in a given inbox
 func (im *InMemory) GetMessagesByInboxID(id string) ([]burner.Message, error) {
-	im.m.Lock()
-	defer im.m.Unlock()
+	im.m.RLock()
+	defer im.m.RUnlock()
 
 	msgs, ok := im.messages[id]
 
@@ -169,8 +182,8 @@ func (im *InMemory) GetMessagesByInboxID(id string) ([]burner.Message, error) {
 
 //GetMessageByID gets a single message by the given inbox and message id
 func (im *InMemory) GetMessageByID(i, m string) (burner.Message, error) {
-	im.m.Lock()
-	defer im.m.Unlock()
+	im.m.RLock()
+	defer im.m.RUnlock()
 
 	msg, ok := im.messages[i][m]
 

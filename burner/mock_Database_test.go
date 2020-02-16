@@ -30,6 +30,27 @@ func (_m *MockDatabase) EmailAddressExists(_a0 string) (bool, error) {
 	return r0, r1
 }
 
+// GetInboxByAddress provides a mock function with given fields: _a0
+func (_m *MockDatabase) GetInboxByAddress(_a0 string) (Inbox, error) {
+	ret := _m.Called(_a0)
+
+	var r0 Inbox
+	if rf, ok := ret.Get(0).(func(string) Inbox); ok {
+		r0 = rf(_a0)
+	} else {
+		r0 = ret.Get(0).(Inbox)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetInboxByID provides a mock function with given fields: _a0
 func (_m *MockDatabase) GetInboxByID(_a0 string) (Inbox, error) {
 	ret := _m.Called(_a0)

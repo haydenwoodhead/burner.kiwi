@@ -9,6 +9,7 @@ var ErrMessageDoesntExist = errors.New("message doesn't exist")
 type Database interface {
 	SaveNewInbox(Inbox) error
 	GetInboxByID(string) (Inbox, error)
+	GetInboxByAddress(string) (Inbox, error)
 	EmailAddressExists(string) (bool, error)
 	SetInboxCreated(Inbox) error
 	SetInboxFailed(Inbox) error

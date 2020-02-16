@@ -1,6 +1,7 @@
 package dynamodb
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -84,14 +85,17 @@ func (d *DynamoDB) GetInboxByID(id string) (burner.Inbox, error) {
 	return i, nil
 }
 
-//EmailAddressExists returns a bool depending on whether or not the given email address
-// is already assigned to an inbox
-func (d *DynamoDB) EmailAddressExists(a string) (bool, error) {
+type secondaryIndexInbox struct {
+	ID           string `dynamodbav:"id"`
+	EmailAddress string `dynamodbav:"email_address"`
+}
+
+func (d *DynamoDB) queryEmailIndex(address string) ([]secondaryIndexInbox, error) {
 	q := &dynamodb.QueryInput{
 		KeyConditionExpression: aws.String("email_address = :e"),
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":e": {
-				S: aws.String(a),
+				S: aws.String(address),
 			},
 		},
 		IndexName: aws.String(d.emailAddressIndexName),
@@ -99,16 +103,40 @@ func (d *DynamoDB) EmailAddressExists(a string) (bool, error) {
 	}
 
 	res, err := d.dynDB.Query(q)
-
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
-	if len(res.Items) == 0 {
-		return false, nil
+	var results []secondaryIndexInbox
+	err = dynamodbattribute.UnmarshalListOfMaps(res.Items, &results)
+	if err != nil {
+		return nil, fmt.Errorf("queryEmailIndex: failed to unmarshal query")
 	}
 
-	return true, nil
+	return results, nil
+}
+
+func (d *DynamoDB) GetInboxByAddress(address string) (burner.Inbox, error) {
+	res, err := d.queryEmailIndex(address)
+	if err != nil {
+		return burner.Inbox{}, fmt.Errorf("GetInboxByAddress: failed to get inbox: %v", err)
+	}
+	if len(res) == 0 {
+		return burner.Inbox{}, errors.New("GetInboxByAddress: no inbox with address present")
+	}
+
+	return d.GetInboxByID(res[0].ID)
+}
+
+//EmailAddressExists returns a bool depending on whether or not the given email address
+// is already assigned to an inbox
+func (d *DynamoDB) EmailAddressExists(a string) (bool, error) {
+	res, err := d.queryEmailIndex(a)
+	if err != nil {
+		return false, fmt.Errorf("EmailAddressExists: failed to query: %v", err)
+	}
+
+	return len(res) > 0, nil
 }
 
 // SetInboxCreated updates the given inbox to reflect its created status

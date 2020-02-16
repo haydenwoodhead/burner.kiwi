@@ -93,6 +93,13 @@ func (s *SQLDatabase) GetInboxByID(id string) (burner.Inbox, error) {
 	return i, err
 }
 
+// GetInboxByAddress gets an inbox by address
+func (s *SQLDatabase) GetInboxByAddress(address string) (burner.Inbox, error) {
+	var i burner.Inbox
+	err := s.Get(&i, "SELECT id, address, created_at, created_by, ep_routeid, ttl, failed_to_create FROM inbox WHERE address = $1", address)
+	return i, err
+}
+
 // EmailAddressExists checks if an address already exists
 func (s *SQLDatabase) EmailAddressExists(email string) (bool, error) {
 	var count int

@@ -16,6 +16,7 @@ type TestFunction = func(t *testing.T, db burner.Database)
 var TestingFuncs = []TestFunction{
 	TestSaveNewInbox,
 	TestGetInboxByID,
+	TestGetInboxByAddress,
 	TestEmailAddressExists,
 	TestSetInboxCreated,
 	TestSaveNewMessage,
@@ -81,6 +82,35 @@ func TestGetInboxByID(t *testing.T, db burner.Database) {
 	}
 }
 
+// TestGetInboxByID verifies that GetInboxByID works
+func TestGetInboxByAddress(t *testing.T, db burner.Database) {
+	i := burner.Inbox{
+		Address:              "test.8@example.com",
+		ID:                   uuid.Must(uuid.NewRandom()).String(),
+		CreatedBy:            "192.168.1.1",
+		CreatedAt:            time.Now().Unix(),
+		TTL:                  time.Now().Add(5 * time.Minute).Unix(),
+		EmailProviderRouteID: "-",
+		FailedToCreate:       true,
+	}
+
+	err := db.SaveNewInbox(i)
+
+	if err != nil {
+		t.Errorf("%v - TestGetInboxByAddress: failed to save: %v", reflect.TypeOf(db), err)
+	}
+
+	ri, err := db.GetInboxByAddress(i.Address)
+
+	if err != nil {
+		t.Errorf("%v - TestGetInboxByAddress: failed to get inbox back: %v", reflect.TypeOf(db), err)
+	}
+
+	if !reflect.DeepEqual(i, ri) {
+		t.Errorf("%v - TestGetInboxByAddress: inbox not the same after retrieve. Expected %v got %v", reflect.TypeOf(db), i, ri)
+	}
+}
+
 // TestEmailAddressExists verifies that EmailAddressExists works
 func TestEmailAddressExists(t *testing.T, db burner.Database) {
 	i := burner.Inbox{
@@ -111,7 +141,7 @@ func TestEmailAddressExists(t *testing.T, db burner.Database) {
 		exists, err := db.EmailAddressExists(test.Email)
 
 		if err != nil {
-			t.Errorf("%v - sTestEmailAddressExists - %v: failed to check if address exists: %v", reflect.TypeOf(db), i, err)
+			t.Errorf("%v - TestEmailAddressExists - %v: failed to check if address exists: %v", reflect.TypeOf(db), i, err)
 		}
 
 		if exists != test.Expect {
