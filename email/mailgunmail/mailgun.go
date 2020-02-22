@@ -4,13 +4,12 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
-	"github.com/PuerkitoBio/goquery"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/haydenwoodhead/burner.kiwi/burner"
+	"github.com/haydenwoodhead/burner.kiwi/email"
 	"github.com/pkg/errors"
 	mailgun "gopkg.in/mailgun/mailgun-go.v1"
 )
@@ -158,27 +157,9 @@ func (m *MailgunMail) mailgunIncoming(w http.ResponseWriter, r *http.Request) {
 	// Check to see if there is anything in html before we modify it. Otherwise we end up setting a blank html doc
 	// on all plaintext emails preventing them from being displayed.
 	if html != "" {
-		sr := strings.NewReader(html)
-
-		var doc *goquery.Document
-		doc, err = goquery.NewDocumentFromReader(sr)
-
+		modifiedHTML, err := email.AddTargetBlank(html)
 		if err != nil {
-			log.Printf("MailgunIncoming: failed to create goquery doc: %v", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		// Find all a tags and add a target="_blank" attr to them so they open links in a new tab rather than in the iframe
-		doc.Find("a").Each(func(i int, s *goquery.Selection) {
-			s.SetAttr("target", "_blank")
-		})
-
-		var modifiedHTML string
-		modifiedHTML, err = doc.Html()
-
-		if err != nil {
-			log.Printf("MailgunIncoming: failed to get html doc: %v", err)
+			log.Printf("MailgunIncoming: failed to AddTargetBlank: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
