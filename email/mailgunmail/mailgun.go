@@ -16,7 +16,7 @@ import (
 
 var _ burner.EmailProvider = &MailgunMail{}
 
-// MailgunMail is a mailgun implementation of the Mail interface
+// MailgunMail is a mailgun implementation of the EmailProvider interface
 type MailgunMail struct {
 	websiteAddr   string
 	mg            mailgun.Mailgun

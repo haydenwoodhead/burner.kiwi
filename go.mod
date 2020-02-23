@@ -8,6 +8,7 @@ require (
 	github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5 // indirect
 	github.com/OpenPeeDeeP/depguard v1.0.0 // indirect
 	github.com/PuerkitoBio/goquery v1.5.0
+	github.com/alash3al/go-smtpsrv v0.0.0-20200116110136-2030d5edd9b0
 	github.com/aws/aws-lambda-go v1.13.0 // indirect
 	github.com/aws/aws-sdk-go v1.23.8
 	github.com/bwmarrin/go-alone v0.0.0-20190806015146-742bb55d1631
@@ -44,6 +45,7 @@ require (
 	github.com/gostaticanalysis/analysisutil v0.0.3 // indirect
 	github.com/gotestyourself/gotestyourself v2.2.0+incompatible // indirect
 	github.com/haydenwoodhead/gateway v1.2.1
+	github.com/jhillyerd/enmime v0.7.0
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/justinas/alice v0.0.0-20171023064455-03f45bd4b7da
 	github.com/lib/pq v1.2.0
@@ -73,6 +75,7 @@ require (
 	github.com/tdewolff/parse v2.3.4+incompatible // indirect
 	github.com/tdewolff/test v1.0.3 // indirect
 	github.com/timakin/bodyclose v0.0.0-20190721030226-87058b9bfcec // indirect
+	github.com/tj/assert v0.0.0-20171129193455-018094318fb0
 	golang.org/x/crypto v0.0.0-20190820162420-60c769a6c586 // indirect
 	golang.org/x/net v0.0.0-20190813141303-74dc4d7220e7 // indirect
 	golang.org/x/tools v0.0.0-20190825031127-d72b05d2b1b6
