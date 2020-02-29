@@ -1,9 +1,16 @@
 package smtpmail
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"log"
+	"mime"
+	"mime/multipart"
+	"net"
+	"strings"
 	"time"
 
 	smtpsrv "github.com/alash3al/go-smtpsrv"
@@ -11,7 +18,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/haydenwoodhead/burner.kiwi/burner"
 	"github.com/haydenwoodhead/burner.kiwi/email"
-	"github.com/jhillyerd/enmime"
 )
 
 var _ burner.EmailProvider = &SMTPMail{}
@@ -19,6 +25,7 @@ var _ burner.EmailProvider = &SMTPMail{}
 type SMTPMail struct {
 	srv        *smtpsrv.Server
 	listenAddr string
+	listener   *net.Listener
 }
 
 type handler struct {
@@ -48,37 +55,69 @@ func (s *SMTPMail) Start(websiteAddr string, db burner.Database, r *mux.Router, 
 	}
 
 	go func() {
-		err := s.srv.ListenAndServe()
-		log.Fatalf("SMTPMail: failed to start server: %v", err)
+		if s.listener != nil {
+			err := s.srv.Serve(*s.listener)
+			if err != nil {
+				log.Fatalf("SMTPMail: failed to start server: %v", err)
+			}
+		} else {
+			err := s.srv.ListenAndServe()
+			if err != nil {
+				log.Fatalf("SMTPMail: failed to start server: %v", err)
+			}
+		}
 	}()
 
 	return nil
 }
 
 func (h *handler) handler(req *smtpsrv.Request) error {
-	envelope, err := enmime.ReadEnvelope(req.Message.Body)
-	if err != nil {
-		log.Printf("SMTP.handler: failed to parse envelope: %v", err)
-		return fmt.Errorf("SMTP.handler: failed to parse envelope: %v", err)
-	}
-
 	partialMsg := burner.Message{
 		ReceivedAt:      time.Now().Unix(),
 		EmailProviderID: "smtp", // TODO: maybe a better id here? For logging purposes?
 		Sender:          req.From,
-		From:            envelope.GetHeader("From"),
-		Subject:         envelope.GetHeader("Subject"),
-		BodyPlain:       envelope.Text,
+		From:            req.Message.Header.Get("From"),
+		Subject:         req.Message.Header.Get("Subject"),
 	}
 
-	if envelope.HTML != "" {
-		modifiedHTML, err := email.AddTargetBlank(envelope.HTML)
+	cType, params, err := mime.ParseMediaType(req.Message.Header.Get("Content-Type"))
+	if err != nil {
+		log.Printf("SMTP.handler: failed to parse message media type: %v", err)
+		return fmt.Errorf("SMTP.handler: failed to parse message media type: %v", err)
+	}
+
+	switch cType {
+	case "", "text/plain":
+		bb, err := ioutil.ReadAll(req.Message.Body)
+		if err != nil {
+			log.Printf("SMTP.handler: failed to read email body: %v", err)
+			return fmt.Errorf("SMTP.handler: failed to read email body: %v", err)
+		}
+
+		partialMsg.BodyPlain = string(bytes.TrimSpace(bb))
+	case "text/html":
+		bb, err := ioutil.ReadAll(req.Message.Body)
+		if err != nil {
+			log.Printf("SMTP.handler: failed to read email body: %v", err)
+			return fmt.Errorf("SMTP.handler: failed to read email body: %v", err)
+		}
+
+		modifiedHTML, err := email.AddTargetBlank(string(bb))
 		if err != nil {
 			log.Printf("SMTP.handler: failed to AddTargetBlank: %v", err)
 			return fmt.Errorf("SMTP.handler: failed to AddTargetBlank: %v", err)
 		}
 
 		partialMsg.BodyHTML = modifiedHTML
+	case "multipart/mixed":
+		text, html, err := extractParts(req.Message.Body, params["boundary"])
+		if err != nil {
+			log.Printf("SMTP.handler: failed to parse multipart: %v", err)
+			return err
+		}
+
+		partialMsg.BodyPlain = strings.TrimSpace(text)
+		partialMsg.BodyHTML = strings.TrimSpace(html)
 	}
 
 	for _, rcpt := range req.To {
@@ -107,6 +146,46 @@ func (h *handler) handler(req *smtpsrv.Request) error {
 	}
 
 	return nil
+}
+
+func extractParts(r io.Reader, boundary string) (string, string, error) {
+	var text, html string
+	mr := multipart.NewReader(r, boundary)
+
+	for {
+		p, err := mr.NextPart()
+		if err == io.EOF {
+			return text, html, nil
+		} else if err != nil {
+			return "", "", fmt.Errorf("SMTP.handler: failed to failed to get next part: %v", err)
+		}
+
+		cType := p.Header.Get("Content-Type")
+
+		switch cType {
+		case "text/plain":
+			bb, err := ioutil.ReadAll(r)
+			if err != nil {
+				return "", "", fmt.Errorf("SMTP.handler: failed to read email body: %v", err)
+			}
+
+			text = string(bb)
+		case "text/html":
+			bb, err := ioutil.ReadAll(r)
+			if err != nil {
+				return "", "", fmt.Errorf("SMTP.handler: failed to read email body: %v", err)
+			}
+
+			modifiedHTML, err := email.AddTargetBlank(string(bb))
+			if err != nil {
+				return "", "", fmt.Errorf("SMTP.handler: failed to AddTargetBlank: %v", err)
+			}
+
+			html = modifiedHTML
+		default:
+			continue
+		}
+	}
 }
 
 func (h *handler) addressable(user, address string) bool {
