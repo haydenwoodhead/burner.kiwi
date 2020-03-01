@@ -57,7 +57,6 @@ func TestSMTPMail_SimpleText(t *testing.T) {
 		"\r\n" +
 		"This is the email body.\r\n")
 	err = mailHelper(listener.Addr().String(), "bob@example.com", to, smtpMsg)
-
 	require.NoError(t, err)
 
 	mDB.AssertExpectations(t)

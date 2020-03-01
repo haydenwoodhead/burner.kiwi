@@ -80,14 +80,19 @@ func (h *handler) handler(req *smtpsrv.Request) error {
 		Subject:         req.Message.Header.Get("Subject"),
 	}
 
-	cType, params, err := mime.ParseMediaType(req.Message.Header.Get("Content-Type"))
+	cTypeHeader := req.Message.Header.Get("Content-Type")
+	if cTypeHeader == "" {
+		cTypeHeader = "text/plain"
+	}
+
+	cType, params, err := mime.ParseMediaType(cTypeHeader)
 	if err != nil {
 		log.Printf("SMTP.handler: failed to parse message media type: %v", err)
 		return fmt.Errorf("SMTP.handler: failed to parse message media type: %v", err)
 	}
 
 	switch cType {
-	case "", "text/plain":
+	case "text/plain":
 		bb, err := ioutil.ReadAll(req.Message.Body)
 		if err != nil {
 			log.Printf("SMTP.handler: failed to read email body: %v", err)
