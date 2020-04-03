@@ -3,9 +3,9 @@ package smtpmail
 import (
 	"net"
 	"net/smtp"
+	"strings"
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/haydenwoodhead/burner.kiwi/burner"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -55,7 +55,7 @@ func TestSMTPMail_SimpleText(t *testing.T) {
 		"Subject: discount Gophers!\r\n" +
 		"Content-Type: text/plain\r\n" +
 		"\r\n" +
-		"This is the email body.\r\n")
+		"This is the email body.")
 	err = mailHelper(listener.Addr().String(), "bob@example.com", to, smtpMsg)
 	require.NoError(t, err)
 
@@ -93,14 +93,12 @@ func mailHelper(addr, from string, rcpts []string, body []byte) error {
 
 func MessageMatcher(e burner.Message) func(burner.Message) bool {
 	return func(message burner.Message) bool {
-		spew.Dump(e)
-		spew.Dump(message)
 		return e.InboxID == message.InboxID &&
 			e.Sender == message.Sender &&
 			e.From == message.From &&
 			e.Subject == message.Subject &&
 			e.BodyHTML == message.BodyHTML &&
-			e.BodyPlain == message.BodyPlain &&
+			strings.Contains(message.BodyPlain, e.BodyPlain) &&
 			e.TTL == message.TTL
 	}
 }
