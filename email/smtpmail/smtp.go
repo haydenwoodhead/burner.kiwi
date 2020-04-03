@@ -72,12 +72,17 @@ func (s *SMTPMail) Start(websiteAddr string, db burner.Database, r *mux.Router, 
 }
 
 func (h *handler) handler(req *smtpsrv.Request) error {
+	subject, err := decodeSubject(req.Message.Header.Get("Subject"))
+	if err != nil {
+		return err
+	}
+
 	partialMsg := burner.Message{
 		ReceivedAt:      time.Now().Unix(),
 		EmailProviderID: "smtp", // TODO: maybe a better id here? For logging purposes?
 		Sender:          req.From,
 		From:            req.Message.Header.Get("From"),
-		Subject:         req.Message.Header.Get("Subject"),
+		Subject:         subject,
 	}
 
 	cTypeHeader := req.Message.Header.Get("Content-Type")
@@ -191,6 +196,19 @@ func extractParts(r io.Reader, boundary string) (string, string, error) {
 			continue
 		}
 	}
+}
+
+var wordDecoder = new(mime.WordDecoder)
+
+func decodeSubject(subject string) (string, error) {
+	if strings.HasPrefix(subject, "=?") {
+		dec, err := wordDecoder.Decode(subject)
+		if err != nil {
+			return "", fmt.Errorf("SMTP.decodeSubject: failed to decode: %w", err)
+		}
+		return dec, nil
+	}
+	return subject, nil
 }
 
 func (h *handler) addressable(user, address string) bool {
