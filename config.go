@@ -12,6 +12,7 @@ import (
 	"github.com/haydenwoodhead/burner.kiwi/data/postgresql"
 	"github.com/haydenwoodhead/burner.kiwi/data/sqlite3"
 	"github.com/haydenwoodhead/burner.kiwi/email/mailgunmail"
+	"github.com/haydenwoodhead/burner.kiwi/email/smtpmail"
 )
 
 const inMemory = "memory"
@@ -20,6 +21,7 @@ const dynamoDB = "dynamo"
 const sqLite3 = "sqlite3"
 
 const mailgunProvider = "mailgun"
+const smtpProvider = "smtp"
 
 func mustParseNewServerInput() burner.NewInput {
 	dbType := parseStringVarWithDefault("DB_TYPE", inMemory)
@@ -37,13 +39,15 @@ func mustParseNewServerInput() burner.NewInput {
 		db = sqlite3.GetSQLite3DB(mustParseStringVar("DATABASE_URL"))
 	}
 
-	emailType := parseStringVarWithDefault("EMAIL_TYPE", mailgunProvider)
+	emailType := mustParseStringVar("EMAIL_TYPE")
 
 	var email burner.EmailProvider
 
 	switch emailType {
 	case mailgunProvider:
 		email = mailgunmail.NewMailgunProvider(mustParseStringVar("MG_DOMAIN"), mustParseStringVar("MG_KEY"))
+	case smtpProvider:
+		email = smtpmail.NewSMPTMailProvider(parseStringVarWithDefault("SMTP_LISTEN", ":25"))
 	}
 
 	return burner.NewInput{
