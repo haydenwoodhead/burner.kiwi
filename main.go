@@ -1,15 +1,17 @@
 package main
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/gorilla/context"
 	"github.com/haydenwoodhead/burner.kiwi/burner"
 	"github.com/haydenwoodhead/gateway"
+	log "github.com/sirupsen/logrus"
 )
 
 func main() {
+	log.SetFormatter(&log.JSONFormatter{})
+
 	nsi := mustParseNewServerInput()
 
 	s, err := burner.New(nsi)
