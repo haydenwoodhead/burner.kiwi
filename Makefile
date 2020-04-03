@@ -44,10 +44,10 @@ minify:
 	minify -o ./static/${normalize_css} ./static/normalize.css
 
 do-build: check_deps clean build_dir minify
-	CGO_ENABLED=0 packr build -ldflags "-X github.com/haydenwoodhead/burner.kiwi/server.version=${git_commit} -X github.com/haydenwoodhead/burner.kiwi/server.milligram=${milligram_css} -X github.com/haydenwoodhead/burner.kiwi/server.custom=${custom_css} -X github.com/haydenwoodhead/burner.kiwi/server.icons=${icons_css} -X github.com/haydenwoodhead/burner.kiwi/server.normalize=${normalize_css}" -o "./build/burnerkiwi"
+	CGO_ENABLED=0 packr build -ldflags "-X github.com/haydenwoodhead/burner.kiwi/burner.version=${git_commit} -X github.com/haydenwoodhead/burner.kiwi/burner.milligram=${milligram_css} -X github.com/haydenwoodhead/burner.kiwi/burner.custom=${custom_css} -X github.com/haydenwoodhead/burner.kiwi/burner.icons=${icons_css} -X github.com/haydenwoodhead/burner.kiwi/burner.normalize=${normalize_css}" -o "./build/burnerkiwi"
 
 do-build-sqlite: check_deps clean build_dir minify
-	CGO_ENABLED=1 packr build -ldflags "-X github.com/haydenwoodhead/burner.kiwi/server.version=${git_commit} -X github.com/haydenwoodhead/burner.kiwi/server.milligram=${milligram_css} -X github.com/haydenwoodhead/burner.kiwi/server.custom=${custom_css} -X github.com/haydenwoodhead/burner.kiwi/server.icons=${icons_css} -X github.com/haydenwoodhead/burner.kiwi/server.normalize=${normalize_css}" -o "./build/burnerkiwi"
+	CGO_ENABLED=1 packr build -ldflags "-X github.com/haydenwoodhead/burner.kiwi/burner.version=${git_commit} -X github.com/haydenwoodhead/burner.kiwi/burner.milligram=${milligram_css} -X github.com/haydenwoodhead/burner.kiwi/burner.custom=${custom_css} -X github.com/haydenwoodhead/burner.kiwi/burner.icons=${icons_css} -X github.com/haydenwoodhead/burner.kiwi/burner.normalize=${normalize_css}" -o "./build/burnerkiwi"
 
 # clean up static dir after build
 build build-sqlite:  %: do-%
