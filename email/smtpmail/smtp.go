@@ -18,6 +18,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/haydenwoodhead/burner.kiwi/burner"
 	"github.com/haydenwoodhead/burner.kiwi/email"
+	"github.com/pkg/errors"
 )
 
 var _ burner.EmailProvider = &SMTPMail{}
@@ -204,7 +205,7 @@ func decodeSubject(subject string) (string, error) {
 	if strings.HasPrefix(subject, "=?") {
 		dec, err := wordDecoder.Decode(subject)
 		if err != nil {
-			return "", fmt.Errorf("SMTP.decodeSubject: failed to decode: %w", err)
+			return "", errors.Wrap(err, "SMTP.decodeSubject: failed to decode")
 		}
 		return dec, nil
 	}
