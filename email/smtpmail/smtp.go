@@ -98,8 +98,7 @@ func (h *handler) handler(req *smtpsrv.Request) error {
 		return fmt.Errorf("SMTP.handler: failed to parse message media type: %v", err)
 	}
 
-	switch cType {
-	case "text/plain":
+	if strings.HasPrefix(cType, "text/plain") {
 		bb, err := ioutil.ReadAll(req.Message.Body)
 		if err != nil {
 			log.WithError(err).Error("smtpmail.handler: failed to read email body")
@@ -107,7 +106,7 @@ func (h *handler) handler(req *smtpsrv.Request) error {
 		}
 
 		partialMsg.BodyPlain = string(bytes.TrimSpace(bb))
-	case "text/html":
+	} else if strings.HasPrefix(cType, "text/html") {
 		bb, err := ioutil.ReadAll(req.Message.Body)
 		if err != nil {
 			log.WithError(err).Error("smtpmail.handler: failed to read email body")
@@ -121,7 +120,7 @@ func (h *handler) handler(req *smtpsrv.Request) error {
 		}
 
 		partialMsg.BodyHTML = modifiedHTML
-	case "multipart/mixed":
+	} else if strings.HasPrefix(cType, "multipart/") {
 		messageCopy, err := ioutil.ReadAll(req.Message.Body)
 		if err != nil {
 			log.WithError(err).Error("smtpmail.handler: failed to read email body for copy")
@@ -182,27 +181,27 @@ func extractParts(r io.Reader, boundary string) (string, string, error) {
 
 		cType := p.Header.Get("Content-Type")
 
-		switch cType {
-		case "text/plain":
-			bb, err := ioutil.ReadAll(r)
+		if strings.HasPrefix(cType, "text/plain") {
+			bb, err := ioutil.ReadAll(p)
 			if err != nil {
 				return "", "", fmt.Errorf("SMTP.handler: failed to read email body: %v", err)
 			}
 
 			text = string(bb)
-		case "text/html":
-			bb, err := ioutil.ReadAll(r)
+		} else if strings.HasPrefix(cType, "text/html") {
+			bb, err := ioutil.ReadAll(p)
 			if err != nil {
 				return "", "", fmt.Errorf("SMTP.handler: failed to read email body: %v", err)
 			}
 
-			modifiedHTML, err := email.AddTargetBlank(string(bb))
+			trimmed := bytes.TrimSpace(bb)
+			modifiedHTML, err := email.AddTargetBlank(string(trimmed))
 			if err != nil {
 				return "", "", fmt.Errorf("SMTP.handler: failed to AddTargetBlank: %v", err)
 			}
 
 			html = modifiedHTML
-		default:
+		} else {
 			continue
 		}
 	}
