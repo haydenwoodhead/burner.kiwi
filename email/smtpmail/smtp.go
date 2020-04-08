@@ -183,14 +183,18 @@ func extractParts(r io.Reader, boundary string) (string, string, error) {
 
 		if strings.HasPrefix(cType, "text/plain") {
 			bb, err := ioutil.ReadAll(p)
-			if err != nil && err != io.ErrUnexpectedEOF {
+			if err == io.ErrUnexpectedEOF { // return early if we hit EOF
+				return text, html, nil
+			} else if err != nil {
 				return "", "", fmt.Errorf("SMTP.handler: failed to read email body: %v", err)
 			}
 
 			text = string(bb)
 		} else if strings.HasPrefix(cType, "text/html") {
 			bb, err := ioutil.ReadAll(p)
-			if err != nil && err != io.ErrUnexpectedEOF {
+			if err == io.ErrUnexpectedEOF {
+				return text, html, nil
+			} else if err != nil {
 				return "", "", fmt.Errorf("SMTP.handler: failed to read email body: %v", err)
 			}
 
