@@ -52,7 +52,7 @@ func (s *SMTPMail) Start(websiteAddr string, db burner.Database, r *mux.Router, 
 		Addr:        s.listenAddr,
 		Handler:     h.handler,
 		Addressable: h.addressable,
-		MaxBodySize: 5 * 1024,
+		MaxBodySize: 5 * (1024 * 1024),
 	}
 
 	go func() {
