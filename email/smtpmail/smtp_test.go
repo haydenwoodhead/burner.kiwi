@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/haydenwoodhead/burner.kiwi/burner"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -121,6 +122,28 @@ func TestSMTPMail_Multipart(t *testing.T) {
 	require.NoError(t, err)
 
 	mDB.AssertExpectations(t)
+}
+
+func TestDecodeHeader(t *testing.T) {
+	tests := []struct {
+		In  string
+		Out string
+	}{
+		{
+			In:  "=?iso-8859-1?Q?=A1Hola,_se=F1or!?=",
+			Out: "¡Hola, señor!",
+		},
+		{
+			In:  "=?utf-8?Q?Daily=20UI?= <hello@dailyui.co>",
+			Out: "Daily UI <hello@dailyui.co>",
+		},
+	}
+
+	for _, test := range tests {
+		out, err := decodeWord(test.In)
+		require.NoError(t, err)
+		assert.Equal(t, test.Out, out)
+	}
 }
 
 // https://github.com/golang/go/wiki/SendingMail

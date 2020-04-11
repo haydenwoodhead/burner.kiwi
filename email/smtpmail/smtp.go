@@ -73,9 +73,15 @@ func (s *SMTPMail) Start(websiteAddr string, db burner.Database, r *mux.Router, 
 }
 
 func (h *handler) handler(req *smtpsrv.Request) error {
-	subject, err := decodeSubject(req.Message.Header.Get("Subject"))
+	subject, err := decodeWord(req.Message.Header.Get("Subject"))
 	if err != nil {
 		log.WithError(err).WithField("subject", req.Message.Header.Get("Subject")).Error("smtpmail.handler: failed to decode subject")
+		return err
+	}
+
+	from, err := decodeWord(req.Message.Header.Get("From"))
+	if err != nil {
+		log.WithError(err).WithField("from", req.Message.Header.Get("From")).Error("smtpmail.handler: failed to decode from")
 		return err
 	}
 
@@ -83,7 +89,7 @@ func (h *handler) handler(req *smtpsrv.Request) error {
 		ReceivedAt:      time.Now().Unix(),
 		EmailProviderID: "smtp", // TODO: maybe a better id here? For logging purposes?
 		Sender:          req.From,
-		From:            req.Message.Header.Get("From"),
+		From:            from,
 		Subject:         subject,
 	}
 
@@ -213,15 +219,15 @@ func extractParts(r io.Reader, boundary string) (string, string, error) {
 
 var wordDecoder = new(mime.WordDecoder)
 
-func decodeSubject(subject string) (string, error) {
-	if strings.HasPrefix(subject, "=?") {
-		dec, err := wordDecoder.Decode(subject)
+func decodeWord(word string) (string, error) {
+	if strings.HasPrefix(word, "=?") {
+		dec, err := wordDecoder.DecodeHeader(word)
 		if err != nil {
-			return "", errors.Wrap(err, "SMTP.decodeSubject: failed to decode")
+			return "", errors.Wrap(err, "SMTP.decodeWord: failed to decode")
 		}
 		return dec, nil
 	}
-	return subject, nil
+	return word, nil
 }
 
 func (h *handler) addressable(user, address string) bool {
