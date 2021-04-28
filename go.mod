@@ -36,14 +36,12 @@ require (
 	github.com/lib/pq v1.2.0
 	github.com/matryer/try v0.0.0-20161228173917-9ac251b645a2 // indirect
 	github.com/mattn/go-sqlite3 v1.11.0
-	github.com/mattn/goveralls v0.0.2
 	github.com/onsi/ginkgo v1.9.0 // indirect
 	github.com/onsi/gomega v1.6.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/opencontainers/runc v0.1.1 // indirect
 	github.com/ory/dockertest v3.3.5+incompatible
-	github.com/pborman/uuid v1.2.0 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/sirupsen/logrus v1.5.0
 	github.com/stretchr/objx v0.2.0 // indirect
@@ -55,7 +53,6 @@ require (
 	golang.org/x/crypto v0.0.0-20190820162420-60c769a6c586 // indirect
 	golang.org/x/net v0.0.0-20190813141303-74dc4d7220e7 // indirect
 	golang.org/x/sys v0.0.0-20190813064441-fde4db37ae7a // indirect
-	golang.org/x/tools v0.0.0-20190825031127-d72b05d2b1b6
 	google.golang.org/appengine v1.6.1 // indirect
 	gopkg.in/mailgun/mailgun-go.v1 v1.1.1
 	gotest.tools v2.2.0+incompatible // indirect
