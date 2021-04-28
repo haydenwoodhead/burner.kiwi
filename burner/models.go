@@ -53,7 +53,7 @@ func GetReceivedDetails(msgs []Message) []string {
 		// if we received the email less than 30 seconds ago then write that out
 		// because rounding the duration when less than 30seconds will give us 0 seconds
 		if diff.Seconds() < 30 {
-			received = append(received, fmt.Sprintf("Less than 30s ago"))
+			received = append(received, "Less than 30s ago")
 			continue
 		}
 
