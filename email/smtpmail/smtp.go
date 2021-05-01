@@ -111,8 +111,9 @@ func (s *smtpSession) Rcpt(to string) error {
 
 	if !s.handler.emailAddressExists(parsedTo.Address) {
 		return &smtp.SMTPError{
-			Code:    smtpMailBoxNotAvailableCode,
-			Message: "Mailbox unavailable",
+			Code:         smtpMailBoxNotAvailableCode,
+			EnhancedCode: smtp.EnhancedCode{5, 1, 1},
+			Message:      "Bad destination mailbox address",
 		}
 	}
 
