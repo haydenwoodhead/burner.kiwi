@@ -16,10 +16,17 @@ import (
 
 var _ burner.EmailProvider = &MailgunMail{}
 
+type mailgunAPI interface {
+	DeleteRoute(id string) error
+	GetRoutes(limit, skip int) (int, []mailgun.Route, error)
+	CreateRoute(m mailgun.Route) (mailgun.Route, error)
+	VerifyWebhookRequest(req *http.Request) (verified bool, err error)
+}
+
 // MailgunMail is a mailgun implementation of the EmailProvider interface
 type MailgunMail struct {
 	websiteAddr         string
-	mg                  mailgun.Mailgun
+	mg                  mailgunAPI
 	db                  burner.Database
 	isBlacklistedDomain func(string) bool
 }
