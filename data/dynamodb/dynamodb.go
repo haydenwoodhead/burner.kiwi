@@ -35,25 +35,22 @@ func GetNewDynamoDB(table string) *DynamoDB {
 
 // SaveNewInbox saves a given inbox to dynamodb
 func (d *DynamoDB) SaveNewInbox(i burner.Inbox) error {
-	av, err := dynamodbattribute.MarshalMap(i)
-
-	// Insert an empty messages attribute so we can add messages later
-	av["messages"] = &dynamodb.AttributeValue{
-		M: make(map[string]*dynamodb.AttributeValue),
+	attributeValues, err := dynamodbattribute.MarshalMap(i)
+	if err != nil {
+		return fmt.Errorf("DynamoDB - failed to marshal new inbox to attribute value: %w", err)
 	}
 
-	if err != nil {
-		return fmt.Errorf("SaveNewInbox: failed to marshal struct to attribute value: %v", err)
-
+	// Insert an empty messages attribute so we can add messages later
+	attributeValues["messages"] = &dynamodb.AttributeValue{
+		M: make(map[string]*dynamodb.AttributeValue),
 	}
 
 	_, err = d.dynDB.PutItem(&dynamodb.PutItemInput{
 		TableName: aws.String(d.emailsTableName),
-		Item:      av,
+		Item:      attributeValues,
 	})
-
 	if err != nil {
-		return fmt.Errorf("SaveNewInbox: failed to put to dynamodb: %v", err)
+		return fmt.Errorf("DynamoDB - failed to put new inbox to dynamodb: %w", err)
 	}
 
 	return nil
@@ -61,7 +58,7 @@ func (d *DynamoDB) SaveNewInbox(i burner.Inbox) error {
 
 //GetInboxByID gets an inbox by the given inbox id
 func (d *DynamoDB) GetInboxByID(id string) (burner.Inbox, error) {
-	var i burner.Inbox
+	var inbox burner.Inbox
 
 	o, err := d.dynDB.GetItem(&dynamodb.GetItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
@@ -71,18 +68,16 @@ func (d *DynamoDB) GetInboxByID(id string) (burner.Inbox, error) {
 		},
 		TableName: aws.String(d.emailsTableName),
 	})
-
 	if err != nil {
-		return burner.Inbox{}, err
+		return burner.Inbox{}, fmt.Errorf("DynamoDB - failed to get inbox: %w", err)
 	}
 
-	err = dynamodbattribute.UnmarshalMap(o.Item, &i)
-
+	err = dynamodbattribute.UnmarshalMap(o.Item, &inbox)
 	if err != nil {
-		return burner.Inbox{}, err
+		return burner.Inbox{}, fmt.Errorf("DynamoDB - failed to unmarshal inbox: %w", err)
 	}
 
-	return i, nil
+	return inbox, nil
 }
 
 type secondaryIndexInbox struct {
@@ -91,7 +86,7 @@ type secondaryIndexInbox struct {
 }
 
 func (d *DynamoDB) queryEmailIndex(address string) ([]secondaryIndexInbox, error) {
-	q := &dynamodb.QueryInput{
+	queryInput := &dynamodb.QueryInput{
 		KeyConditionExpression: aws.String("email_address = :e"),
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":e": {
@@ -102,15 +97,15 @@ func (d *DynamoDB) queryEmailIndex(address string) ([]secondaryIndexInbox, error
 		TableName: aws.String(d.emailsTableName),
 	}
 
-	res, err := d.dynDB.Query(q)
+	res, err := d.dynDB.Query(queryInput)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to query email index: %w", err)
 	}
 
 	var results []secondaryIndexInbox
 	err = dynamodbattribute.UnmarshalListOfMaps(res.Items, &results)
 	if err != nil {
-		return nil, fmt.Errorf("queryEmailIndex: failed to unmarshal query")
+		return nil, fmt.Errorf("failed to unmarshal email index query: %w", err)
 	}
 
 	return results, nil
@@ -119,7 +114,7 @@ func (d *DynamoDB) queryEmailIndex(address string) ([]secondaryIndexInbox, error
 func (d *DynamoDB) GetInboxByAddress(address string) (burner.Inbox, error) {
 	res, err := d.queryEmailIndex(address)
 	if err != nil {
-		return burner.Inbox{}, fmt.Errorf("GetInboxByAddress: failed to get inbox: %v", err)
+		return burner.Inbox{}, fmt.Errorf("DynamoDB - failed to get inbox by address: %w", err)
 	}
 	if len(res) == 0 {
 		return burner.Inbox{}, errors.New("GetInboxByAddress: no inbox with address present")
@@ -133,7 +128,7 @@ func (d *DynamoDB) GetInboxByAddress(address string) (burner.Inbox, error) {
 func (d *DynamoDB) EmailAddressExists(a string) (bool, error) {
 	res, err := d.queryEmailIndex(a)
 	if err != nil {
-		return false, fmt.Errorf("EmailAddressExists: failed to query: %v", err)
+		return false, fmt.Errorf("DynamoDB - failed to check if email exists: %v", err)
 	}
 
 	return len(res) > 0, nil
@@ -164,9 +159,8 @@ func (d *DynamoDB) SetInboxCreated(i burner.Inbox) error {
 	}
 
 	_, err := d.dynDB.UpdateItem(u)
-
 	if err != nil {
-		return fmt.Errorf("SetInboxCreated: failed to mark email as created: %v", err)
+		return fmt.Errorf("DynamoDB - failed to update inbox item: %w", err)
 	}
 
 	return nil
@@ -193,9 +187,8 @@ func (d *DynamoDB) SetInboxFailed(i burner.Inbox) error {
 	}
 
 	_, err := d.dynDB.UpdateItem(u)
-
 	if err != nil {
-		return fmt.Errorf("SetInboxFailed: failed to mark email as failed: %v", err)
+		return fmt.Errorf("DynamoDB - failed to update inbox item: %w", err)
 	}
 
 	return nil
@@ -204,9 +197,8 @@ func (d *DynamoDB) SetInboxFailed(i burner.Inbox) error {
 //SaveNewMessage saves a given message to dynamodb
 func (d *DynamoDB) SaveNewMessage(m burner.Message) error {
 	mv, err := dynamodbattribute.MarshalMap(m)
-
 	if err != nil {
-		return fmt.Errorf("SaveMessage: failed to marshal struct to attribute value: %v", err)
+		return fmt.Errorf("DynamoDB - failed to marshal new message to attribute value: %w", err)
 	}
 
 	_, err = d.dynDB.UpdateItem(&dynamodb.UpdateItemInput{
@@ -227,9 +219,8 @@ func (d *DynamoDB) SaveNewMessage(m burner.Message) error {
 		TableName:        aws.String(d.emailsTableName),
 		UpdateExpression: aws.String("SET #M.#MID = :m"),
 	})
-
 	if err != nil {
-		return fmt.Errorf("SaveMessage: failed to put to dynamodb: %v", err)
+		return fmt.Errorf("DynamoDB - failed to save new message: %w", err)
 	}
 
 	return nil
@@ -238,9 +229,8 @@ func (d *DynamoDB) SaveNewMessage(m burner.Message) error {
 //GetMessagesByInboxID returns all messages in a given inbox
 func (d *DynamoDB) GetMessagesByInboxID(i string) ([]burner.Message, error) {
 	var ret map[string]map[string]burner.Message
-	var msgs []burner.Message
 
-	gi := &dynamodb.GetItemInput{
+	getInput := &dynamodb.GetItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
 			"id": {
 				S: aws.String(i),
@@ -250,18 +240,17 @@ func (d *DynamoDB) GetMessagesByInboxID(i string) ([]burner.Message, error) {
 		TableName:            aws.String(d.emailsTableName),
 	}
 
-	res, err := d.dynDB.GetItem(gi)
-
+	res, err := d.dynDB.GetItem(getInput)
 	if err != nil {
-		return []burner.Message{}, fmt.Errorf("GetAllMessagesByInboxID: failed to query dynamodb: %v", err)
+		return []burner.Message{}, fmt.Errorf("DynamoDB - failed to query for all messages: %w", err)
 	}
 
 	err = dynamodbattribute.UnmarshalMap(res.Item, &ret)
-
 	if err != nil {
-		return []burner.Message{}, fmt.Errorf("GetAllMessagesByInboxID: failed to unmarshal result: %v", err)
+		return []burner.Message{}, fmt.Errorf("DynamoDB - failed to unmarshal all messages in inbox: %w", err)
 	}
 
+	msgs := make([]burner.Message, 0, len(ret["messages"]))
 	for _, v := range ret["messages"] {
 		msgs = append(msgs, v)
 	}
@@ -272,8 +261,7 @@ func (d *DynamoDB) GetMessagesByInboxID(i string) ([]burner.Message, error) {
 //GetMessageByID gets a single message by the given inbox and message id
 func (d *DynamoDB) GetMessageByID(i, m string) (burner.Message, error) {
 	var ret map[string]burner.Message
-
-	gi := &dynamodb.GetItemInput{
+	getInput := &dynamodb.GetItemInput{
 		ExpressionAttributeNames: map[string]*string{
 			"#ID": aws.String(m),
 		},
@@ -286,22 +274,19 @@ func (d *DynamoDB) GetMessageByID(i, m string) (burner.Message, error) {
 		TableName:            aws.String(d.emailsTableName),
 	}
 
-	res, err := d.dynDB.GetItem(gi)
-
+	res, err := d.dynDB.GetItem(getInput)
 	if err != nil {
-		return burner.Message{}, fmt.Errorf("GetMessageByID: failed to query dynamodb: %v", err)
+		return burner.Message{}, fmt.Errorf("DynamoDB - failed to query for message: %w", err)
 	}
 
 	// Despite only returning one message it is nested under messages and then it's id. We must unmarshal this response
 	// to a map and then get the item from that map.
 	err = dynamodbattribute.Unmarshal(res.Item["messages"], &ret)
-
 	if err != nil {
-		return burner.Message{}, fmt.Errorf("GetMessageByID: failed to unmarshal result: %v", err)
+		return burner.Message{}, fmt.Errorf("DynamoDB - failed to unmarshal message: %w", err)
 	}
 
 	msg, ok := ret[m]
-
 	if !ok {
 		return burner.Message{}, burner.ErrMessageDoesntExist
 	}

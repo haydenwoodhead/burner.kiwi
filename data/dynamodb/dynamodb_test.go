@@ -60,7 +60,6 @@ func TestDynamoDB(t *testing.T) {
 		Region:      aws.String("us-west-2"),
 		Endpoint:    aws.String(dynamoDBAddress)},
 	)
-
 	if err != nil {
 		t.Fatalf("DynamoDB: failed to setup db: %v", err)
 	}
@@ -74,7 +73,6 @@ func TestDynamoDB(t *testing.T) {
 	}
 
 	err = db.createDatabase()
-
 	if err != nil {
 		t.Fatalf("DynamoDB: failed to setup db: %v", err)
 	}
