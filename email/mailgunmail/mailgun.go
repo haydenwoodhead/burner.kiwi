@@ -24,8 +24,8 @@ type MailgunMail struct {
 	isBlacklisted func(string) bool
 }
 
-// NewMailgunProvider creates a new Mailgun EmailProvider
-func NewMailgunProvider(domain string, key string) *MailgunMail {
+// NewMailProvider creates a new Mailgun EmailProvider
+func NewMailProvider(domain string, key string) *MailgunMail {
 	mg := &MailgunMail{
 		mg: mailgun.NewMailgun(domain, key, ""),
 	}
