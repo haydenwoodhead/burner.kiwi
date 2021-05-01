@@ -22,7 +22,7 @@ func TestMailgun_MailgunIncoming_Verified(t *testing.T) {
 	m := MailgunMail{
 		mg: FakeMG{Verify: true},
 		db: inmemory.GetInMemoryDB(),
-		isBlacklisted: func(email string) bool {
+		isBlacklistedDomain: func(email string) bool {
 			return false
 		},
 	}
@@ -93,7 +93,7 @@ func TestMailgun_MailgunIncoming_Blacklisted(t *testing.T) {
 	m := MailgunMail{
 		mg: FakeMG{Verify: true},
 		db: inmemory.GetInMemoryDB(),
-		isBlacklisted: func(email string) bool {
+		isBlacklistedDomain: func(email string) bool {
 			return true
 		},
 	}

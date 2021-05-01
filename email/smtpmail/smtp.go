@@ -36,8 +36,8 @@ type smtpSession struct {
 }
 
 type handler struct {
-	db            burner.Database
-	isBlacklisted func(string) bool
+	db                  burner.Database
+	isBlacklistedDomain func(string) bool
 }
 
 func NewMailProvider(listenAddr string) *SMTPMail {
@@ -46,10 +46,10 @@ func NewMailProvider(listenAddr string) *SMTPMail {
 	}
 }
 
-func (s *SMTPMail) Start(websiteAddr string, db burner.Database, r *mux.Router, isBlacklisted func(string) bool) error {
+func (s *SMTPMail) Start(websiteAddr string, db burner.Database, r *mux.Router, isBlacklistedDomain func(string) bool) error {
 	h := &handler{
-		db:            db,
-		isBlacklisted: isBlacklisted,
+		db:                  db,
+		isBlacklistedDomain: isBlacklistedDomain,
 	}
 
 	be := &smtpBackend{handler: h}
@@ -171,7 +171,7 @@ func (h *handler) handleMessage(from string, parsedEmail parsemail.Email) error 
 }
 
 func (h *handler) emailAddressExists(address string) bool {
-	if h.isBlacklisted(address) {
+	if h.isBlacklistedDomain(address) {
 		return false
 	}
 
