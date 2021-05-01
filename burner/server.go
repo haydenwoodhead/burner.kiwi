@@ -94,6 +94,10 @@ func New(n NewInput) (*Server, error) {
 	s.tg = token.NewGenerator(n.Key, 24*time.Hour)
 
 	s.db = n.Database
+	err := s.db.Start()
+	if err != nil {
+		return nil, fmt.Errorf("failed to start database: %w", err)
+	}
 
 	s.blacklistedDomains = n.BlacklistedDomains
 
@@ -101,9 +105,9 @@ func New(n NewInput) (*Server, error) {
 	s.Router.StrictSlash(true) // means router will match both "/path" and "/path/"
 
 	s.email = n.Email
-	err := s.email.Start(s.websiteURL, s.db, s.Router, s.isBlacklisted)
+	err = s.email.Start(s.websiteURL, s.db, s.Router, s.isBlacklistedDomain)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to start email provider: %w", err)
 	}
 
 	// HTML - trying to make middleware flow/handler declaration a little more readable
@@ -198,7 +202,7 @@ const (
 	sessionCTXKey key = iota
 )
 
-func (s *Server) isBlacklisted(email string) bool {
+func (s *Server) isBlacklistedDomain(email string) bool {
 	emailDomain := strings.Split(email, "@")[1]
 	for _, domain := range s.blacklistedDomains {
 		if domain == emailDomain {

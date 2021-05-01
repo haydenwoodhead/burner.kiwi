@@ -33,6 +33,10 @@ func GetNewDynamoDB(table string) *DynamoDB {
 	}
 }
 
+func (d *DynamoDB) Start() error {
+	return nil
+}
+
 // SaveNewInbox saves a given inbox to dynamodb
 func (d *DynamoDB) SaveNewInbox(i burner.Inbox) error {
 	attributeValues, err := dynamodbattribute.MarshalMap(i)
@@ -294,7 +298,7 @@ func (d *DynamoDB) GetMessageByID(i, m string) (burner.Message, error) {
 	return msg, nil
 }
 
-//createDatabase creates a new database for testing
+//createDatabase creates a new database for testing, real creation is done by the cloudformation stack
 func (d *DynamoDB) createDatabase() error {
 	emails := &dynamodb.CreateTableInput{
 		AttributeDefinitions: []*dynamodb.AttributeDefinition{

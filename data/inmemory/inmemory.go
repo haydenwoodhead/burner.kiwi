@@ -27,6 +27,10 @@ func GetInMemoryDB() *InMemory {
 	im.messages = make(map[string]map[string]burner.Message)
 	im.emails = make(map[string]burner.Inbox)
 
+	return im
+}
+
+func (im *InMemory) Start() error {
 	// launch a func which deletes expired objects
 	go func(im *InMemory) {
 		for {
@@ -34,8 +38,7 @@ func GetInMemoryDB() *InMemory {
 			im.DeleteExpiredData()
 		}
 	}(im)
-
-	return im
+	return nil
 }
 
 // DeleteExpiredData deletes data that has expired according to its TTL

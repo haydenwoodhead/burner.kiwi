@@ -13,12 +13,21 @@ import (
 // SQLDatabase implements the database interface for sqldb
 type SQLDatabase struct {
 	*sqlx.DB
+	dbType string
 }
 
-// GetDatabase returns a new db or panics
-func GetDatabase(dbType string, dbURL string) *SQLDatabase {
-	s := &SQLDatabase{sqlx.MustOpen(dbType, dbURL)}
-	s.CreateTables()
+// New returns a new db or panics
+func New(dbType string, dbURL string) *SQLDatabase {
+	s := &SQLDatabase{sqlx.MustOpen(dbType, dbURL), dbType}
+	return s
+}
+
+func (s *SQLDatabase) Start() error {
+	err := s.createTables()
+	if err != nil {
+		return fmt.Errorf("%s - failed to create tables: %w", s.dbType, err)
+	}
+
 	go func() {
 		t := time.Now().Unix()
 		var active int
@@ -37,12 +46,13 @@ func GetDatabase(dbType string, dbURL string) *SQLDatabase {
 			time.Sleep(1 * time.Hour)
 		}
 	}()
-	return s
+
+	return nil
 }
 
-// CreateTables creates the databse tables or panics
-func (s *SQLDatabase) CreateTables() {
-	s.MustExec(`create table if not exists inbox (
+// createTables creates the databse tables or panics
+func (s *SQLDatabase) createTables() error {
+	_, err := s.Exec(`create table if not exists inbox (
 		id uuid not null unique,
 		address text not null unique,
 		created_at numeric,
@@ -66,6 +76,7 @@ func (s *SQLDatabase) CreateTables() {
 		ttl numeric,
 		primary key (message_id)
 	);`)
+	return err
 }
 
 // SaveNewInbox saves a new inbox
@@ -161,7 +172,7 @@ func (s *SQLDatabase) RunTTLDelete() (int, error) {
 	t := time.Now().Unix()
 	res, err := s.Exec("DELETE from inbox WHERE ttl < $1", t)
 	if err != nil {
-		return -1, fmt.Errorf("SQLDatabase.runTTLDelete failed with err=%v", err)
+		return -1, fmt.Errorf("%s - failed to delete expired inboxes: %w", s.dbType, err)
 	}
 	count, err := res.RowsAffected()
 	return int(count), err

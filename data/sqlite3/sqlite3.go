@@ -13,5 +13,5 @@ type SQLite3 struct {
 
 // GetSQLite3DB returns a new postgres db or panics
 func GetSQLite3DB(dbURL string) *SQLite3 {
-	return &SQLite3{sqldb.GetDatabase("sqlite3", dbURL)}
+	return &SQLite3{sqldb.New("sqlite3", dbURL)}
 }

@@ -8,6 +8,7 @@ import (
 
 	"github.com/haydenwoodhead/burner.kiwi/burner"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/google/uuid"
 
@@ -16,6 +17,8 @@ import (
 
 func TestSQLite3(t *testing.T) {
 	db := GetSQLite3DB("test.sqlite3")
+	err := db.Start()
+	require.NoError(t, err)
 
 	// iterate over the testing suite and call the function
 	for _, f := range data.TestingFuncs {
@@ -25,7 +28,7 @@ func TestSQLite3(t *testing.T) {
 	testTTLDelete(t, db)
 
 	// remove test database
-	err := os.Remove("test.sqlite3")
+	err = os.Remove("test.sqlite3")
 	if err != nil {
 		t.Fatalf("SQLite3: failed to delete test database file")
 	}

@@ -12,6 +12,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/google/uuid"
 
@@ -54,6 +55,8 @@ func TestMain(m *testing.M) {
 
 func TestPostgreSQL(t *testing.T) {
 	db := GetPostgreSQLDB(dbURL)
+	err := db.Start()
+	require.NoError(t, err)
 
 	// iterate over the testing suite and call the function
 	for _, f := range data.TestingFuncs {

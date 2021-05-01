@@ -49,6 +49,6 @@ func TestIsBlackListed(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Equal(t, test.Expected, s.isBlacklisted(test.Email))
+		assert.Equal(t, test.Expected, s.isBlacklistedDomain(test.Email))
 	}
 }

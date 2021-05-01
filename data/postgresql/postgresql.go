@@ -13,5 +13,5 @@ type PostgreSQL struct {
 
 // GetPostgreSQLDB returns a new postgres db or panics
 func GetPostgreSQLDB(dbURL string) *PostgreSQL {
-	return &PostgreSQL{sqldb.GetDatabase("postgres", dbURL)}
+	return &PostgreSQL{sqldb.New("postgres", dbURL)}
 }
