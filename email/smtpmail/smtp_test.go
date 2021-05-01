@@ -5,9 +5,9 @@ import (
 	"net/smtp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/haydenwoodhead/burner.kiwi/burner"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -20,7 +20,7 @@ func TestSMTPMail_SimpleText(t *testing.T) {
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
 
-	s := &SMTPMail{listener: &listener}
+	s := SMTPMail{listener: &listener}
 
 	mDB := new(MockDatabase)
 	mDB.On("GetInboxByAddress", "test@example.com").Return(burner.Inbox{
@@ -59,6 +59,12 @@ func TestSMTPMail_SimpleText(t *testing.T) {
 		"This is the email body.")
 	err = mailHelper(listener.Addr().String(), "bob@example.com", to, smtpMsg)
 	require.NoError(t, err)
+
+	// I really hate needing to sleep in tests in order to coordinate goroutines.
+	// However, I really want to test my full smtp implementation. This includes
+	// my go-smtp interface functions not just my handleMessage func. I'm not
+	// sure how i could do that without sleep.
+	time.Sleep(2 * time.Second)
 
 	mDB.AssertExpectations(t)
 }
@@ -121,29 +127,9 @@ func TestSMTPMail_Multipart(t *testing.T) {
 	err = mailHelper(listener.Addr().String(), "bob@example.com", to, smtpMsg)
 	require.NoError(t, err)
 
+	time.Sleep(2 * time.Second)
+
 	mDB.AssertExpectations(t)
-}
-
-func TestDecodeHeader(t *testing.T) {
-	tests := []struct {
-		In  string
-		Out string
-	}{
-		{
-			In:  "=?iso-8859-1?Q?=A1Hola,_se=F1or!?=",
-			Out: "¡Hola, señor!",
-		},
-		{
-			In:  "=?utf-8?Q?Daily=20UI?= <hello@dailyui.co>",
-			Out: "Daily UI <hello@dailyui.co>",
-		},
-	}
-
-	for _, test := range tests {
-		out, err := decodeWord(test.In)
-		require.NoError(t, err)
-		assert.Equal(t, test.Out, out)
-	}
 }
 
 // https://github.com/golang/go/wiki/SendingMail

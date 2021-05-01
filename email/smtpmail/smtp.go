@@ -1,32 +1,38 @@
 package smtpmail
 
 import (
-	"bytes"
-	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
-	"mime"
-	"mime/multipart"
 	"net"
+	"net/mail"
 	"strings"
 	"time"
 
-	smtpsrv "github.com/alash3al/go-smtpsrv"
+	"github.com/DusanKasan/parsemail"
+	"github.com/emersion/go-smtp"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/haydenwoodhead/burner.kiwi/burner"
 	"github.com/haydenwoodhead/burner.kiwi/email"
-	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
 
 var _ burner.EmailProvider = &SMTPMail{}
 
 type SMTPMail struct {
-	srv        *smtpsrv.Server
 	listenAddr string
 	listener   *net.Listener
+	server     *smtp.Server
+}
+
+type smtpBackend struct {
+	handler *handler
+}
+
+type smtpSession struct {
+	conState    *smtp.ConnectionState
+	fromAddress string
+	handler     *handler
 }
 
 type handler struct {
@@ -34,9 +40,8 @@ type handler struct {
 	isBlacklisted func(string) bool
 }
 
-func NewSMPTMailProvider(listenAddr string) *SMTPMail {
+func NewMailProvider(listenAddr string) *SMTPMail {
 	return &SMTPMail{
-		srv:        nil,
 		listenAddr: listenAddr,
 	}
 }
@@ -47,22 +52,25 @@ func (s *SMTPMail) Start(websiteAddr string, db burner.Database, r *mux.Router, 
 		isBlacklisted: isBlacklisted,
 	}
 
-	s.srv = &smtpsrv.Server{
-		Name:        websiteAddr,
-		Addr:        s.listenAddr,
-		Handler:     h.handler,
-		Addressable: h.addressable,
-		MaxBodySize: 5 * (1024 * 1024),
-	}
+	be := &smtpBackend{handler: h}
+
+	server := smtp.NewServer(be)
+	server.WriteTimeout = 20 * time.Second
+	server.ReadTimeout = 20 * time.Second
+	server.MaxMessageBytes = 5 * (1024 * 1024)
+	server.Addr = s.listenAddr
+	server.AllowInsecureAuth = true
+
+	s.server = server
 
 	go func() {
 		if s.listener != nil {
-			err := s.srv.Serve(*s.listener)
+			err := s.server.Serve(*s.listener)
 			if err != nil {
 				log.Fatalf("SMTPMail: failed to start server: %v", err)
 			}
 		} else {
-			err := s.srv.ListenAndServe()
+			err := s.server.ListenAndServe()
 			if err != nil {
 				log.Fatalf("SMTPMail: failed to start server: %v", err)
 			}
@@ -72,167 +80,104 @@ func (s *SMTPMail) Start(websiteAddr string, db burner.Database, r *mux.Router, 
 	return nil
 }
 
-func (h *handler) handler(req *smtpsrv.Request) error {
-	subject, err := decodeWord(req.Message.Header.Get("Subject"))
+func (b *smtpBackend) Login(state *smtp.ConnectionState, username, password string) (smtp.Session, error) {
+	return nil, smtp.ErrAuthUnsupported
+}
+
+func (b *smtpBackend) AnonymousLogin(state *smtp.ConnectionState) (smtp.Session, error) {
+	return &smtpSession{conState: state, handler: b.handler}, nil
+}
+
+func (s *smtpSession) Reset() {
+	return
+}
+
+func (s *smtpSession) Logout() error {
+	return nil
+}
+
+func (s *smtpSession) Mail(from string, opts smtp.MailOptions) error {
+	s.fromAddress = from
+	return nil
+}
+
+const smtpMailBoxNotAvailableCode = 550
+
+func (s *smtpSession) Rcpt(to string) error {
+	parsedTo, err := mail.ParseAddress(to)
 	if err != nil {
-		log.WithError(err).WithField("subject", req.Message.Header.Get("Subject")).Error("smtpmail.handler: failed to decode subject")
+		log.WithError(err).WithField("to", to).Error("SMTP: failed to parse to field")
 		return err
 	}
 
-	from, err := decodeWord(req.Message.Header.Get("From"))
-	if err != nil {
-		log.WithError(err).WithField("from", req.Message.Header.Get("From")).Error("smtpmail.handler: failed to decode from")
-		return err
-	}
-
-	partialMsg := burner.Message{
-		ReceivedAt:      time.Now().Unix(),
-		EmailProviderID: "smtp", // TODO: maybe a better id here? For logging purposes?
-		Sender:          req.From,
-		From:            from,
-		Subject:         subject,
-	}
-
-	cTypeHeader := req.Message.Header.Get("Content-Type")
-	if cTypeHeader == "" {
-		cTypeHeader = "text/plain"
-	}
-
-	cType, params, err := mime.ParseMediaType(cTypeHeader)
-	if err != nil {
-		log.WithError(err).WithField("content-type-header", cTypeHeader).Error("smtpmail.handler: failed to parse message media type")
-		return fmt.Errorf("SMTP.handler: failed to parse message media type: %v", err)
-	}
-
-	if strings.HasPrefix(cType, "text/plain") {
-		bb, err := ioutil.ReadAll(req.Message.Body)
-		if err != nil {
-			log.WithError(err).Error("smtpmail.handler: failed to read email body")
-			return fmt.Errorf("SMTP.handler: failed to read email body: %v", err)
-		}
-
-		partialMsg.BodyPlain = string(bytes.TrimSpace(bb))
-	} else if strings.HasPrefix(cType, "text/html") {
-		bb, err := ioutil.ReadAll(req.Message.Body)
-		if err != nil {
-			log.WithError(err).Error("smtpmail.handler: failed to read email body")
-			return fmt.Errorf("SMTP.handler: failed to read email body: %v", err)
-		}
-
-		modifiedHTML, err := email.AddTargetBlank(string(bb))
-		if err != nil {
-			log.WithError(err).Error("smtpmail.handler: failed to AddTargetBlank")
-			return fmt.Errorf("SMTP.handler: failed to AddTargetBlank: %v", err)
-		}
-
-		partialMsg.BodyHTML = modifiedHTML
-	} else if strings.HasPrefix(cType, "multipart/") {
-		messageCopy, err := ioutil.ReadAll(req.Message.Body)
-		if err != nil {
-			log.WithError(err).Error("smtpmail.handler: failed to read email body for copy")
-			return fmt.Errorf("SMTP.handler: failed to read email body: %v", err)
-		}
-
-		copyReader := bytes.NewReader(messageCopy)
-
-		text, html, err := extractParts(copyReader, params["boundary"])
-		if err != nil {
-			log.WithError(err).WithField("message", string(messageCopy)).Error("smtpmail.handler: failed to parse multipart")
-			return err
-		}
-
-		partialMsg.BodyPlain = strings.TrimSpace(text)
-		partialMsg.BodyHTML = strings.TrimSpace(html)
-	}
-
-	for _, rcpt := range req.To {
-		inbox, err := h.db.GetInboxByAddress(rcpt)
-		if err != nil {
-			log.WithError(err).Error("smtpmail.handler: failed to retrieve inbox")
-			return fmt.Errorf("SMTP.handler: failed to retrieve inbox: %v", err)
-		}
-
-		mID, err := uuid.NewRandom()
-		if err != nil {
-			log.WithError(err).Printf("smtpmail.handler: failed to generate uuid for inbox")
-			return fmt.Errorf("SMTP.handler: failed to generate uuid for inbox: %v", err)
-		}
-
-		msg := partialMsg
-		msg.ID = mID.String()
-		msg.InboxID = inbox.ID
-		msg.TTL = inbox.TTL
-
-		err = h.db.SaveNewMessage(msg)
-		if err != nil {
-			log.WithError(err).Error("smtpmail.handler: failed to save message to db")
-			return fmt.Errorf("SMTP.handler: failed to save message to db: %v", err)
+	if !s.handler.emailAddressExists(parsedTo.Address) {
+		return &smtp.SMTPError{
+			Code:    smtpMailBoxNotAvailableCode,
+			Message: "Mailbox unavailable",
 		}
 	}
 
 	return nil
 }
 
-func extractParts(r io.Reader, boundary string) (string, string, error) {
-	var text, html string
-	mr := multipart.NewReader(r, boundary)
-
-	for {
-		p, err := mr.NextPart()
-		if err == io.EOF {
-			return text, html, nil
-		} else if err != nil {
-			return "", "", fmt.Errorf("SMTP.handler: failed to failed to get next part: %v", err)
-		}
-
-		cType := p.Header.Get("Content-Type")
-
-		bb, err := ioutil.ReadAll(p)
-
-		if strings.HasPrefix(cType, "text/plain") {
-			text = string(bb)
-		} else if strings.HasPrefix(cType, "text/html") {
-			trimmed := bytes.TrimSpace(bb)
-			modifiedHTML, err := email.AddTargetBlank(string(trimmed))
-			if err != nil {
-				return "", "", fmt.Errorf("SMTP.handler: failed to AddTargetBlank: %v", err)
-			}
-
-			html = modifiedHTML
-		} else {
-			continue
-		}
-
-		if err != nil {
-			if err == io.ErrUnexpectedEOF {
-				return text, html, nil
-			}
-			return "", "", fmt.Errorf("SMTP.handler: failed to read email body: %v", err)
-		}
+func (s *smtpSession) Data(r io.Reader) error {
+	email, err := parsemail.Parse(r)
+	if err != nil {
+		log.WithError(err).Error("SMTP: failed to parse message body")
+		return err
 	}
+	return s.handler.handleMessage(s.fromAddress, email)
 }
 
-var wordDecoder = new(mime.WordDecoder)
-
-func decodeWord(word string) (string, error) {
-	if strings.HasPrefix(word, "=?") {
-		dec, err := wordDecoder.DecodeHeader(word)
-		if err != nil {
-			return "", errors.Wrap(err, "SMTP.decodeWord: failed to decode")
-		}
-		return dec, nil
+func (h *handler) handleMessage(from string, parsedEmail parsemail.Email) error {
+	partialMsg := burner.Message{
+		ReceivedAt:      time.Now().Unix(),
+		EmailProviderID: "smtp", // TODO: maybe a better id here? For logging purposes?
+		Sender:          from,
+		From:            recombineFromField(parsedEmail.From),
+		Subject:         parsedEmail.Subject,
 	}
-	return word, nil
+
+	partialMsg.BodyPlain = strings.TrimSpace(parsedEmail.TextBody)
+
+	if parsedEmail.HTMLBody != "" {
+		modifiedHTML, err := email.AddTargetBlank(strings.TrimSpace(parsedEmail.HTMLBody))
+		if err != nil {
+			log.WithError(err).Error("SMTP: failed to AddTargetBlank")
+			return err
+		}
+		partialMsg.BodyHTML = modifiedHTML
+	}
+
+	for _, rcpt := range parsedEmail.To {
+		inbox, err := h.db.GetInboxByAddress(rcpt.Address)
+		if err != nil {
+			log.WithError(err).Error("SMTP: failed to retrieve inbox")
+			return err
+		}
+
+		msg := partialMsg
+		msg.ID = uuid.Must(uuid.NewRandom()).String()
+		msg.InboxID = inbox.ID
+		msg.TTL = inbox.TTL
+		err = h.db.SaveNewMessage(msg)
+		if err != nil {
+			log.WithError(err).Error("SMTP: failed to save message to db")
+			return err
+		}
+	}
+
+	return nil
 }
 
-func (h *handler) addressable(user, address string) bool {
+func (h *handler) emailAddressExists(address string) bool {
 	if h.isBlacklisted(address) {
 		return false
 	}
 
 	exists, err := h.db.EmailAddressExists(address)
 	if err != nil {
-		log.Printf("SMTPMail: failed to query if email exists: %v", err)
+		log.WithError(err).Error("SMTP: failed to query if email exists")
 		return false
 	}
 
@@ -240,11 +185,35 @@ func (h *handler) addressable(user, address string) bool {
 }
 
 func (s *SMTPMail) Stop() error {
-	return s.srv.Shutdown(context.Background())
+	return s.server.Close()
 }
 
 // RegisterRoute is redundant in this instance as we're not calling to an external service to register a callback
 // instead we will receive all email and then be asking our db directly if we should accept this email or not.
 func (s *SMTPMail) RegisterRoute(i burner.Inbox) (string, error) {
 	return "smtp", nil
+}
+
+func recombineFromField(from []*mail.Address) string {
+	var fromString strings.Builder
+	for i, f := range from {
+		if f == nil {
+			continue
+		}
+
+		if f.Name != "" {
+			if i == len(from)-1 {
+				fromString.WriteString(fmt.Sprintf("%s <%s>", f.Name, f.Address))
+			} else {
+				fromString.WriteString(fmt.Sprintf("%s <%s>, ", f.Name, f.Address))
+			}
+		} else {
+			if i == len(from)-1 {
+				fromString.WriteString(f.Address)
+			} else {
+				fromString.WriteString(f.Address)
+			}
+		}
+	}
+	return fromString.String()
 }

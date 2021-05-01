@@ -47,7 +47,7 @@ func mustParseNewServerInput() burner.NewInput {
 	case mailgunProvider:
 		email = mailgunmail.NewMailgunProvider(mustParseStringVar("MG_DOMAIN"), mustParseStringVar("MG_KEY"))
 	case smtpProvider:
-		email = smtpmail.NewSMPTMailProvider(parseStringVarWithDefault("SMTP_LISTEN", ":25"))
+		email = smtpmail.NewMailProvider(parseStringVarWithDefault("SMTP_LISTEN", ":25"))
 	}
 
 	return burner.NewInput{
