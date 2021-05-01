@@ -89,7 +89,6 @@ func (b *smtpBackend) AnonymousLogin(state *smtp.ConnectionState) (smtp.Session,
 }
 
 func (s *smtpSession) Reset() {
-	return
 }
 
 func (s *smtpSession) Logout() error {
