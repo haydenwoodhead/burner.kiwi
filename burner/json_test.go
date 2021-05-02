@@ -17,13 +17,16 @@ import (
 )
 
 func TestServer_NewInboxJSON(t *testing.T) {
+	mEG := new(MockEmailGenerator)
+	mEG.On("NewRandom").Return("test@example.com")
+
 	mDB := new(MockDatabase)
 	inbox := Inbox{
-		Address:              "fpllngzi@example.com",
+		Address:              "test@example.com",
 		CreatedBy:            "192.168.1.1",
 		EmailProviderRouteID: "1234",
 	}
-	mDB.On("EmailAddressExists", "fpllngzi@example.com").Return(false, nil)
+	mDB.On("EmailAddressExists", "test@example.com").Return(false, nil)
 	mDB.On("SaveNewInbox", mock.MatchedBy(InboxMatcher(inbox))).Return(nil)
 	mDB.On("SetInboxCreated", mock.MatchedBy(InboxMatcher(inbox))).Return(nil)
 
@@ -31,11 +34,13 @@ func TestServer_NewInboxJSON(t *testing.T) {
 	mEP.On("RegisterRoute", mock.Anything).Return("1234", nil)
 
 	s := Server{
-		db:          mDB,
-		tg:          token.NewGenerator("testexample12344", time.Hour),
-		email:       mEP,
-		eg:          &emailgenerator.EmailGenerator{Hosts: []string{"example.com"}, L: 8},
-		usingLambda: true, // make sure the create route goroutine finishes before we check the result
+		db:    mDB,
+		tg:    token.NewGenerator("testexample12344", time.Hour),
+		email: mEP,
+		eg:    mEG,
+		cfg: Config{
+			UsingLambda: true,
+		}, // make sure the create route goroutine finishes before we check the result
 	}
 
 	rr := httptest.NewRecorder()
@@ -71,6 +76,7 @@ func TestServer_NewInboxJSON(t *testing.T) {
 
 	mEP.AssertExpectations(t)
 	mDB.AssertExpectations(t)
+	mEG.AssertExpectations(t)
 }
 
 func TestServer_GetInboxDetailsJSON(t *testing.T) {
@@ -87,10 +93,12 @@ func TestServer_GetInboxDetailsJSON(t *testing.T) {
 	mDB.On("GetInboxByID", "Doesntexist").Return(Inbox{}, errors.New("inbox doesn't exist"))
 
 	s := Server{
-		db:          mDB,
-		tg:          token.NewGenerator("testexample12344", time.Hour),
-		eg:          emailgenerator.New([]string{"example.com"}, 8),
-		usingLambda: true, // make sure the create route goroutine finishes before we check the result
+		db: mDB,
+		tg: token.NewGenerator("testexample12344", time.Hour),
+		eg: emailgenerator.New([]string{"example.com"}, 8),
+		cfg: Config{
+			UsingLambda: true,
+		},
 	}
 
 	router := mux.NewRouter()
@@ -147,10 +155,12 @@ func TestServer_GetAllMessagesJSON(t *testing.T) {
 	}}, nil)
 
 	s := Server{
-		db:          mDB,
-		tg:          token.NewGenerator("testexample12344", time.Hour),
-		eg:          emailgenerator.New([]string{"example.com"}, 8),
-		usingLambda: true, // make sure the create route goroutine finishes before we check the result
+		db: mDB,
+		tg: token.NewGenerator("testexample12344", time.Hour),
+		eg: emailgenerator.New([]string{"example.com"}, 8),
+		cfg: Config{
+			UsingLambda: true,
+		}, // make sure the create route goroutine finishes before we check the result
 	}
 
 	router := mux.NewRouter()

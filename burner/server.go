@@ -41,21 +41,18 @@ var version = "dev"
 
 // Server bundles several data types together for dependency injection into http handlers
 type Server struct {
-	store              *sessions.CookieStore
-	websiteURL         string
-	staticURL          string
-	eg                 *emailgenerator.EmailGenerator
-	email              EmailProvider
-	db                 Database
-	Router             *mux.Router
-	tg                 *token.Generator
-	developing         bool
-	usingLambda        bool
-	blacklistedDomains []string
+	store  *sessions.CookieStore
+	eg     EmailGenerator
+	email  EmailProvider
+	db     Database
+	Router *mux.Router
+	tg     *token.Generator
+
+	cfg Config
 }
 
-//NewInput contains key configuration parameters to be passed to New()
-type NewInput struct {
+//Config contains key configuration parameters to be passed to New()
+type Config struct {
 	Key                string
 	URL                string
 	StaticURL          string
@@ -69,8 +66,15 @@ type NewInput struct {
 }
 
 // New returns a burner with the given settings
-func New(n NewInput) (*Server, error) {
-	s := Server{}
+func New(cfg Config, db Database, email EmailProvider) (*Server, error) {
+	s := Server{
+		store: sessions.NewCookieStore([]byte(cfg.Key)),
+		eg:    emailgenerator.New(cfg.Domains, 8),
+		tg:    token.NewGenerator(cfg.Key, 24*time.Hour),
+		cfg:   cfg,
+		db:    db,
+		email: email,
+	}
 
 	// Setup Templates
 	indexTemplate = MustParseTemplates(templates, "base.html", "index.html")
@@ -79,36 +83,20 @@ func New(n NewInput) (*Server, error) {
 	editTemplate = MustParseTemplates(templates, "base.html", "edit.html")
 	deleteTemplate = MustParseTemplates(templates, "base.html", "delete.html")
 
-	s.store = sessions.NewCookieStore([]byte(n.Key))
 	s.store.MaxAge(86402) // set max cookie age to 24 hours + 2 seconds
 
-	s.websiteURL = n.URL
-	s.staticURL = n.StaticURL
-
-	s.developing = n.Developing
-
-	s.usingLambda = n.UsingLambda
-
-	s.eg = emailgenerator.New(n.Domains, 8)
-
-	s.tg = token.NewGenerator(n.Key, 24*time.Hour)
-
-	s.db = n.Database
 	err := s.db.Start()
 	if err != nil {
 		return nil, fmt.Errorf("failed to start database: %w", err)
 	}
 
-	s.blacklistedDomains = n.BlacklistedDomains
-
-	s.Router = mux.NewRouter()
-	s.Router.StrictSlash(true) // means router will match both "/path" and "/path/"
-
-	s.email = n.Email
-	err = s.email.Start(s.websiteURL, s.db, s.Router, s.isBlacklistedDomain)
+	err = s.email.Start(cfg.URL, s.db, s.Router, s.isBlacklistedDomain)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start email provider: %w", err)
 	}
+
+	s.Router = mux.NewRouter()
+	s.Router.StrictSlash(true) // means router will match both "/path" and "/path/"
 
 	// HTML - trying to make middleware flow/handler declaration a little more readable
 	s.Router.Handle("/",
@@ -170,13 +158,13 @@ func New(n NewInput) (*Server, error) {
 	// Static File Serving w/ Packr
 	fs := http.StripPrefix("/static/", http.FileServer(staticFS))
 
-	if n.Developing {
+	if cfg.Developing {
 		s.Router.PathPrefix("/static/").Handler(alice.New(CacheControl(0)).Then(fs))
 	} else {
 		s.Router.PathPrefix("/static/").Handler(alice.New(CacheControl(15778463)).Then(fs))
 	}
 
-	if n.RestoreRealIP {
+	if cfg.RestoreRealIP {
 		s.Router.Use(RestoreRealIP)
 	}
 
@@ -204,7 +192,7 @@ const (
 
 func (s *Server) isBlacklistedDomain(email string) bool {
 	emailDomain := strings.Split(email, "@")[1]
-	for _, domain := range s.blacklistedDomains {
+	for _, domain := range s.cfg.BlacklistedDomains {
 		if domain == emailDomain {
 			return true
 		}

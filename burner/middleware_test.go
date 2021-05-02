@@ -273,8 +273,10 @@ func TestCacheControl(t *testing.T) {
 
 func TestServer_SecurityHeaders_SelfServe(t *testing.T) {
 	s := Server{
-		developing: false,
-		staticURL:  "/static",
+		cfg: Config{
+			Developing: false,
+			StaticURL:  "/static",
+		},
 	}
 
 	rr := httptest.NewRecorder()
@@ -310,8 +312,10 @@ func TestServer_SecurityHeaders_SelfServe(t *testing.T) {
 
 func TestServer_SecurityHeaders_ExtServe(t *testing.T) {
 	s := Server{
-		developing: false,
-		staticURL:  "https://www.example.com/static",
+		cfg: Config{
+			Developing: false,
+			StaticURL:  "https://www.example.com/static",
+		},
 	}
 
 	rr := httptest.NewRecorder()
@@ -331,8 +335,10 @@ func TestServer_SecurityHeaders_ExtServe(t *testing.T) {
 
 func TestServer_SecurityHeaders_AllowExt(t *testing.T) {
 	s := Server{
-		developing: false,
-		staticURL:  "https://www.example.com/static",
+		cfg: Config{
+			Developing: false,
+			StaticURL:  "https://www.example.com/static",
+		},
 	}
 
 	rr := httptest.NewRecorder()

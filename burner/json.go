@@ -75,7 +75,7 @@ func (s *Server) NewInboxJSON(w http.ResponseWriter, r *http.Request) {
 	// get created.
 	var wg sync.WaitGroup
 
-	if s.usingLambda {
+	if s.cfg.UsingLambda {
 		wg.Add(1)
 		go s.lambdaCreateRouteAndUpdate(&wg, i)
 	} else {
@@ -101,7 +101,7 @@ func (s *Server) NewInboxJSON(w http.ResponseWriter, r *http.Request) {
 
 	// if we're using lambda then wait for our create route and update goroutine to finish before exiting the
 	// func and therefore returning a response
-	if s.usingLambda {
+	if s.cfg.UsingLambda {
 		wg.Wait()
 	}
 

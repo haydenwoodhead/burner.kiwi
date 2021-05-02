@@ -142,7 +142,7 @@ func (s *Server) SecurityHeaders(extStyle bool) alice.Constructor {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// check to see if we are developing before forcing strict transport
-			if !s.developing {
+			if !s.cfg.Developing {
 				w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
 			}
 
@@ -150,14 +150,14 @@ func (s *Server) SecurityHeaders(extStyle bool) alice.Constructor {
 			var imgSrc string
 			var fntSrc string
 
-			if strings.Compare(s.staticURL, "/static") == 0 {
+			if strings.Compare(s.cfg.StaticURL, "/static") == 0 {
 				styleSrc = self
 				imgSrc = self
 				fntSrc = self
 			} else {
-				styleSrc = s.staticURL
-				imgSrc = s.staticURL
-				fntSrc = s.staticURL
+				styleSrc = s.cfg.StaticURL
+				imgSrc = s.cfg.StaticURL
+				fntSrc = s.cfg.StaticURL
 			}
 
 			// if we're allowing external styles then override then csp

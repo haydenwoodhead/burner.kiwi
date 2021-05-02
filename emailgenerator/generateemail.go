@@ -51,8 +51,8 @@ func (eg *EmailGenerator) NewRandom() string {
 	return string(name) + "@" + domain
 }
 
-// NewFromRouteAndHost generates a new email address from a string and host. It is the callers responsibility to check for uniqueness
-func (eg *EmailGenerator) NewFromRouteAndHost(r string, h string) (string, error) {
+// NewFromUserAndHost generates a new email address from a string and host. It is the callers responsibility to check for uniqueness
+func (eg *EmailGenerator) NewFromUserAndHost(r string, h string) (string, error) {
 	if eg.HostsContains(h) {
 		return string(r) + "@" + h, nil
 	}
@@ -61,8 +61,8 @@ func (eg *EmailGenerator) NewFromRouteAndHost(r string, h string) (string, error
 
 var isAlphaNumeric = regexp.MustCompile(`^[a-zA-Z0-9]+$`).MatchString
 
-//VerifyRoute verifies the local part of an email address is between 3 and 64 alphanumeric characters
-func (eg *EmailGenerator) VerifyRoute(r string) error {
+//VerifyUser verifies the local part of an email address is between 3 and 64 alphanumeric characters
+func (eg *EmailGenerator) VerifyUser(r string) error {
 	if len(r) < 3 {
 		return fmt.Errorf("route must be at least three characters: %s", r)
 	} else if len(r) > 64 {

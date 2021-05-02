@@ -30,7 +30,7 @@ type staticDetails struct {
 //getStaticDetails returns current static details
 func (s *Server) getStaticDetails() staticDetails {
 	return staticDetails{
-		URL:       s.staticURL,
+		URL:       s.cfg.StaticURL,
 		Milligram: milligram,
 		Logo:      logo,
 		Normalize: normalize,
@@ -166,7 +166,7 @@ func (s *Server) NewNamedInbox(w http.ResponseWriter, r *http.Request) {
 	errs := ""
 
 	route := r.PostFormValue("route")
-	err := s.eg.VerifyRoute(route)
+	err := s.eg.VerifyUser(route)
 	if err != nil {
 		log.Printf("NewNamedInbox: failed to verify route: %v", err)
 		errs = err.Error()
@@ -179,7 +179,7 @@ func (s *Server) NewNamedInbox(w http.ResponseWriter, r *http.Request) {
 		errs = err.Error()
 	}
 
-	address, err := s.eg.NewFromRouteAndHost(route, host)
+	address, err := s.eg.NewFromUserAndHost(route, host)
 	if err != nil {
 		log.Printf("NewNamedInbox: failed to create new inbox address: %v", err)
 		http.Error(w, "Failed to generate email", http.StatusInternalServerError)
@@ -246,7 +246,7 @@ func (s *Server) CreateRouteFromInbox(w http.ResponseWriter, r *http.Request, i 
 	// get created.
 	var wg sync.WaitGroup
 
-	if s.usingLambda {
+	if s.cfg.UsingLambda {
 		wg.Add(1)
 		go s.lambdaCreateRouteAndUpdate(&wg, i)
 	} else {
@@ -270,7 +270,7 @@ func (s *Server) CreateRouteFromInbox(w http.ResponseWriter, r *http.Request, i 
 
 	// if we're using lambda then wait for our create route and update goroutine to finish before exiting the
 	// func and therefore returning a response
-	if s.usingLambda {
+	if s.cfg.UsingLambda {
 		wg.Wait()
 	}
 

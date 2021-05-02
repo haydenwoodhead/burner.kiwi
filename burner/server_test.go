@@ -31,7 +31,9 @@ func TestMustParseTemplates(t *testing.T) {
 }
 func TestIsBlackListed(t *testing.T) {
 	s := Server{
-		blacklistedDomains: []string{"example.com"},
+		cfg: Config{
+			BlacklistedDomains: []string{"example.com"},
+		},
 	}
 
 	tests := []struct {
