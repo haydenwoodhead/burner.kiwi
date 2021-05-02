@@ -3,11 +3,11 @@ package sqldb
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/haydenwoodhead/burner.kiwi/burner"
 	"github.com/jmoiron/sqlx"
+	log "github.com/sirupsen/logrus"
 )
 
 // SQLDatabase implements the database interface for sqldb
@@ -23,6 +23,8 @@ func New(dbType string, dbURL string) *SQLDatabase {
 }
 
 func (s *SQLDatabase) Start() error {
+	log.Infof("Starting %s database connection", s.dbType)
+
 	err := s.createTables()
 	if err != nil {
 		return fmt.Errorf("%s - failed to create tables: %w", s.dbType, err)
@@ -33,16 +35,17 @@ func (s *SQLDatabase) Start() error {
 		var active int
 		err := s.Get(&active, "select count(*) from inbox WHERE ttl > $1", t)
 		if err != nil {
-			log.Println("Failed to get number of active inboxes")
+			log.WithError(err).Error("Failed to get number of active inboxes")
 		}
+		log.WithField("active", active).Info("Got count of active inboxes")
 
 		for {
 			count, err := s.RunTTLDelete()
 			if err != nil {
-				log.Printf("Failed to delete old rows from db: %v\n", err)
+				log.WithError(err).Error("Failed to delete old rows from db")
 				break
 			}
-			log.Printf("Deleted %v old inboxes from db\n", count)
+			log.WithField("deleted", count).Info("Deleted old inboxes from db")
 			time.Sleep(1 * time.Hour)
 		}
 	}()

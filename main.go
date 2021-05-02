@@ -18,6 +18,7 @@ func main() {
 		log.Fatalf("Failed to setup new burner: %v", err)
 	}
 
+	log.Info("Starting burner.kiwi")
 	if cfg.UsingLambda {
 		log.Fatal(gateway.ListenAndServe("", context.ClearHandler(s.Router))) // wrap mux in ClearHandler as per docs to prevent leaking memory
 	} else {

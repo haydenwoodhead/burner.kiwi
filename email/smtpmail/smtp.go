@@ -63,6 +63,7 @@ func (s *SMTPMail) Start(websiteAddr string, db burner.Database, r *mux.Router, 
 
 	s.server = server
 
+	log.Info("Starting smtp server")
 	go func() {
 		if s.listener != nil {
 			err := s.server.Serve(*s.listener)
