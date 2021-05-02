@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
-	"strings"
-	"sync"
 	"time"
 
 	"log"
@@ -77,11 +75,11 @@ func New(cfg Config, db Database, email EmailProvider) (*Server, error) {
 	}
 
 	// Setup Templates
-	indexTemplate = MustParseTemplates(templates, "base.html", "index.html")
-	messageHTMLTemplate = MustParseTemplates(templates, "base.html", "message-html.html")
-	messagePlainTemplate = MustParseTemplates(templates, "base.html", "message-plain.html")
-	editTemplate = MustParseTemplates(templates, "base.html", "edit.html")
-	deleteTemplate = MustParseTemplates(templates, "base.html", "delete.html")
+	indexTemplate = mustParseTemplates(templates, "base.html", "index.html")
+	messageHTMLTemplate = mustParseTemplates(templates, "base.html", "message-html.html")
+	messagePlainTemplate = mustParseTemplates(templates, "base.html", "message-plain.html")
+	editTemplate = mustParseTemplates(templates, "base.html", "edit.html")
+	deleteTemplate = mustParseTemplates(templates, "base.html", "delete.html")
 
 	s.store.MaxAge(86402) // set max cookie age to 24 hours + 2 seconds
 
@@ -190,50 +188,9 @@ const (
 	sessionCTXKey key = iota
 )
 
-func (s *Server) isBlacklistedDomain(email string) bool {
-	emailDomain := strings.Split(email, "@")[1]
-	for _, domain := range s.cfg.BlacklistedDomains {
-		if domain == emailDomain {
-			return true
-		}
-	}
-	return false
-}
-
-//createRouteAndUpdate is intended to be run in a goroutine. It creates a mailgun route and updates dynamodb with
-//the result. Otherwise it fails silently and this failure is picked up in the next request.
-func (s *Server) createRouteAndUpdate(i Inbox) {
-	routeID, err := s.email.RegisterRoute(i)
-	if err != nil {
-		log.Printf("createRouteAndUpdate: failed to create route: %v", err)
-
-		i.FailedToCreate = true
-		err = s.db.SetInboxFailed(i)
-		if err != nil {
-			log.Printf("createRouteAndUpdate: failed to set route as having failed to create: %v", err)
-		}
-
-		return
-	}
-
-	i.EmailProviderRouteID = routeID
-	i.FailedToCreate = false
-	err = s.db.SetInboxCreated(i)
-	if err != nil {
-		log.Printf("Index JSON: failed to update that route is created: %v", err)
-	}
-}
-
-//lambdaCreateRouteAndUpdate makes use of the waitgroup then calls createRouteAndUpdate. This is because lambda
-//will exit as soon as we return the response so we must make it wait
-func (s *Server) lambdaCreateRouteAndUpdate(wg *sync.WaitGroup, i Inbox) {
-	defer wg.Done()
-	s.createRouteAndUpdate(i)
-}
-
-// MustParseTemplates parses string templates into one template
+// mustParseTemplates parses string templates into one template
 // Function modified from: https://stackoverflow.com/questions/41856021/how-to-parse-multiple-strings-into-a-template-with-go
-func MustParseTemplates(box packr.Box, templs ...string) *template.Template {
+func mustParseTemplates(box packr.Box, templs ...string) *template.Template {
 	t := template.New("templ")
 
 	for i, templ := range templs {
