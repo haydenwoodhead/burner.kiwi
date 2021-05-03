@@ -71,17 +71,15 @@ func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
 	session := s.getSessionFromCookie(r)
 
 	if session.IsNew {
-		s.newRandomInbox(w, r)
+		s.newRandomInbox(session, w, r)
 		return
 	}
 
-	s.getInbox(w, r)
+	s.getInbox(session, w, r)
 }
 
-func (s *Server) getInbox(w http.ResponseWriter, r *http.Request) {
-	session := s.getSessionFromCookie(r)
+func (s *Server) getInbox(session *session, w http.ResponseWriter, r *http.Request) {
 	id := session.InboxID
-
 	i, err := s.db.GetInboxByID(id)
 	if err != nil {
 		log.WithField("inboxID", id).WithError(err).Error("Index: failed to get inbox")
@@ -137,28 +135,36 @@ func (s *Server) getInbox(w http.ResponseWriter, r *http.Request) {
 }
 
 // newRandomInbox generates a new Inbox with a random route and host from availabile options.
-func (s *Server) newRandomInbox(w http.ResponseWriter, r *http.Request) {
+func (s *Server) newRandomInbox(session *session, w http.ResponseWriter, r *http.Request) {
 	i := NewInbox()
 	i.Address = s.eg.NewRandom()
 
-	exist, err := s.db.EmailAddressExists(i.Address) // while it's VERY unlikely that the email address already exists but lets check anyway
+	exists, err := s.db.EmailAddressExists(i.Address) // while it's VERY unlikely that the email address already exists but lets check anyway
 	if err != nil {
-		log.Printf("NewRandomInbox: failed to check if email exists: %v", err)
-		http.Error(w, "Failed to generate email", http.StatusInternalServerError)
+		log.WithError(err).Error("NewRandomInbox: failed to check if email exists")
+		http.Error(w, "Failed to generate email. Please refresh", http.StatusInternalServerError)
 		return
 	}
 
-	if exist {
-		log.Printf("NewRandomInbox: email already exists: %v", i.Address)
-		http.Error(w, fmt.Sprintf("The email address %v is already in use.", i.Address), http.StatusInternalServerError)
+	if exists {
+		log.Error("NewRandomInbox: duplicate random email created")
+		http.Error(w, "Failed to generate email. Please refresh", http.StatusInternalServerError)
 		return
 	}
 
-	s.createRouteFromInbox(w, r, i)
+	err = s.createRouteFromInbox(session, i, r.RemoteAddr, w)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	s.getInbox(session, w, r)
 }
 
-// NewNamedInbox generates a new Inbox with a specific route and host.
+// newNamedInbox generates a new Inbox with a specific route and host.
 func (s *Server) NewNamedInbox(w http.ResponseWriter, r *http.Request) {
+	session := s.getSessionFromCookie(r)
+
 	errs := ""
 
 	route := r.PostFormValue("route")
@@ -185,15 +191,15 @@ func (s *Server) NewNamedInbox(w http.ResponseWriter, r *http.Request) {
 	i := NewInbox()
 	i.Address = address
 
-	exist, err := s.db.EmailAddressExists(i.Address)
+	exists, err := s.db.EmailAddressExists(i.Address)
 	if err != nil {
 		log.Printf("NewNamedInbox: failed to check if email exists: %v", err)
 		http.Error(w, "Failed to generate email", http.StatusInternalServerError)
 		return
 	}
 
-	if exist {
-		log.Printf("NewNamedInbox: email already exisists: %v", i.Address)
+	if exists {
+		log.Printf("NewNamedInbox: email already exists: %v", i.Address)
 		errs = fmt.Sprintf("address already in use: %v", i.Address)
 	}
 
@@ -211,25 +217,22 @@ func (s *Server) NewNamedInbox(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Failed to execute template", http.StatusInternalServerError)
 		}
 	} else {
-		s.createRouteFromInbox(w, r, i)
+		err := s.createRouteFromInbox(session, i, r.RemoteAddr, w)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		http.Redirect(w, r, "/", http.StatusFound)
 	}
 }
 
-//CreateRouteFromInbox creates a new route based on Inbox settings and redirects to Index.
-func (s *Server) createRouteFromInbox(w http.ResponseWriter, r *http.Request, i Inbox) {
-	session := s.getSessionFromCookie(r)
-
-	id, err := uuid.NewRandom()
-	if err != nil {
-		log.Printf("CreateRouteFromInbox: failed to generate new random id: %v", err)
-		http.Error(w, "Failed to generate new random id", http.StatusInternalServerError)
-		return
-	}
-
-	i.ID = id.String()
+// CreateRouteFromInbox creates a new route based on Inbox settings and writes out the new inbox
+func (s *Server) createRouteFromInbox(session *session, i Inbox, remoteAddr string, w http.ResponseWriter) error {
+	i.ID = uuid.Must(uuid.NewRandom()).String()
 	i.CreatedAt = time.Now().Unix()
 	i.TTL = time.Now().Add(time.Hour * 24).Unix()
-	i.CreatedBy = r.RemoteAddr
+	i.CreatedBy = remoteAddr
 
 	// Mailgun can take a really long time to register a route (sometimes up to 2 seconds) so
 	// we should do this out of the request thread and then update our db with the results. However if we're using
@@ -244,18 +247,16 @@ func (s *Server) createRouteFromInbox(w http.ResponseWriter, r *http.Request, i 
 		go s.createRouteAndUpdate(i)
 	}
 
-	err = s.db.SaveNewInbox(i)
+	err := s.db.SaveNewInbox(i)
 	if err != nil {
 		log.WithError(err).Error("CreateRouteFromInbox: failed to save new email")
-		http.Error(w, "Failed to save new inbox", http.StatusInternalServerError)
-		return
+		return fmt.Errorf("Failed to save new inbox: %w", err)
 	}
 
 	err = session.SetInboxID(i.ID, w)
 	if err != nil {
 		log.WithError(err).Error("CreateRouteFromInbox: failed to set session cookie")
-		http.Error(w, "Failed to set session cookie", http.StatusInternalServerError)
-		return
+		return fmt.Errorf("Failed to set session cookie: %w", err)
 	}
 
 	// if we're using lambda then wait for our create route and update goroutine to finish before exiting the
@@ -264,7 +265,7 @@ func (s *Server) createRouteFromInbox(w http.ResponseWriter, r *http.Request, i 
 		wg.Wait()
 	}
 
-	http.Redirect(w, r, "/", http.StatusFound)
+	return nil
 }
 
 // IndividualMessage returns a singular message to the user
@@ -277,7 +278,7 @@ func (s *Server) IndividualMessage(w http.ResponseWriter, r *http.Request) {
 
 	m, err := s.db.GetMessageByID(iID, mID)
 	if err == ErrMessageDoesntExist {
-		http.Error(w, "Message not found on burner", http.StatusNotFound)
+		http.Error(w, "Message not found on burner.kiwi", http.StatusNotFound)
 		return
 	} else if err != nil {
 		log.Printf("IndividualMessage: failed to get message. Error: %v", err)

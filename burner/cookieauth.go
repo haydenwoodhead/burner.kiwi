@@ -20,6 +20,7 @@ type session struct {
 
 func (s *session) SetInboxID(inboxID string, w http.ResponseWriter) error {
 	s.InboxID = inboxID
+	s.IsNew = false
 	s.cookie.Values[inboxIDKey] = inboxID
 	err := s.cookie.Save(s.r, w)
 	if err != nil {
@@ -37,10 +38,10 @@ func (s *session) Delete(w http.ResponseWriter) error {
 	return nil
 }
 
-func (s *Server) getSessionFromCookie(r *http.Request) session {
+func (s *Server) getSessionFromCookie(r *http.Request) *session {
 	cookie, _ := s.sessionStore.Get(r, sessionKey)
 
-	session := session{
+	session := &session{
 		cookie: cookie,
 		r:      r,
 	}
