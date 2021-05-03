@@ -3,9 +3,7 @@ package burner
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
-	"net/http/cookiejar"
 	"net/http/httptest"
 	"reflect"
 	"strings"
@@ -15,7 +13,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/gorilla/mux"
-	"github.com/gorilla/sessions"
 	"github.com/haydenwoodhead/burner.kiwi/token"
 	"github.com/justinas/alice"
 )
@@ -24,54 +21,6 @@ const FAKEHANDLERRESP = "fake handler"
 const NEWHANDLERRESP = "new handler"
 const PASSKEY = "pass key"
 const DONTCHECK = "string"
-
-func TestServer_IsNew(t *testing.T) {
-	s := Server{
-		store: sessions.NewCookieStore([]byte("testtest1234")),
-	}
-
-	cj, _ := cookiejar.New(nil)
-
-	client := &http.Client{
-		Jar: cj,
-	}
-
-	server := httptest.NewServer(alice.New(s.IsNew(newHandler(t))).ThenFunc(fakeHandler))
-
-	resp, err := client.Get(server.URL)
-
-	if err != nil {
-		t.Fatalf("TestServer_IsNew: failed to perform first request: %v", err)
-	}
-
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-
-	if err != nil {
-		t.Errorf("TestServer_IsNew: Failed to read body: %v", err)
-	}
-
-	if string(body) != NEWHANDLERRESP {
-		t.Fatalf("TestServer_IsNew: First request not matching. Expected %v, got %v.", NEWHANDLERRESP, string(body))
-	}
-
-	resp2, err := client.Get(server.URL)
-
-	if err != nil {
-		t.Fatalf("TestServer_IsNew: failed to perform request 2: %v", err)
-	}
-
-	defer resp2.Body.Close()
-	body2, err := ioutil.ReadAll(resp2.Body)
-
-	if err != nil {
-		t.Errorf("TestServer_IsNew: Failed to read 2nd body: %v", err)
-	}
-
-	if string(body2) != FAKEHANDLERRESP {
-		t.Fatalf("TestServer_IsNew: Second request not matching. Expected '%v', got '%v'.", FAKEHANDLERRESP, string(body2))
-	}
-}
 
 func TestServer_CheckPermissionJSON(t *testing.T) {
 	tests := []struct {
@@ -153,80 +102,6 @@ func TestServer_CheckPermissionJSON(t *testing.T) {
 				t.Errorf("TestServer_CheckPermissionJSON: %v - Message different. Expected %v, got %v", i, test.ExpectedMsg, msg)
 			}
 		}
-	}
-}
-
-func TestServer_CheckCookieExists(t *testing.T) {
-	s := Server{
-		store: sessions.NewCookieStore([]byte("testtest1234")),
-	}
-
-	cj, _ := cookiejar.New(nil)
-
-	client := &http.Client{
-		Jar: cj,
-	}
-
-	r := mux.NewRouter()
-	r.Handle("/fake", alice.New(s.CheckCookieExists).ThenFunc(fakeHandler))
-	r.HandleFunc("/setcookie", setCookieHandler)
-	r.Handle("/getcookie", alice.New(s.CheckCookieExists).Then(checkCookieHandler(t)))
-
-	server := httptest.NewServer(r)
-
-	// First request - we want this to send us to fakeErrorPrinter
-	resp1, err := client.Get(server.URL + "/fake")
-
-	if err != nil {
-		t.Fatalf("TestServer_CheckCookieExists: failed to perform first request: %v", err)
-	}
-
-	defer resp1.Body.Close()
-	body1, err := ioutil.ReadAll(resp1.Body)
-
-	if err != nil {
-		t.Fatalf("TestServer_CheckCookieExists: Failed to read body1: %v", err)
-	}
-
-	// http.Error adds a trailing newline to our message so we need to add it here in our comparison
-	if string(body1) != checkCookieExistsErrorResponse+"\n" {
-		t.Fatalf("TestServer_CheckCookieExists: Body1 not expected. Expected %T, got %T", checkCookieExistsErrorResponse, string(body1))
-	}
-
-	// Second request to setup cookie/session
-	resp2, err := client.Get(server.URL + "/setcookie")
-
-	if err != nil {
-		t.Fatalf("TestServer_CheckCookieExists: failed to perform second request: %v", err)
-	}
-
-	defer resp2.Body.Close()
-	body2, err := ioutil.ReadAll(resp2.Body)
-
-	if err != nil {
-		t.Fatalf("TestServer_CheckCookieExists: Failed to read body2: %v", err)
-	}
-
-	if string(body2) != "success" {
-		t.Fatalf("TestServer_CheckCookieExists: Body2 not expected. Expected %v, got %v", "success", string(body2))
-	}
-
-	// Third request to check that session ctx is properly set
-	resp3, err := client.Get(server.URL + "/getcookie")
-
-	if err != nil {
-		t.Fatalf("TestServer_CheckCookieExists: failed to perform third request: %v", err)
-	}
-
-	defer resp3.Body.Close()
-	body3, err := ioutil.ReadAll(resp3.Body)
-
-	if err != nil {
-		t.Fatalf("TestServer_CheckCookieExists: Failed to read body3: %v", err)
-	}
-
-	if string(body3) != "success" {
-		t.Fatalf("TestServer_CheckCookieExists: Body3 not expected. Expected %v, got %v", "success", string(body3))
 	}
 }
 
@@ -374,56 +249,6 @@ func TestRestoreRealIP(t *testing.T) {
 	assert.Equal(t, "1.1.1.1", rr.Body.String())
 }
 
-// Mock handler implementations
-
-var store = sessions.NewCookieStore([]byte("testtest1234"))
-
 func fakeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(FAKEHANDLERRESP))
-}
-
-func setCookieHandler(w http.ResponseWriter, r *http.Request) {
-	sess, _ := store.Get(r, sessionStoreKey)
-
-	sess.Values["id"] = "1234"
-
-	err := sess.Save(r, w)
-
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("failed"))
-	}
-
-	w.Write([]byte("success"))
-}
-
-func checkCookieHandler(t *testing.T) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		sess, ok := r.Context().Value(sessionCTXKey).(*sessions.Session)
-
-		if !ok {
-			t.Fatalf("%v - Sess not of type sessions.Session actual type: %v", t.Name(), reflect.TypeOf(sess))
-		}
-
-		if sess.IsNew {
-			t.Errorf("%v failed. Session not set properly", t.Name())
-		}
-
-		w.Write([]byte("success"))
-	})
-}
-
-func newHandler(t *testing.T) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		sess, ok := r.Context().Value(sessionCTXKey).(*sessions.Session)
-
-		if !ok {
-			t.Fatalf("Sess not of type sessions.Session actual type: %v", reflect.TypeOf(sess))
-		}
-
-		sess.Values["id"] = "1234"
-
-		sess.Save(r, w)
-		w.Write([]byte(NEWHANDLERRESP))
-	})
 }

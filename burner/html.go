@@ -2,19 +2,16 @@ package burner
 
 import (
 	"fmt"
-	"log"
 	"net/http"
-	"reflect"
 	"sort"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"github.com/gorilla/sessions"
 	"github.com/haydenwoodhead/burner.kiwi/stringduration"
+	log "github.com/sirupsen/logrus"
 )
 
 //staticDetails contains the names of the static files used in the project
@@ -69,36 +66,35 @@ type editOut struct {
 	Error  string
 }
 
-// Index returns messages in inbox to user
+// Index either creates a new inbox or returns the existing one
 func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
-	sess, ok := r.Context().Value(sessionCTXKey).(*sessions.Session)
-	if !ok {
-		log.Printf("Index: failed to get sess var. Sess not of type sessions.Session actual type: %v", reflect.TypeOf(sess))
-		http.Error(w, "Failed to get session", http.StatusInternalServerError)
+	session := s.getSessionFromCookie(r)
+
+	if session.IsNew {
+		s.newRandomInbox(w, r)
 		return
 	}
 
-	id, ok := sess.Values["id"].(string)
-	if !ok {
-		log.Printf("Index: failed to get id from session. ID not of type string. ID actual type: %v", reflect.TypeOf(sess.Values["id"]))
-		http.Error(w, "Failed to get session id", http.StatusInternalServerError)
-		return
-	}
+	s.getInbox(w, r)
+}
+
+func (s *Server) getInbox(w http.ResponseWriter, r *http.Request) {
+	session := s.getSessionFromCookie(r)
+	id := session.InboxID
 
 	i, err := s.db.GetInboxByID(id)
 	if err != nil {
-		log.Printf("Index: failed to get inbox: %v", err)
+		log.WithField("inboxID", id).WithError(err).Error("Index: failed to get inbox")
 		http.Error(w, "Failed to get inbox", http.StatusInternalServerError)
 		return
 	}
 
 	// If we failed to register the mailgun route then delete the session cookie
 	if i.FailedToCreate {
-		sess.Options.MaxAge = -1
-		err = sess.Save(r, w)
+		err := session.Delete(w)
 		if err != nil {
-			log.Printf("Index: failed to delete session cookie: %v", err)
-			http.Error(w, "Failed to create inbox. Please clear your cookies.", http.StatusInternalServerError)
+			log.WithField("inboxID", id).WithError(err).Error("Index: failed to clear session cookie")
+			http.Error(w, "Failed to create inbox. Please clear your cookies and try again", http.StatusInternalServerError)
 			return
 		}
 
@@ -108,7 +104,7 @@ func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
 
 	msgs, err := s.db.GetMessagesByInboxID(id)
 	if err != nil {
-		log.Printf("Index: failed to get all messages from inbox. %v", err)
+		log.WithField("inboxID", id).WithError(err).Error("Index: failed to get all messages for inbox")
 		http.Error(w, "Failed to get messages", http.StatusInternalServerError)
 		return
 	}
@@ -135,13 +131,13 @@ func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
 
 	err = indexTemplate.ExecuteTemplate(w, "base", io)
 	if err != nil {
-		log.Printf("Index: failed to write response: %v", err)
+		log.WithField("inboxID", id).WithError(err).Error("Index: failed to write template response")
 		http.Error(w, "Failed to write response", http.StatusInternalServerError)
 	}
 }
 
-// NewRandomInbox generates a new Inbox with a random route and host from availabile options.
-func (s *Server) NewRandomInbox(w http.ResponseWriter, r *http.Request) {
+// newRandomInbox generates a new Inbox with a random route and host from availabile options.
+func (s *Server) newRandomInbox(w http.ResponseWriter, r *http.Request) {
 	i := NewInbox()
 	i.Address = s.eg.NewRandom()
 
@@ -158,7 +154,7 @@ func (s *Server) NewRandomInbox(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.CreateRouteFromInbox(w, r, i)
+	s.createRouteFromInbox(w, r, i)
 }
 
 // NewNamedInbox generates a new Inbox with a specific route and host.
@@ -215,18 +211,13 @@ func (s *Server) NewNamedInbox(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Failed to execute template", http.StatusInternalServerError)
 		}
 	} else {
-		s.CreateRouteFromInbox(w, r, i)
+		s.createRouteFromInbox(w, r, i)
 	}
 }
 
 //CreateRouteFromInbox creates a new route based on Inbox settings and redirects to Index.
-func (s *Server) CreateRouteFromInbox(w http.ResponseWriter, r *http.Request, i Inbox) {
-	sess, ok := r.Context().Value(sessionCTXKey).(*sessions.Session)
-	if !ok {
-		log.Printf("CreateRouteFromInbox: failed to get sess var. Sess not of type sessions.Session actual type: %v", reflect.TypeOf(sess))
-		http.Error(w, "Failed to generate email", http.StatusInternalServerError)
-		return
-	}
+func (s *Server) createRouteFromInbox(w http.ResponseWriter, r *http.Request, i Inbox) {
+	session := s.getSessionFromCookie(r)
 
 	id, err := uuid.NewRandom()
 	if err != nil {
@@ -255,15 +246,14 @@ func (s *Server) CreateRouteFromInbox(w http.ResponseWriter, r *http.Request, i 
 
 	err = s.db.SaveNewInbox(i)
 	if err != nil {
-		log.Printf("CreateRouteFromInbox: failed to save email: %v", err)
+		log.WithError(err).Error("CreateRouteFromInbox: failed to save new email")
 		http.Error(w, "Failed to save new inbox", http.StatusInternalServerError)
 		return
 	}
 
-	sess.Values["id"] = i.ID
-	err = sess.Save(r, w)
+	err = session.SetInboxID(i.ID, w)
 	if err != nil {
-		log.Printf("CreateRouteFromInbox: failed to set session cookie: %v", err)
+		log.WithError(err).Error("CreateRouteFromInbox: failed to set session cookie")
 		http.Error(w, "Failed to set session cookie", http.StatusInternalServerError)
 		return
 	}
@@ -279,22 +269,11 @@ func (s *Server) CreateRouteFromInbox(w http.ResponseWriter, r *http.Request, i 
 
 // IndividualMessage returns a singular message to the user
 func (s *Server) IndividualMessage(w http.ResponseWriter, r *http.Request) {
-	sess, ok := r.Context().Value(sessionCTXKey).(*sessions.Session)
-	if !ok {
-		log.Printf("IndividualMessage: failed to get sess var. Sess not of type *sessions.Session actual type: %v", reflect.TypeOf(sess))
-		http.Error(w, "Failed to get email", http.StatusInternalServerError)
-		return
-	}
+	session := s.getSessionFromCookie(r)
+	iID := session.InboxID
 
 	vars := mux.Vars(r)
 	mID := vars["messageID"]
-
-	iID, ok := sess.Values["id"].(string)
-	if !ok {
-		log.Printf("IndividualMessage: failed to get inbox id. Id not of type string. Actual type: %v", reflect.TypeOf(iID))
-		http.Error(w, "Failed to get message", http.StatusInternalServerError)
-		return
-	}
 
 	m, err := s.db.GetMessageByID(iID, mID)
 	if err == ErrMessageDoesntExist {
@@ -307,11 +286,8 @@ func (s *Server) IndividualMessage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rtd := GetReceivedDetails([]Message{m})
-
 	ra := time.Unix(m.ReceivedAt, 0)
-
 	ras := ra.Format("Mon Jan 2 15:04:05")
-
 	mo := messageOut{
 		Static:           s.getStaticDetails(),
 		ReceivedTimeDiff: rtd[0],
@@ -320,7 +296,7 @@ func (s *Server) IndividualMessage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// If our html doesn't contain anything then render the plaintext version
-	if strings.Compare(m.BodyHTML, "") == 0 {
+	if m.BodyHTML == "" {
 		err = messagePlainTemplate.ExecuteTemplate(w, "base", mo)
 
 		if err != nil {
@@ -370,12 +346,7 @@ func (s *Server) DeleteInbox(w http.ResponseWriter, r *http.Request) {
 
 //ConfirmDeleteInbox removes the user session cookie
 func (s *Server) ConfirmDeleteInbox(w http.ResponseWriter, r *http.Request) {
-	sess, ok := r.Context().Value(sessionCTXKey).(*sessions.Session)
-	if !ok {
-		log.Printf("ConfirmDeleteInbox: failed to get sess var. Sess not of type *sessions.Session actual type: %v", reflect.TypeOf(sess))
-		http.Error(w, "Failed to get user session", http.StatusInternalServerError)
-		return
-	}
+	session := s.getSessionFromCookie(r)
 
 	dlt, err := strconv.ParseBool(r.PostFormValue("really-delete"))
 	if err != nil {
@@ -388,11 +359,10 @@ func (s *Server) ConfirmDeleteInbox(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusFound)
 	}
 
-	sess.Options.MaxAge = -1
-	err = sess.Save(r, w)
+	err = session.Delete(w)
 	if err != nil {
-		log.Printf("ConfirmDeleteInbox: failed to delete user session %v", err)
-		http.Error(w, "Failed to delete user session", http.StatusInternalServerError)
+		log.WithError(err).Error("ConfirmDeleteInbox: failed to delete user session")
+		http.Error(w, "Failed to delete your session. Please clear your cookies", http.StatusInternalServerError)
 		return
 	}
 

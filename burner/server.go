@@ -39,12 +39,12 @@ var version = "dev"
 
 // Server bundles several data types together for dependency injection into http handlers
 type Server struct {
-	store  *sessions.CookieStore
-	eg     EmailGenerator
-	email  EmailProvider
-	db     Database
-	Router *mux.Router
-	tg     *token.Generator
+	sessionStore *sessions.CookieStore
+	eg           EmailGenerator
+	email        EmailProvider
+	db           Database
+	Router       *mux.Router
+	tg           *token.Generator
 
 	cfg Config
 }
@@ -66,12 +66,12 @@ type Config struct {
 // New returns a burner with the given settings
 func New(cfg Config, db Database, email EmailProvider) (*Server, error) {
 	s := Server{
-		store: sessions.NewCookieStore([]byte(cfg.Key)),
-		eg:    emailgenerator.New(cfg.Domains, 8),
-		tg:    token.NewGenerator(cfg.Key, 24*time.Hour),
-		cfg:   cfg,
-		db:    db,
-		email: email,
+		sessionStore: sessions.NewCookieStore([]byte(cfg.Key)),
+		eg:           emailgenerator.New(cfg.Domains, 8),
+		tg:           token.NewGenerator(cfg.Key, 24*time.Hour),
+		cfg:          cfg,
+		db:           db,
+		email:        email,
 	}
 
 	// Setup Templates
@@ -81,7 +81,7 @@ func New(cfg Config, db Database, email EmailProvider) (*Server, error) {
 	editTemplate = mustParseTemplates(templates, "base.html", "edit.html")
 	deleteTemplate = mustParseTemplates(templates, "base.html", "delete.html")
 
-	s.store.MaxAge(86402) // set max cookie age to 24 hours + 2 seconds
+	s.sessionStore.MaxAge(86402) // set max cookie age to 24 hours + 2 seconds
 
 	err := s.db.Start()
 	if err != nil {
@@ -103,13 +103,12 @@ func New(cfg Config, db Database, email EmailProvider) (*Server, error) {
 			CacheControl(14),
 			SetVersionHeader,
 			s.SecurityHeaders(false),
-			s.IsNew(http.HandlerFunc(s.NewRandomInbox)),
 		).ThenFunc(s.Index),
 	).Methods(http.MethodGet)
 
 	s.Router.Handle("/messages/{messageID}/",
 		alice.New(
-			s.CheckCookieExists,
+			s.CheckSessionCookieExists,
 			CacheControl(3600),
 			SetVersionHeader,
 			s.SecurityHeaders(true),
@@ -118,7 +117,7 @@ func New(cfg Config, db Database, email EmailProvider) (*Server, error) {
 
 	s.Router.Handle("/edit",
 		alice.New(
-			s.CheckCookieExists,
+			s.CheckSessionCookieExists,
 			SetVersionHeader,
 			s.SecurityHeaders(false),
 		).ThenFunc(s.EditInbox),
@@ -126,7 +125,7 @@ func New(cfg Config, db Database, email EmailProvider) (*Server, error) {
 
 	s.Router.Handle("/edit",
 		alice.New(
-			s.CheckCookieExists,
+			s.CheckSessionCookieExists,
 			SetVersionHeader,
 			s.SecurityHeaders(false),
 		).ThenFunc(s.NewNamedInbox),
@@ -134,7 +133,7 @@ func New(cfg Config, db Database, email EmailProvider) (*Server, error) {
 
 	s.Router.Handle("/delete",
 		alice.New(
-			s.CheckCookieExists,
+			s.CheckSessionCookieExists,
 			SetVersionHeader,
 			s.SecurityHeaders(false),
 		).ThenFunc(s.DeleteInbox),
@@ -142,7 +141,7 @@ func New(cfg Config, db Database, email EmailProvider) (*Server, error) {
 
 	s.Router.Handle("/delete",
 		alice.New(
-			s.CheckCookieExists,
+			s.CheckSessionCookieExists,
 			SetVersionHeader,
 			s.SecurityHeaders(false),
 		).ThenFunc(s.ConfirmDeleteInbox),
@@ -178,15 +177,6 @@ func (s *Server) Ping(w http.ResponseWriter, r *http.Request) {
 		log.Printf("ping - failed to write out response: %v", err)
 	}
 }
-
-// Session Related constants
-const sessionStoreKey = "session"
-
-type key int
-
-const (
-	sessionCTXKey key = iota
-)
 
 // mustParseTemplates parses string templates into one template
 // Function modified from: https://stackoverflow.com/questions/41856021/how-to-parse-multiple-strings-into-a-template-with-go
