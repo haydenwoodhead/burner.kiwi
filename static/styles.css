@@ -90,10 +90,23 @@ Burner.kiwi styles
     --space-4: 16px;
     --space-5: 20px;
     --space-6: 24px;
+    --space-7: 28px;
+    --space-8: 32px;
+    --space-9: 36px;
 
     --btn-background-color: #181819;
+    --btn-icon-color: white;
     --blue: #2563EB;
     --red: #DC2626;
+}
+
+@media (prefers-color-scheme: light) {
+    :root {
+        --background-color: white;
+        --primary-text-color: black;
+        --btn-background-color: #E5E7EB;
+        --btn-icon-color: black;
+    }
 }
 
 html {
@@ -114,7 +127,10 @@ body {
 
 .roger {
     width: 250px;
-    margin-bottom: var(--space-3);
+}
+
+.inbox-details {
+    margin-top: var(--space-2);
 }
 
 .inbox-address {
@@ -129,7 +145,7 @@ body {
 .action-buttons {
     display: flex;
     justify-content: flex-start;
-    margin-top: var(--space-3);
+    margin-top: var(--space-2);
 }
 
 .action-btn {
@@ -144,15 +160,19 @@ body {
 }
 
 .action-btn > svg {
-    fill: white;
+    fill: var(--btn-icon-color);
 }
 
 .action-btn:hover, .action-btn:focus {
     background-color: var(--blue);
 }
 
+.action-btn:hover > svg, .action-btn:focus > svg {
+    fill: white;
+}
+
 .sidebar-messages {
-    margin-top: var(--space-6);
+    margin-top: var(--space-9);
 }
 
 .sidebar-email {
@@ -168,6 +188,7 @@ body {
 
 .sidebar-email:hover, .sidebar-email:focus, .sidebar-email.active {
     background-color: var(--blue);
+    color: white;
 }
 
 .email-avatar {
@@ -182,7 +203,7 @@ body {
 }
 
 .email-avatar > p {
-    color: var(--primary-text-color);
+    color: white;
     font-weight: 900;
 }
 
