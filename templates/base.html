@@ -1,21 +1,60 @@
-{{define "base"}}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimal-ui">
     <title>burner.kiwi - No Bullshit Temporary Emails</title>
-    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
-    <link rel="stylesheet" href="{{.Static.URL}}/{{.Static.Normalize}}">
-    <link rel="stylesheet" href="{{.Static.URL}}/{{.Static.Milligram}}">
-    <link rel="stylesheet" href="{{.Static.URL}}/{{.Static.Custom}}">
-    <link rel="stylesheet" href="{{.Static.URL}}/{{.Static.Icons}}">
+
+    <link rel="preload" href="/static/styles.css" as="style">
+    <link rel="stylesheet" href="/static/styles.css">
+
+    <style>
+        /*
+        TODO: swap for correct static url
+        */
+        @font-face {
+            font-family: 'Roboto';
+            font-style: normal;
+            font-weight: 400;
+            font-display: swap;
+            src: url(/static/fonts/Roboto-Regular.ttf) format('woff2');
+        }
+
+        @font-face {
+            font-family: 'Roboto';
+            font-style: normal;
+            font-weight: 200;
+            font-display: swap;
+            src: url(/static/fonts/Roboto-Thin.ttf) format('woff2');
+        }
+
+        @font-face {
+            font-family: 'Roboto';
+            font-style: normal;
+            font-weight: 700;
+            font-display: swap;
+            src: url(/static/fonts/Roboto-Bold.ttf) format('woff2');
+        }
+
+        @font-face {
+            font-family: 'Roboto';
+            font-style: normal;
+            font-weight: 900;
+            font-display: swap;
+            src: url(/static/fonts/Roboto-Black.ttf) format('woff2');
+        }
+    </style>
 </head>
+
 <body>
-
-{{ template "content" .}}
-
-
+    <div class="content">
+        <div class="header">
+            <h1>hayden@test.local</h1>
+        </div>
+        <div class="sidebar"></div>
+        <div class="email"></div>
+    </div>
 </body>
+
 </html>
-{{end}}
