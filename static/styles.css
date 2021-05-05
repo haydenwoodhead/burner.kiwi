@@ -84,6 +84,7 @@ Burner.kiwi styles
 :root {
     --background-color: black;
     --primary-text-color: white;
+    --message-text-color: #1F2937;
     --space-1: 4px;
     --space-2: 8px;
     --space-3: 12px;
@@ -96,6 +97,7 @@ Burner.kiwi styles
 
     --btn-background-color: #181819;
     --btn-icon-color: white;
+    --message-container-border-color: transparent;
     --blue: #2563EB;
     --red: #DC2626;
 }
@@ -106,6 +108,7 @@ Burner.kiwi styles
         --primary-text-color: #1F2937;
         --btn-background-color: #E5E7EB;
         --btn-icon-color: #1F2937;
+        --message-container-border-color: #9CA3AF;
     }
 }
 
@@ -122,15 +125,14 @@ body {
 .content {
     height: 100%;
     color: var(--primary-text-color);
+}
+
+.sidebar.hide, .email-display.hide {
+    display: none;
+}
+
+.sidebar {
     padding: var(--space-3);
-}
-
-.sidebar.on-message-page{
-    display: none;
-}
-
-.email-display.on-index-page {
-    display: none;
 }
 
 .roger {
@@ -175,7 +177,7 @@ body {
     fill: white;
 }
 
-.sidebar-messages {
+.sidebar-emails {
     margin-top: var(--space-9);
 }
 
@@ -212,30 +214,79 @@ body {
     font-size: 1.25rem;
 }
 
-.email-details {
+.sidebar-email-details {
     padding-left: var(--space-1);
 }
 
-.email-from {
+.sidebar-email-from {
     font-weight: 700;
 }
 
-.email-time {
+.sidebar-email-time {
     font-size: 0.75rem;
     opacity: 60%; 
 }
 
-.email-subject {
+.sidebar-email-subject {
     overflow: hidden;
     max-width: 300px;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
+.email-display {
+    height: 100%;
+}
+
+.message-container {
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    border-top: 1px solid transparent;
+    margin-top: var(--space-4);
+    background-color: white;
+    color: var(--message-text-color);
+    min-height: 100%;
+}
+
+.message-back {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--primary-text-color);
+    margin-top: var(--space-3);
+}
+
+.message-back > svg {
+    fill: var(--btn-icon-color);
+}
+
+.message-container {
+    padding: var(--space-4);
+}
+
+.message-details-mobile {
+    display: grid;
+    grid-template-columns: 40px auto;
+}
+
+.message-subject {
+    margin-bottom: var(--space-5);
+    line-height: var(--space-8);
+}
+
+.message-time {
+    font-weight: 200;
+}
+
 @media(min-width: 992px) {
     .email-display {
         display: block;
     }
+
+    .message-details-container-mobile, .message-details-mobile {
+        display: none;
+    }
+
 }
 
 .visually-hidden {

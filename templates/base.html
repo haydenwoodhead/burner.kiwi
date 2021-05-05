@@ -57,7 +57,7 @@
 
 <body>
     <div class="content">
-        <div class="sidebar>
+        <div class="sidebar hide">
             <div class="sidebar-header">
                 <img src="/static/roger.svg" alt="Meet Roger. The pyromaniac kiwi!" class="roger"/>
                 <div class="inbox-details">
@@ -70,22 +70,36 @@
                     <span class="action-btn"><span class="visually-hidden">Delete</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="none" d="M0 0h24v24H0z"/><path d="M17 6h5v2h-2v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8H2V6h5V3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v3zm1 2H6v12h12V8zm-9 3h2v6H9v-6zm4 0h2v6h-2v-6zM9 4v2h6V4H9z"/></svg></svg></span>
                 </div>
             </div>
-            <div class="sidebar-messages">
+            <div class="sidebar-emails">
                 <a class="sidebar-email" href="#">
                     <div>
                         <div class="email-avatar"><p>H</p></div>
                     </div>
-                    <div class="email-details">
-                        <div class="email-from">Hayden Woodhead</div>
-                        <div class="email-subject">This should look really cool This should look really cool This should look really cool This should look really cool This should look really cool</div>
-                        <div class="email-time">2 minutes ago</div>
+                    <div class="sidebar-email-details">
+                        <div class="sidebar-email-from">Hayden Woodhead</div>
+                        <div class="sidebar-email-subject">This should look really cool This should look really cool This should look really cool This should look really cool This should look really cool</div>
+                        <div class="sidebar-email-time">2 minutes ago</div>
                     </div>
                 </a>
                 
             </div>
         </div>
-        <div class="email-display on-index-page">
-            <p>No email selected</p>
+        <div class="email-display">
+            <a href="/" class="message-back"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="none" d="M0 0h24v24H0z"/><path d="M10.828 12l4.95 4.95-1.414 1.414L8 12l6.364-6.364 1.414 1.414z"/></svg> Back to messages</a>
+            <div class="message-container">
+                <div class="message-details-container-mobile">
+                    <h2 class="message-subject">Updates to our terms of use</div>
+                    <div class="message-details-mobile">
+                        <div>
+                            <div class="email-avatar"><p>H</p></div>
+                        </div>
+                        <div>
+                            <div class="message-from"><b>Hayden Woodhead</b> &lthayden@example.com&gt</div>
+                            <div class="message-time">Received: 2 minutes ago</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </body>
