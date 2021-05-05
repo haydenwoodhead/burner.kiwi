@@ -81,6 +81,144 @@ select {
 Burner.kiwi styles
 */
 
+:root {
+    --background-color: black;
+    --primary-text-color: white;
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+
+    --btn-background-color: #181819;
+    --blue: #2563EB;
+    --red: #DC2626;
+}
+
 html {
     font-family: "Roboto", Arial, Helvetica, sans-serif;
+    height: 100%;
+    background-color: var(--background-color);
 }
+
+body {
+    height: 100%;
+}
+
+.content {
+    height: 100%;
+    color: var(--primary-text-color);
+    padding: var(--space-3);
+}
+
+.roger {
+    width: 250px;
+    margin-bottom: var(--space-3);
+}
+
+.inbox-address {
+    font-size: 2rem;
+    font-weight: 500;
+}
+
+.email-display {
+    display: none;
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: var(--space-3);
+}
+
+.action-btn {
+    width: 32px;
+    height: 32px;
+    background-color: var(--btn-background-color);
+    margin-right: var(--space-3);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-btn > svg {
+    fill: white;
+}
+
+.action-btn:hover, .action-btn:focus {
+    background-color: var(--blue);
+}
+
+.sidebar-messages {
+    margin-top: var(--space-6);
+}
+
+.sidebar-email {
+    border-radius: 8px;
+    background-color: var(--btn-background-color);
+    padding: var(--space-3);
+    display: grid;
+    grid-template-columns: 40px auto;
+    text-decoration: none;
+    color: inherit;
+    margin-bottom: var(--space-3);
+}
+
+.sidebar-email:hover, .sidebar-email:focus, .sidebar-email.active {
+    background-color: var(--blue);
+}
+
+.email-avatar {
+    margin-top: var(--space-1);
+    border-radius: 50%;
+    background-color: var(--red);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.email-avatar > p {
+    color: var(--primary-text-color);
+    font-weight: 900;
+}
+
+.email-details {
+    padding-left: var(--space-1);
+}
+
+.email-from {
+    font-weight: 700;
+}
+
+.email-time {
+    font-size: 0.75rem;
+    opacity: 60%; 
+}
+
+.email-subject {
+    overflow: hidden;
+    max-width: 300px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media(min-width: 992px) {
+    .email-display {
+        display: block;
+    }
+}
+
+.visually-hidden {
+    position: absolute;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    height: 1px;
+    width: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+  }
