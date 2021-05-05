@@ -102,10 +102,10 @@ Burner.kiwi styles
 
 @media (prefers-color-scheme: light) {
     :root {
-        --background-color: white;
-        --primary-text-color: black;
+        --background-color: #F3F4F6;
+        --primary-text-color: #1F2937;
         --btn-background-color: #E5E7EB;
-        --btn-icon-color: black;
+        --btn-icon-color: #1F2937;
     }
 }
 
@@ -125,6 +125,14 @@ body {
     padding: var(--space-3);
 }
 
+.sidebar.on-message-page{
+    display: none;
+}
+
+.email-display.on-index-page {
+    display: none;
+}
+
 .roger {
     width: 250px;
 }
@@ -136,10 +144,6 @@ body {
 .inbox-address {
     font-size: 2rem;
     font-weight: 500;
-}
-
-.email-display {
-    display: none;
 }
 
 .action-buttons {
@@ -205,6 +209,7 @@ body {
 .email-avatar > p {
     color: white;
     font-weight: 900;
+    font-size: 1.25rem;
 }
 
 .email-details {
