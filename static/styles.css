@@ -94,12 +94,15 @@ Burner.kiwi styles
     --space-7: 28px;
     --space-8: 32px;
     --space-9: 36px;
+    --space-10: 40px;
 
     --btn-background-color: #181819;
     --btn-icon-color: white;
     --message-container-border-color: transparent;
     --blue: #2563EB;
     --red: #DC2626;
+
+    --scrollbar-color: dark;
 }
 
 @media (prefers-color-scheme: light) {
@@ -109,6 +112,7 @@ Burner.kiwi styles
         --btn-background-color: #E5E7EB;
         --btn-icon-color: #1F2937;
         --message-container-border-color: #9CA3AF;
+        --scrollbar-color: light;
     }
 }
 
@@ -177,8 +181,10 @@ body {
     fill: white;
 }
 
+
 .sidebar-emails {
     margin-top: var(--space-9);
+    padding-bottom: var(--space-9);
 }
 
 .sidebar-email {
@@ -227,7 +233,7 @@ body {
     opacity: 60%; 
 }
 
-.sidebar-email-subject {
+.sidebar-email-subject, .sidebar-email-from {
     overflow: hidden;
     max-width: 300px;
     text-overflow: ellipsis;
@@ -246,6 +252,7 @@ body {
     background-color: white;
     color: var(--message-text-color);
     min-height: 100%;
+    padding: var(--space-4);
 }
 
 .message-back {
@@ -258,10 +265,6 @@ body {
 
 .message-back > svg {
     fill: var(--btn-icon-color);
-}
-
-.message-container {
-    padding: var(--space-4);
 }
 
 .message-details-mobile {
@@ -278,15 +281,54 @@ body {
     font-weight: 200;
 }
 
-@media(min-width: 992px) {
-    .email-display {
+@media(min-width: 62rem) {
+    .sidebar.hide, .email-display.hide {
         display: block;
     }
 
-    .message-details-container-mobile, .message-details-mobile {
+    .message-details-container-mobile, .message-details-mobile, .message-back {
         display: none;
     }
 
+    .content {
+        display: grid;
+        grid-template-columns: minmax(450px,30%) minmax(500px,70%);
+        overflow: hidden;
+    }
+
+    .roger {
+        width: 300px;
+    }
+
+    .sidebar {
+        overflow: auto;
+        padding-top: var(--space-6);
+        padding-left: var(--space-5);
+        padding-right: var(--space-4);
+        scrollbar-width: none;
+    } 
+
+    .action-buttons {
+        justify-content: flex-end;
+    }
+
+    .action-btn {
+        margin-right: 0;
+        margin-left: var(--space-3);
+    }
+
+    .inbox-address {
+        font-size: 2.5rem;
+    }
+
+    .message-container {
+        min-height: calc(100% - var(--space-4)*2);
+        overflow: auto;
+        border-bottom-left-radius: 16px;
+        border-bottom-right-radius: 16px;
+        margin-right: var(--space-4);
+        margin-bottom: var(--space-4);
+    }
 }
 
 .visually-hidden {
