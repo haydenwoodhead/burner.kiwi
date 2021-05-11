@@ -214,6 +214,11 @@ body {
   fill: white;
 }
 
+.no-emails {
+  text-align: center;
+  padding-top: var(--space-8);
+}
+
 .sidebar-emails {
   margin-top: var(--space-9);
   padding-bottom: var(--space-9);
