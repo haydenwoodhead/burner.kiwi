@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"   content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>burner.kiwi - No Bullshit Temporary Emails</title>
+
+    <link rel="preload" href="/static/styles.css" as="style">
+    <link rel="stylesheet" href="/static/styles.css">
+
+    <style>
+        /*
+        TODO: swap for correct static url
+        */
+        @font-face {
+            font-family: 'Roboto';
+            font-style: normal;
+            font-weight: 400;
+            font-display: swap;
+            src: url(/static/fonts/Roboto-Regular.ttf) format('woff2');
+        }
+
+        @font-face {
+            font-family: 'Roboto';
+            font-style: normal;
+            font-weight: 200;
+            font-display: swap;
+            src: url(/static/fonts/Roboto-Thin.ttf) format('woff2');
+        }
+
+        @font-face {
+            font-family: 'Roboto';
+            font-style: normal;
+            font-weight: 700;
+            font-display: swap;
+            src: url(/static/fonts/Roboto-Bold.ttf) format('woff2');
+        }
+
+        @font-face {
+            font-family: 'Roboto';
+            font-style: normal;
+            font-weight: 500;
+            font-display: swap;
+            src: url(/static/fonts/Roboto-Bold.ttf) format('woff2');
+        }
+
+        @font-face {
+            font-family: 'Roboto';
+            font-style: normal;
+            font-weight: 900;
+            font-display: swap;
+            src: url(/static/fonts/Roboto-Black.ttf) format('woff2');
+        }
+    </style>
+</head>
+
+<body>
+    <div class="content">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <img src="/static/roger.svg" alt="Meet Roger. The pyromaniac kiwi!" class="roger"/>
+                <div class="inbox-details">
+                    <h1 class="inbox-address">hayden@rogerin.space</h1>
+                    <p>Expires in 23 hours</p>
+                </div>
+                <div class="action-buttons">
+                    <span class="action-btn"><span class="visually-hidden">Info</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM11 7h2v2h-2V7zm0 4h2v6h-2v-6z"/></svg></span>
+                    <span class="action-btn"><span class="visually-hidden">Edit</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="none" d="M0 0h24v24H0z"/><path d="M15.728 9.686l-1.414-1.414L5 17.586V19h1.414l9.314-9.314zm1.414-1.414l1.414-1.414-1.414-1.414-1.414 1.414 1.414 1.414zM7.242 21H3v-4.243L16.435 3.322a1 1 0 0 1 1.414 0l2.829 2.829a1 1 0 0 1 0 1.414L7.243 21z"/></svg></span>
+                    <span class="action-btn"><span class="visually-hidden">Delete</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="none" d="M0 0h24v24H0z"/><path d="M17 6h5v2h-2v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8H2V6h5V3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v3zm1 2H6v12h12V8zm-9 3h2v6H9v-6zm4 0h2v6h-2v-6zM9 4v2h6V4H9z"/></svg></svg></span>
+                </div>
+            </div>
+            <div class="sidebar-emails">
+                <a class="sidebar-email" href="#">
+                    <div>
+                        <div class="email-avatar bg-indigo"><p>H</p></div>
+                    </div>
+                    <div class="sidebar-email-details">
+                        <div class="sidebar-email-from">Hayden Woodhead</div>
+                        <div class="sidebar-email-subject">This should look really cool This should look really cool This should look really cool This should look really cool This should look really cool</div>
+                        <div class="sidebar-email-time">2 minutes ago</div>
+                    </div>
+                </a>
+
+                <a class="sidebar-email" href="#">
+                    <div>
+                        <div class="email-avatar bg-yellow"><p>D</p></div>
+                    </div>
+                    <div class="sidebar-email-details">
+                        <div class="sidebar-email-from">Hayden Woodhead</div>
+                        <div class="sidebar-email-subject">This should look really cool This should look really cool This should look really cool This should look really cool This should look really cool</div>
+                        <div class="sidebar-email-time">2 minutes ago</div>
+                    </div>
+                </a>
+
+                <a class="sidebar-email active" href="#">
+                    <div>
+                        <div class="email-avatar bg-pink"><p>B</p></div>
+                    </div>
+                    <div class="sidebar-email-details">
+                        <div class="sidebar-email-from">Hayden Woodhead</div>
+                        <div class="sidebar-email-subject">This should look really cool This should look really cool This should look really cool This should look really cool This should look really cool</div>
+                        <div class="sidebar-email-time">2 minutes ago</div>
+                    </div>
+                </a>
+
+                <a class="sidebar-email" href="#">
+                    <div>
+                        <div class="email-avatar bg-green"><p>H</p></div>
+                    </div>
+                    <div class="sidebar-email-details">
+                        <div class="sidebar-email-from">Hayden Woodhead</div>
+                        <div class="sidebar-email-subject">This should look really cool This should look really cool This should look really cool This should look really cool This should look really cool</div>
+                        <div class="sidebar-email-time">2 minutes ago</div>
+                    </div>
+                </a>
+
+                <a class="sidebar-email" href="#">
+                    <div>
+                        <div class="email-avatar bg-purple"><p>C</p></div>
+                    </div>
+                    <div class="sidebar-email-details">
+                        <div class="sidebar-email-from">Hayden Woodhead</div>
+                        <div class="sidebar-email-subject">This should look really cool This should look really cool This should look really cool This should look really cool This should look really cool</div>
+                        <div class="sidebar-email-time">2 minutes ago</div>
+                    </div>
+                </a>
+
+                <a class="sidebar-email" href="#">
+                    <div>
+                        <div class="email-avatar"><p>H</p></div>
+                    </div>
+                    <div class="sidebar-email-details">
+                        <div class="sidebar-email-from">Hayden Woodhead</div>
+                        <div class="sidebar-email-subject">This should look really cool This should look really cool This should look really cool This should look really cool This should look really cool</div>
+                        <div class="sidebar-email-time">2 minutes ago</div>
+                    </div>
+                </a>
+
+                <a class="sidebar-email" href="#">
+                    <div>
+                        <div class="email-avatar"><p>H</p></div>
+                    </div>
+                    <div class="sidebar-email-details">
+                        <div class="sidebar-email-from">Hayden Woodhead</div>
+                        <div class="sidebar-email-subject">This should look really cool This should look really cool This should look really cool This should look really cool This should look really cool</div>
+                        <div class="sidebar-email-time">2 minutes ago</div>
+                    </div>
+                </a>
+
+                <a class="sidebar-email" href="#">
+                    <div>
+                        <div class="email-avatar"><p>H</p></div>
+                    </div>
+                    <div class="sidebar-email-details">
+                        <div class="sidebar-email-from">Hayden Woodhead</div>
+                        <div class="sidebar-email-subject">This should look really cool This should look really cool This should look really cool This should look really cool This should look really cool</div>
+                        <div class="sidebar-email-time">2 minutes ago</div>
+                    </div>
+                </a>
+
+                <a class="sidebar-email" href="#">
+                    <div>
+                        <div class="email-avatar"><p>H</p></div>
+                    </div>
+                    <div class="sidebar-email-details">
+                        <div class="sidebar-email-from">Hayden Woodhead</div>
+                        <div class="sidebar-email-subject">This should look really cool This should look really cool This should look really cool This should look really cool This should look really cool</div>
+                        <div class="sidebar-email-time">2 minutes ago</div>
+                    </div>
+                </a>
+
+                <a class="sidebar-email" href="#">
+                    <div>
+                        <div class="email-avatar"><p>H</p></div>
+                    </div>
+                    <div class="sidebar-email-details">
+                        <div class="sidebar-email-from">Hayden Woodhead</div>
+                        <div class="sidebar-email-subject">This should look really cool This should look really cool This should look really cool This should look really cool This should look really cool</div>
+                        <div class="sidebar-email-time">2 minutes ago</div>
+                    </div>
+                </a>
+
+                <a class="sidebar-email" href="#">
+                    <div>
+                        <div class="email-avatar"><p>H</p></div>
+                    </div>
+                    <div class="sidebar-email-details">
+                        <div class="sidebar-email-from">Hayden Woodhead</div>
+                        <div class="sidebar-email-subject">This should look really cool This should look really cool This should look really cool This should look really cool This should look really cool</div>
+                        <div class="sidebar-email-time">2 minutes ago</div>
+                    </div>
+                </a>
+
+            </div>
+        </div>
+        <div class="email-display hide">
+            <a href="/" class="message-back"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="none" d="M0 0h24v24H0z"/><path d="M10.828 12l4.95 4.95-1.414 1.414L8 12l6.364-6.364 1.414 1.414z"/></svg> Back to messages</a>
+            <div class="message-container">
+                <div class="message-details-container-mobile">
+                    <h2 class="message-subject">Updates to our terms of use</h2>
+                    <div class="message-details-mobile">
+                        <div>
+                            <div class="email-avatar"><p>H</p></div>
+                        </div>
+                        <div>
+                            <div class="message-from"><b>Hayden Woodhead</b> &lthayden@example.com&gt</div>
+                            <div class="message-time">Received: 2 minutes ago</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="message-details">
+                        <div class="email-avatar"><p>H</p></div>
+                        <h2 class="message-subject">Updates to our terms of use</h2>
+                        <div class="message-from-time-row">
+                            <div class="message-from"><b>Hayden Woodhead</b> &lthayden@example.com&gt</div>
+                            <div class="message-time">2 minutes ago</div>
+                        </div>
+                        <div class="etc-dots">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 3c-.825 0-1.5.675-1.5 1.5S11.175 6 12 6s1.5-.675 1.5-1.5S12.825 3 12 3zm0 15c-.825 0-1.5.675-1.5 1.5S11.175 21 12 21s1.5-.675 1.5-1.5S12.825 18 12 18zm0-7.5c-.825 0-1.5.675-1.5 1.5s.675 1.5 1.5 1.5 1.5-.675 1.5-1.5-.675-1.5-1.5-1.5z"/></svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

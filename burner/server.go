@@ -28,11 +28,8 @@ var editTemplate *template.Template
 var deleteTemplate *template.Template
 
 // Static asset vars - these are overridden at build time to inject a file w/ version info
-var milligram = "milligram.css"
-var logo = "roger-proportional.svg"
-var normalize = "normalize.css"
-var custom = "custom.css"
-var icons = "icons.css"
+var logo = "roger.svg"
+var css = "styles.css"
 
 // version number - this is also overridden at build time to inject the commit hash
 var version = "dev"
@@ -75,11 +72,11 @@ func New(cfg Config, db Database, email EmailProvider) (*Server, error) {
 	}
 
 	// Setup Templates
-	indexTemplate = mustParseTemplates(templates, "base.html", "index.html")
-	messageHTMLTemplate = mustParseTemplates(templates, "base.html", "message-html.html")
-	messagePlainTemplate = mustParseTemplates(templates, "base.html", "message-plain.html")
-	editTemplate = mustParseTemplates(templates, "base.html", "edit.html")
-	deleteTemplate = mustParseTemplates(templates, "base.html", "delete.html")
+	indexTemplate = mustParseTemplates(templates, "base.html", "inbox.html")
+	// messageHTMLTemplate = mustParseTemplates(templates, "base.html", "message-html.html")
+	// messagePlainTemplate = mustParseTemplates(templates, "base.html", "message-plain.html")
+	// editTemplate = mustParseTemplates(templates, "base.html", "edit.html")
+	// deleteTemplate = mustParseTemplates(templates, "base.html", "delete.html")
 
 	s.sessionStore.MaxAge(86402) // set max cookie age to 24 hours + 2 seconds
 

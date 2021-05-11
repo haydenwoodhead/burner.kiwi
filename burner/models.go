@@ -1,12 +1,5 @@
 package burner
 
-import (
-	"fmt"
-	"time"
-
-	"github.com/haydenwoodhead/burner.kiwi/stringduration"
-)
-
 // Inbox contains data on a temporary inbox including its address and ttl
 type Inbox struct {
 	Address              string `dynamodbav:"email_address" json:"address" db:"address"`
@@ -38,36 +31,4 @@ type Message struct {
 	BodyHTML        string `dynamodbav:"body_html" json:"body_html" db:"body_html"`
 	BodyPlain       string `dynamodbav:"body_plain" json:"body_plain" db:"body_plain"`
 	TTL             int64  `dynamodbav:"ttl" json:"ttl" db:"ttl"`
-}
-
-//GetReceivedDetails takes a slice of Message and returns a slice with a string corresponding to each msg
-// with the details on when that message was received
-func GetReceivedDetails(msgs []Message) []string {
-	var received []string
-
-	// loop over all messages and calculate how long ago the message was received
-	// then append that string to received to be passed to the template
-	for _, m := range msgs {
-		diff := time.Since(time.Unix(m.ReceivedAt, 0))
-
-		// if we received the email less than 30 seconds ago then write that out
-		// because rounding the duration when less than 30seconds will give us 0 seconds
-		if diff.Seconds() < 30 {
-			received = append(received, "Less than 30s ago")
-			continue
-		}
-
-		diff = diff.Round(time.Minute) // Round to nearest minute
-
-		h, min := stringduration.GetHoursAndMinutes(diff)
-
-		if h != "0" {
-			received = append(received, fmt.Sprintf("%vh %vm ago", h, min))
-			continue
-		}
-
-		received = append(received, fmt.Sprintf("%vm ago", min))
-	}
-
-	return received
 }

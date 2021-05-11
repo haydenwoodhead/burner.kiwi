@@ -10,61 +10,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"github.com/haydenwoodhead/burner.kiwi/stringduration"
 	log "github.com/sirupsen/logrus"
 )
-
-//staticDetails contains the names of the static files used in the project
-type staticDetails struct {
-	URL       string
-	Milligram string
-	Logo      string
-	Normalize string
-	Custom    string
-	Icons     string
-}
-
-//getStaticDetails returns current static details
-func (s *Server) getStaticDetails() staticDetails {
-	return staticDetails{
-		URL:       s.cfg.StaticURL,
-		Milligram: milligram,
-		Logo:      logo,
-		Normalize: normalize,
-		Custom:    custom,
-		Icons:     icons,
-	}
-}
-
-// indexOut contains data to be rendered by the index template
-type indexOut struct {
-	Static     staticDetails
-	Messages   []Message
-	ReceivedAt []string
-	Inbox      Inbox
-	Expires    expires
-}
-
-// expires contains a number of hours and minutes for use in displaying time
-type expires struct {
-	Hours   string
-	Minutes string
-}
-
-// messageOut contains data to be rendered by message template
-type messageOut struct {
-	Static           staticDetails
-	ReceivedTimeDiff string
-	ReceivedAt       string
-	Message          Message
-}
-
-// editOut contains data to be rendered by edit template
-type editOut struct {
-	Static staticDetails
-	Hosts  []string
-	Error  string
-}
 
 // Index either creates a new inbox or returns the existing one
 func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
@@ -111,23 +58,13 @@ func (s *Server) getInbox(session *session, w http.ResponseWriter, r *http.Reque
 		return msgs[i].ReceivedAt > msgs[j].ReceivedAt
 	})
 
-	received := GetReceivedDetails(msgs)
-
-	expiration := time.Until(time.Unix(i.TTL, 0))
-	h, m := stringduration.GetHoursAndMinutes(expiration)
-
-	io := indexOut{
-		Static:     s.getStaticDetails(),
-		Messages:   msgs,
-		Inbox:      i,
-		ReceivedAt: received,
-		Expires: expires{
-			Hours:   h,
-			Minutes: m,
-		},
+	vars := indexOut{
+		Static:   s.getStaticDetails(),
+		Messages: transformMessagesForTemplate(msgs),
+		Inbox:    transformInboxForTemplate(i),
 	}
 
-	err = indexTemplate.ExecuteTemplate(w, "base", io)
+	err = indexTemplate.ExecuteTemplate(w, "base", vars)
 	if err != nil {
 		log.WithField("inboxID", id).WithError(err).Error("Index: failed to write template response")
 		http.Error(w, "Failed to write response", http.StatusInternalServerError)
@@ -286,14 +223,14 @@ func (s *Server) IndividualMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rtd := GetReceivedDetails([]Message{m})
-	ra := time.Unix(m.ReceivedAt, 0)
-	ras := ra.Format("Mon Jan 2 15:04:05")
+	// rtd := transformMessagesForTemplate([]Message{m})
+	// ra := time.Unix(m.ReceivedAt, 0)
+	// ras := ra.Format("Mon Jan 2 15:04:05")
 	mo := messageOut{
-		Static:           s.getStaticDetails(),
-		ReceivedTimeDiff: rtd[0],
-		ReceivedAt:       ras,
-		Message:          m,
+		// Static:           s.getStaticDetails(),
+		// ReceivedTimeDiff: rtd[0],
+		// ReceivedAt:       ras,
+		// Message:          m,
 	}
 
 	// If our html doesn't contain anything then render the plaintext version

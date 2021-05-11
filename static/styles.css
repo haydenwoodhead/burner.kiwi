@@ -102,6 +102,11 @@ Burner.kiwi styles
   --blue: #2563eb;
   --light-blue: #3b82f6;
   --red: #dc2626;
+  --yellow: #D97706;
+  --green: #059669;
+  --indigo: #4F46E5;
+  --purple: #7C3AED;
+  --pink: #DB2777;
 
   --scrollbar-color: dark;
 }
@@ -115,6 +120,30 @@ Burner.kiwi styles
     --message-container-border-color: #9ca3af;
     --scrollbar-color: light;
   }
+}
+
+.bg-red {
+    background-color: var(--red);
+}
+
+.bg-yellow {
+    background-color: var(--yellow);
+}
+
+.bg-green {
+    background-color: var(--green);
+}
+
+.bg-indigo {
+    background-color: var(--indigo);
+}
+
+.bg-purple {
+    background-color: var(--purple);
+}
+
+.bg-pink {
+    background-color: var(--pink);
 }
 
 html {
@@ -222,7 +251,6 @@ body {
 .email-avatar {
   margin-top: var(--space-1);
   border-radius: 50%;
-  background-color: var(--red);
   width: 32px;
   height: 32px;
   display: flex;
@@ -374,6 +402,7 @@ body {
 
   .message-details .email-avatar > p {
     font-size: 1.75rem;
+    text-transform: uppercase;
   }
 
   .message-subject {
