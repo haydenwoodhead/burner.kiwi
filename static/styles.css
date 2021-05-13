@@ -107,6 +107,7 @@ Burner.kiwi styles
   --indigo: #4F46E5;
   --purple: #7C3AED;
   --pink: #DB2777;
+  --rather-light-grey: #6B7280;
 
   --scrollbar-color: dark;
 }
@@ -317,6 +318,10 @@ body {
   fill: var(--btn-icon-color);
 }
 
+.message-details {
+  display: none;
+}
+
 .message-details-mobile {
   display: grid;
   grid-template-columns: 40px auto;
@@ -381,12 +386,36 @@ body {
     font-size: 2.5rem;
   }
 
+  .email-display {
+    padding: var(--space-5);
+  }
+
   .message-container {
-    min-height: calc(100% - var(--space-4) * 2);
+    height: 100%;
     overflow: auto;
     border-bottom-left-radius: 16px;
     border-bottom-right-radius: 16px;
-    margin: var(--space-5);
+    margin: 0;
+  }
+
+  .message-container-empty {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .message-container-empty svg {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    fill: var(--rather-light-grey);
+  }
+
+  .message-container-empty p {
+    margin-top: var(--space-6);
+    color: var(--rather-light-grey);
   }
 
   .message-details {

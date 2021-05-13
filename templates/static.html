@@ -57,7 +57,7 @@
 
 <body>
     <div class="content">
-        <div class="sidebar">
+        <div class="sidebar hide">
             <div class="sidebar-header">
                 <img src="/static/roger.svg" alt="Meet Roger. The pyromaniac kiwi!" class="roger"/>
                 <div class="inbox-details">
@@ -194,10 +194,10 @@
 
             </div>
         </div>
-        <div class="email-display hide">
+        <div class="email-display">
             <a href="/" class="message-back"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="none" d="M0 0h24v24H0z"/><path d="M10.828 12l4.95 4.95-1.414 1.414L8 12l6.364-6.364 1.414 1.414z"/></svg> Back to messages</a>
             <div class="message-container">
-                <div class="message-details-container-mobile">
+                <!-- <div class="message-details-container-mobile">
                     <h2 class="message-subject">Updates to our terms of use</h2>
                     <div class="message-details-mobile">
                         <div>
@@ -221,7 +221,8 @@
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 3c-.825 0-1.5.675-1.5 1.5S11.175 6 12 6s1.5-.675 1.5-1.5S12.825 3 12 3zm0 15c-.825 0-1.5.675-1.5 1.5S11.175 21 12 21s1.5-.675 1.5-1.5S12.825 18 12 18zm0-7.5c-.825 0-1.5.675-1.5 1.5s.675 1.5 1.5 1.5 1.5-.675 1.5-1.5-.675-1.5-1.5-1.5z"/></svg>
                         </div>
                     </div>
-                </div>
+                </div> -->
+                <div class="message-container-empty"><div><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="72" height="72"><path fill="none" d="M0 0h24v24H0z"/><path d="M3 3h18a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm17 11h-3.416a5.001 5.001 0 0 1-9.168 0H4v5h16v-5zm0-2V5H4v7h5a3 3 0 0 0 6 0h5z"/></svg><p>Select a message to view it here</p></div></div>
             </div>
         </div>
     </div>
