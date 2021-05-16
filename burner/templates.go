@@ -39,10 +39,12 @@ type expires struct {
 	Minutes string
 }
 
-type indexOut struct {
-	Static   staticDetails
-	Messages []templateMessage
-	Inbox    templateInbox
+type inboxOut struct {
+	Static             staticDetails
+	Messages           []templateMessage
+	Inbox              templateInbox
+	SelectedMessage    templateMessage
+	HasSelectedMessage bool
 }
 
 type messageOut struct {

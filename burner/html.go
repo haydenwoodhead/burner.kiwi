@@ -58,7 +58,7 @@ func (s *Server) getInbox(session *session, w http.ResponseWriter, r *http.Reque
 		return msgs[i].ReceivedAt > msgs[j].ReceivedAt
 	})
 
-	vars := indexOut{
+	vars := inboxOut{
 		Static:   s.getStaticDetails(),
 		Messages: transformMessagesForTemplate(msgs),
 		Inbox:    transformInboxForTemplate(i),
@@ -207,49 +207,57 @@ func (s *Server) createRouteFromInbox(session *session, i Inbox, remoteAddr stri
 
 // IndividualMessage returns a singular message to the user
 func (s *Server) IndividualMessage(w http.ResponseWriter, r *http.Request) {
-	session := s.getSessionFromCookie(r)
-	iID := session.InboxID
+	inboxID := s.getSessionFromCookie(r).InboxID
+	messageID := mux.Vars(r)["messageID"]
 
-	vars := mux.Vars(r)
-	mID := vars["messageID"]
+	inbox, err := s.db.GetInboxByID(inboxID)
+	if err != nil {
+		log.WithField("inboxID", inboxID).WithError(err).Error("IndividualMessage: failed to get inbox")
+		http.Error(w, "Failed to get messages", http.StatusInternalServerError)
+		return
+	}
 
-	m, err := s.db.GetMessageByID(iID, mID)
-	if err == ErrMessageDoesntExist {
+	msgs, err := s.db.GetMessagesByInboxID(inboxID)
+	if err != nil {
+		log.WithField("inboxID", inboxID).WithError(err).Error("IndividualMessage: failed to get all messages for inbox")
+		http.Error(w, "Failed to get messages", http.StatusInternalServerError)
+		return
+	}
+
+	sort.SliceStable(msgs, func(i, j int) bool {
+		return msgs[i].ReceivedAt > msgs[j].ReceivedAt
+	})
+
+	templateMsgs := transformMessagesForTemplate(msgs)
+
+	msg, ok := getIndividualMsgById(messageID, templateMsgs)
+	if !ok {
 		http.Error(w, "Message not found on burner.kiwi", http.StatusNotFound)
 		return
-	} else if err != nil {
-		log.Printf("IndividualMessage: failed to get message. Error: %v", err)
-		http.Error(w, "Failed to get message", http.StatusInternalServerError)
-		return
 	}
 
-	// rtd := transformMessagesForTemplate([]Message{m})
-	// ra := time.Unix(m.ReceivedAt, 0)
-	// ras := ra.Format("Mon Jan 2 15:04:05")
-	mo := messageOut{
-		// Static:           s.getStaticDetails(),
-		// ReceivedTimeDiff: rtd[0],
-		// ReceivedAt:       ras,
-		// Message:          m,
+	vars := inboxOut{
+		Static:             s.getStaticDetails(),
+		Messages:           transformMessagesForTemplate(msgs),
+		Inbox:              transformInboxForTemplate(inbox),
+		SelectedMessage:    msg,
+		HasSelectedMessage: true,
 	}
 
-	// If our html doesn't contain anything then render the plaintext version
-	if m.BodyHTML == "" {
-		err = messagePlainTemplate.ExecuteTemplate(w, "base", mo)
-
-		if err != nil {
-			log.Printf("IndividualMessage: failed to execute template: %v", err)
-			http.Error(w, "Failed to execute template", http.StatusInternalServerError)
-		}
-
-		return
-	}
-
-	err = messageHTMLTemplate.ExecuteTemplate(w, "base", mo)
+	err = indexTemplate.ExecuteTemplate(w, "base", vars)
 	if err != nil {
-		log.Printf("IndividualMessage: failed to execute template: %v", err)
+		log.WithError(err).WithFields(log.Fields{"inboxID": inboxID, "messageID": messageID}).Printf("IndividualMessage: failed to execute template: %v", err)
 		http.Error(w, "Failed to execute template", http.StatusInternalServerError)
 	}
+}
+
+func getIndividualMsgById(id string, haystack []templateMessage) (templateMessage, bool) {
+	for _, msg := range haystack {
+		if msg.ID == id {
+			return msg, true
+		}
+	}
+	return templateMessage{}, false
 }
 
 //EditInbox prompts the user for a new name for the inbox route
