@@ -97,7 +97,6 @@ func New(cfg Config, db Database, email EmailProvider) (*Server, error) {
 	s.Router.Handle("/",
 		alice.New( //Middleware below
 			Refresh(20),
-			CacheControl(14),
 			SetVersionHeader,
 			s.SecurityHeaders(false),
 		).ThenFunc(s.Index),
@@ -106,7 +105,6 @@ func New(cfg Config, db Database, email EmailProvider) (*Server, error) {
 	s.Router.Handle("/messages/{messageID}/",
 		alice.New(
 			s.CheckSessionCookieExists,
-			CacheControl(3600),
 			SetVersionHeader,
 			s.SecurityHeaders(true),
 		).ThenFunc(s.IndividualMessage),
