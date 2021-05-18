@@ -95,6 +95,7 @@ Burner.kiwi styles
   --space-8: 32px;
   --space-9: 36px;
   --space-10: 40px;
+  --space-11: 44px;
 
   --btn-background-color: #181819;
   --btn-icon-color: white;
@@ -293,6 +294,7 @@ body {
 
 .email-display {
   height: 100%;
+  overflow: hidden;
 }
 
 .message-container {
@@ -304,6 +306,9 @@ body {
   color: var(--message-text-color);
   min-height: 100%;
   padding: var(--space-4);
+
+  display: flex;
+  flex-direction: column;
 }
 
 .message-back {
@@ -334,6 +339,19 @@ body {
 
 .message-time {
   font-weight: 200;
+}
+
+.message-content {
+  flex-grow: 1;
+  width: 100%;
+  padding-top: var(--space-6);
+  padding-bottom: var(--space-10);
+}
+
+.message-content iframe {
+  border: none;
+  height: 100%;
+  width: 100%;
 }
 
 @media (min-width: 62rem) {
@@ -392,7 +410,6 @@ body {
 
   .message-container {
     height: 100%;
-    overflow: auto;
     border-bottom-left-radius: 16px;
     border-bottom-right-radius: 16px;
     margin: 0;
@@ -463,6 +480,10 @@ body {
 
   .message-from {
     margin-right: var(--space-3);
+  }
+
+  .message-content {
+    padding-left: var(--space-8);
   }
 }
 
