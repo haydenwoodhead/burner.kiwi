@@ -97,6 +97,7 @@ Burner.kiwi styles
   --space-10: 40px;
   --space-11: 44px;
   --space-16: 64px;
+  --space-24: 96px;
 
   --btn-background-color: #181819;
   --btn-icon-color: white;
@@ -353,7 +354,6 @@ body {
 }
 
 .message-content.plain {
-  margin-left: var(--space-16);
   margin-top: var(--space-6);
   margin-bottom: var(--space-10);
   overflow: scroll;
@@ -369,6 +369,7 @@ body {
   font-family: inherit;
   height: 100%;
   width: 100%;
+  white-space: pre-wrap;
 }
 
 @media (min-width: 62rem) {
@@ -500,7 +501,7 @@ body {
   }
 
   .message-content {
-    padding-left: var(--space-8);
+    padding-left: var(--space-24);
   }
 }
 
