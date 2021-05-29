@@ -147,7 +147,8 @@ func TestServer_GetAllMessagesJSON(t *testing.T) {
 		ReceivedAt:      1526186100,
 		EmailProviderID: "56789",
 		Sender:          "bob@example.com",
-		From:            "Bobby Tables <bob@example.com>",
+		FromName:        "Bobby Tables",
+		FromAddress:     "bob@example.com",
 		Subject:         "DELETE FROM MESSAGES;",
 		BodyPlain:       "Hello there how are you!",
 		BodyHTML:        "<html><body><p>Hello there how are you!</p></body></html>",
@@ -171,7 +172,7 @@ func TestServer_GetAllMessagesJSON(t *testing.T) {
 
 	router.ServeHTTP(rr, r)
 
-	var expected = `{"success":true,"errors":null,"result":[{"id":"91991919","received_at":1526186100,"sender":"bob@example.com","from":"Bobby Tables \u003cbob@example.com\u003e","subject":"DELETE FROM MESSAGES;","body_html":"\u003chtml\u003e\u003cbody\u003e\u003cp\u003eHello there how are you!\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e","body_plain":"Hello there how are you!","ttl":1526189618}],"meta":{"version":"dev","by":"Hayden Woodhead"}}`
+	var expected = `{"success":true,"errors":null,"result":[{"id":"91991919","received_at":1526186100,"sender":"bob@example.com","fromName":"Bobby Tables","fromAddress":"bob@example.com","subject":"DELETE FROM MESSAGES;","body_html":"\u003chtml\u003e\u003cbody\u003e\u003cp\u003eHello there how are you!\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e","body_plain":"Hello there how are you!","ttl":1526189618}],"meta":{"version":"dev","by":"Hayden Woodhead"}}`
 	assert.Equal(t, http.StatusOK, rr.Code)
 	assert.JSONEq(t, expected, rr.Body.String())
 

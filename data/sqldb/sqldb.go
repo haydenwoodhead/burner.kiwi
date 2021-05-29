@@ -72,6 +72,7 @@ func (s *SQLDatabase) createTables() error {
 		received_at numeric,
 		ep_id text,
 		sender text,
+		from_name text,
 		from_address text,
 		subject text,
 		body_html text,
@@ -135,14 +136,15 @@ func (s *SQLDatabase) SetInboxFailed(i burner.Inbox) error {
 
 // SaveNewMessage saves a new message to the db
 func (s *SQLDatabase) SaveNewMessage(m burner.Message) error {
-	_, err := s.NamedExec("INSERT INTO message (inbox_id, message_id, received_at, ep_id, sender, from_address, subject, body_html, body_plain, ttl) VALUES (:inbox_id, :message_id, :received_at, :ep_id, :sender, :from_address, :subject, :body_html, :body_plain, :ttl)",
+	_, err := s.NamedExec("INSERT INTO message (inbox_id, message_id, received_at, ep_id, sender, from_name, from_address, subject, body_html, body_plain, ttl) VALUES (:inbox_id, :message_id, :received_at, :ep_id, :sender, :from_name, :from_address, :subject, :body_html, :body_plain, :ttl)",
 		map[string]interface{}{
 			"inbox_id":     m.InboxID,
 			"message_id":   m.ID,
 			"received_at":  m.ReceivedAt,
 			"ep_id":        m.EmailProviderID,
 			"sender":       m.Sender,
-			"from_address": m.From,
+			"from_name":    m.FromName,
+			"from_address": m.FromAddress,
 			"subject":      m.Subject,
 			"body_html":    m.BodyHTML,
 			"body_plain":   m.BodyPlain,
@@ -155,14 +157,14 @@ func (s *SQLDatabase) SaveNewMessage(m burner.Message) error {
 // GetMessagesByInboxID gets all messages for an inbox
 func (s *SQLDatabase) GetMessagesByInboxID(id string) ([]burner.Message, error) {
 	var msgs []burner.Message
-	err := s.Select(&msgs, "SELECT inbox_id, message_id, received_at, ep_id, sender, from_address, subject, body_html, body_plain, ttl FROM message WHERE inbox_id = $1", id)
+	err := s.Select(&msgs, "SELECT * FROM message WHERE inbox_id = $1", id)
 	return msgs, err
 }
 
 // GetMessageByID gets a single message
 func (s *SQLDatabase) GetMessageByID(i, m string) (burner.Message, error) {
 	var msg burner.Message
-	err := s.Get(&msg, "SELECT inbox_id, message_id, received_at, ep_id, sender, from_address, subject, body_html, body_plain, ttl FROM message WHERE inbox_id = $1 and message_id = $2", i, m)
+	err := s.Get(&msg, "SELECT * FROM message WHERE inbox_id = $1 and message_id = $2", i, m)
 	if err == sql.ErrNoRows {
 		return msg, burner.ErrMessageDoesntExist
 	}

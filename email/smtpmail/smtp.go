@@ -1,7 +1,6 @@
 package smtpmail
 
 import (
-	"fmt"
 	"io"
 	"net"
 	"net/mail"
@@ -135,7 +134,8 @@ func (h *handler) handleMessage(from string, parsedEmail parsemail.Email) error 
 		ReceivedAt:      time.Now().Unix(),
 		EmailProviderID: "smtp", // TODO: maybe a better id here? For logging purposes?
 		Sender:          from,
-		From:            recombineFromField(parsedEmail.From),
+		FromAddress:     getFirstFrom(parsedEmail.From).Address,
+		FromName:        getFirstFrom(parsedEmail.From).Name,
 		Subject:         parsedEmail.Subject,
 	}
 
@@ -195,26 +195,11 @@ func (s *SMTPMail) RegisterRoute(i burner.Inbox) (string, error) {
 	return "smtp", nil
 }
 
-func recombineFromField(from []*mail.Address) string {
-	var fromString strings.Builder
-	for i, f := range from {
-		if f == nil {
-			continue
-		}
-
-		if f.Name != "" {
-			if i == len(from)-1 {
-				fromString.WriteString(fmt.Sprintf("%s <%s>", f.Name, f.Address))
-			} else {
-				fromString.WriteString(fmt.Sprintf("%s <%s>, ", f.Name, f.Address))
-			}
-		} else {
-			if i == len(from)-1 {
-				fromString.WriteString(f.Address)
-			} else {
-				fromString.WriteString(f.Address)
-			}
+func getFirstFrom(from []*mail.Address) mail.Address {
+	for _, f := range from {
+		if f != nil {
+			return *f
 		}
 	}
-	return fromString.String()
+	return mail.Address{}
 }

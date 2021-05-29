@@ -22,7 +22,7 @@
                         <div class="email-avatar {{$m.AvatarColor}}"><p>{{$m.AvatarLetter}}</p></div>
                     </div>
                     <div class="sidebar-email-details">
-                        <div class="sidebar-email-from">{{$m.From}}</div>
+                        <div class="sidebar-email-from">{{$m.FromName}}</div>
                         <div class="sidebar-email-subject">{{$m.Subject}}</div>
                         <div class="sidebar-email-time">{{$m.ReceivedAt}}</div>
                     </div>
@@ -44,7 +44,7 @@
                             <div class="email-avatar {{ .SelectedMessage.AvatarColor }}"><p>{{ .SelectedMessage.AvatarLetter }}</p></div>
                         </div>
                         <div>
-                            <div class="message-from">{{ .SelectedMessage.From }}</div>
+                            <div class="message-from">{{ .SelectedMessage.FromName }} &lt;{{ .SelectedMessage.FromAddress }}&gt;</div>
                             <div class="message-time">Received: {{ .SelectedMessage.ReceivedAt }}</div>
                         </div>
                     </div>
@@ -54,7 +54,7 @@
                     <div class="email-avatar {{ .SelectedMessage.AvatarColor }}"><p>{{ .SelectedMessage.AvatarLetter }}</p></div>
                     <h2 class="message-subject">{{ .SelectedMessage.Subject }}</h2>
                     <div class="message-from-time-row">
-                        <div class="message-from">{{ .SelectedMessage.From }}</div>
+                        <div class="message-from">{{ .SelectedMessage.FromName }} &lt;{{ .SelectedMessage.FromAddress }}&gt;</div>
                         <div class="message-time">{{ .SelectedMessage.ReceivedAt }}</div>
                     </div>
                     <div class="etc-dots">

@@ -3,6 +3,7 @@ package mailgunmail
 import (
 	"fmt"
 	"net/http"
+	"net/mail"
 	"strconv"
 	"time"
 
@@ -134,6 +135,12 @@ func (m *MailgunMail) mailgunIncoming(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	address, err := mail.ParseAddress(r.FormValue("from"))
+	if err != nil {
+		log.WithError(err).WithField("id", id).Error("MailgunIncoming: failed to parse from address")
+		return
+	}
+
 	msg := burner.Message{
 		ID:              uuid.Must(uuid.NewRandom()).String(),
 		InboxID:         inbox.ID,
@@ -141,7 +148,8 @@ func (m *MailgunMail) mailgunIncoming(w http.ResponseWriter, r *http.Request) {
 		ReceivedAt:      time.Now().Unix(),
 		EmailProviderID: r.FormValue("message-id"),
 		Sender:          r.FormValue("sender"),
-		From:            r.FormValue("from"),
+		FromName:        address.Name,
+		FromAddress:     address.Address,
 		Subject:         r.FormValue("subject"),
 		BodyPlain:       r.FormValue("body-plain"),
 	}

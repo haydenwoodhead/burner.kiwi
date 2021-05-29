@@ -67,7 +67,7 @@ func transformMessagesForTemplate(msgs []Message) []templateMessage {
 	// then append that string to received to be passed to the template
 	for _, m := range msgs {
 		received := calculateReceivedAt(m.ReceivedAt)
-		avatarLetter, avatarColor := getAvatarDetails(m.From)
+		avatarLetter, avatarColor := getAvatarDetails(m.FromName)
 		transformedMsgs = append(transformedMsgs, templateMessage{
 			Message:      m,
 			ReceivedAt:   received,

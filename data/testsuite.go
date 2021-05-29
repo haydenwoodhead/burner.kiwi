@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/haydenwoodhead/burner.kiwi/burner"
+	"github.com/stretchr/testify/assert"
 )
 
 // TestFunction is the signature for a testing function
@@ -214,7 +215,8 @@ func TestSaveNewMessage(t *testing.T, db burner.Database) {
 		ReceivedAt:      time.Now().Unix(),
 		EmailProviderID: "56789",
 		Sender:          "bob@example.com",
-		From:            "Bobby Tables <bob@example.com>",
+		FromName:        "Bobby Tables",
+		FromAddress:     "bob@example.com",
 		Subject:         "DELETE FROM MESSAGES;",
 		BodyPlain:       "Hello there how are you!",
 		BodyHTML:        "<html><body><p>Hello there how are you!</p></body></html>",
@@ -228,14 +230,11 @@ func TestSaveNewMessage(t *testing.T, db burner.Database) {
 	}
 
 	ret, err := db.GetMessageByID(m.InboxID, m.ID)
-
 	if err != nil {
 		t.Errorf("%v - TestSaveNewMessage: failed to get back new message: %v", reflect.TypeOf(db), err)
 	}
 
-	if !reflect.DeepEqual(ret, m) {
-		t.Errorf("%v - TestSaveNewMessage: saved message not the same as returned. Expected %v, got %v", reflect.TypeOf(db), m, ret)
-	}
+	assert.Equal(t, m, ret, "%v - TestSaveNewMessage: saved message not the same as returned.", reflect.TypeOf(db))
 }
 
 //TestGetMessageByID verifies that GetMessageByID works
@@ -256,7 +255,8 @@ func TestGetMessageByID(t *testing.T, db burner.Database) {
 		ReceivedAt:      time.Now().Unix(),
 		EmailProviderID: "56789",
 		Sender:          "bob@example.com",
-		From:            "Bobby Tables <bob@example.com>",
+		FromName:        "Bobby Tables",
+		FromAddress:     "bob@example.com",
 		Subject:         "DELETE FROM MESSAGES;",
 		BodyPlain:       "Hello there how are you!",
 		BodyHTML:        "<html><body><p>Hello there how are you!</p></body></html>",
@@ -296,9 +296,7 @@ func TestGetMessageByID(t *testing.T, db burner.Database) {
 			t.Errorf("%v - TestGetMessageByID - %v: error not expected. Expected %v, got %v", reflect.TypeOf(db), i, err, test.ExpectedErr)
 		}
 
-		if !reflect.DeepEqual(ret, test.ExpectedRes) {
-			t.Errorf("%v - TestGetMessageByID - %v: expected not as same as returned. Expected %v, got %v", reflect.TypeOf(db), i, test.ExpectedRes, ret)
-		}
+		assert.Equalf(t, test.ExpectedRes, ret, "%v - TestGetMessageByID - %v: expected not as same as returned.", reflect.TypeOf(db), i)
 	}
 }
 
@@ -326,8 +324,8 @@ func TestGetMessagesByInboxID(t *testing.T, db burner.Database) {
 		ID:              uuid.Must(uuid.NewRandom()).String(),
 		ReceivedAt:      time.Now().Unix(),
 		EmailProviderID: "56789",
-		Sender:          "bob@example.com",
-		From:            "Bobby Tables <bob@example.com>",
+		FromName:        "Bobby Tables",
+		FromAddress:     "bob@example.com",
 		Subject:         "DELETE FROM MESSAGES;",
 		BodyPlain:       "Hello there how are you!",
 		BodyHTML:        "<html><body><p>Hello there how are you!</p></body></html>",
@@ -339,8 +337,8 @@ func TestGetMessagesByInboxID(t *testing.T, db burner.Database) {
 		ID:              uuid.Must(uuid.NewRandom()).String(),
 		ReceivedAt:      time.Now().Unix(),
 		EmailProviderID: "56789",
-		Sender:          "bob@example.com",
-		From:            "Bobby Tables <bob@example.com>",
+		FromName:        "Bobby Tables",
+		FromAddress:     "bob@example.com",
 		Subject:         "DELETE FROM MESSAGES;",
 		BodyPlain:       "Hello there how are you!",
 		BodyHTML:        "<html><body><p>Hello there how are you!</p></body></html>",
@@ -354,32 +352,19 @@ func TestGetMessagesByInboxID(t *testing.T, db burner.Database) {
 	}
 
 	err = db.SaveNewMessage(m2)
-
 	if err != nil {
 		t.Errorf("%v - TestGetMessagesByInboxID: failed to save message 2: %v", reflect.TypeOf(db), err)
 	}
 
 	messages, err := db.GetMessagesByInboxID(m1.InboxID)
-
 	if err != nil {
 		t.Errorf("%v - TestGetMessagesByInboxID: failed to retrieve messages: %v", reflect.TypeOf(db), err)
 	}
 
-	if len(messages) != 2 {
-		t.Errorf("%v - TestGetMessagesByInboxID: got back a different number of messages than saved: Expected 2, got %v", reflect.TypeOf(db), len(messages))
-	}
-
-	for _, m := range messages {
-		if !reflect.DeepEqual(m, m1) {
-			if !reflect.DeepEqual(m, m2) {
-				t.Errorf("%v - TestGetMessagesByInboxID: Got back a different message than saved", reflect.TypeOf(db))
-			}
-		}
-	}
+	assert.ElementsMatch(t, []burner.Message{m1, m2}, messages, "%v - TestGetMessagesByInboxID: Got back a different message than saved", reflect.TypeOf(db))
 
 	// Test that it returns an empty messages slice if there are no messages
 	empty, err := db.GetMessagesByInboxID(uuid.Must(uuid.NewRandom()).String())
-
 	if err != nil {
 		t.Errorf("%v - TestGetMessagesByInboxID: get empty inbox: %v", reflect.TypeOf(db), err)
 	}

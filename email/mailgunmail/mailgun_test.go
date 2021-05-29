@@ -48,7 +48,7 @@ func TestMailgun_MailgunIncoming_Verified(t *testing.T) {
 	resp, err := http.PostForm(httpServer.URL+"/mg/incoming/17b79467-f409-4e7d-86a9-0dc79b77f7c3/", url.Values{
 		"message-id": {"1234"},
 		"sender":     {"hayden@example.com"},
-		"from":       {"hayden@example.com"},
+		"from":       {"Hayden Woodhead <hayden@example.com>"},
 		"subject":    {"Subject line"},
 		"body-plain": {"Hello there"},
 		"body-html":  {`<html><body><a href="https://example.com">Hello there</a></body></html>`},
@@ -63,7 +63,8 @@ func TestMailgun_MailgunIncoming_Verified(t *testing.T) {
 	msg := msgs[0]
 	assert.Equal(t, msg.EmailProviderID, "1234")
 	assert.Equal(t, msg.Sender, "hayden@example.com")
-	assert.Equal(t, msg.From, "hayden@example.com")
+	assert.Equal(t, msg.FromAddress, "hayden@example.com")
+	assert.Equal(t, msg.FromName, "Hayden Woodhead")
 	assert.Equal(t, msg.Subject, "Subject line")
 	assert.Equal(t, msg.BodyPlain, "Hello there")
 	const expectedHTML = `<html><head></head><body><a href="https://example.com" target="_blank">Hello there</a></body></html>`

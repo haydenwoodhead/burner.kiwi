@@ -34,13 +34,14 @@ func TestSMTPMail_SimpleText(t *testing.T) {
 	mDB.On("EmailAddressExists", "test@example.com").Return(true, nil)
 
 	msg := burner.Message{
-		InboxID:   "1234",
-		Sender:    "bob@example.com",
-		From:      "bob@example.com",
-		Subject:   "discount Gophers!",
-		BodyHTML:  "",
-		BodyPlain: "This is the email body.",
-		TTL:       2,
+		InboxID:     "1234",
+		Sender:      "bob@example.com",
+		FromName:    "",
+		FromAddress: "bob@example.com",
+		Subject:     "discount Gophers!",
+		BodyHTML:    "",
+		BodyPlain:   "This is the email body.",
+		TTL:         2,
 	}
 
 	mDB.On("SaveNewMessage", mock.MatchedBy(MessageMatcher(msg))).Return(nil)
@@ -87,13 +88,14 @@ func TestSMTPMail_Multipart(t *testing.T) {
 	mDB.On("EmailAddressExists", "test@example.com").Return(true, nil)
 
 	msg := burner.Message{
-		InboxID:   "1234",
-		Sender:    "bob@example.com",
-		From:      "Bob Simon <bob@example.com>",
-		Subject:   "Please actually work please.....",
-		BodyHTML:  `<html><head></head><body><div dir="ltr">Test content goes here</div></body></html>`,
-		BodyPlain: "Test content goes here",
-		TTL:       2,
+		InboxID:     "1234",
+		Sender:      "bob@example.com",
+		FromAddress: "bob@example.com",
+		FromName:    "Bob Simon",
+		Subject:     "Please actually work please.....",
+		BodyHTML:    `<html><head></head><body><div dir="ltr">Test content goes here</div></body></html>`,
+		BodyPlain:   "Test content goes here",
+		TTL:         2,
 	}
 
 	mDB.On("SaveNewMessage", mock.MatchedBy(MessageMatcher(msg))).Return(nil)
@@ -171,7 +173,8 @@ func MessageMatcher(e burner.Message) func(burner.Message) bool {
 	return func(message burner.Message) bool {
 		return e.InboxID == message.InboxID &&
 			e.Sender == message.Sender &&
-			e.From == message.From &&
+			e.FromAddress == message.FromAddress &&
+			e.FromName == message.FromName &&
 			e.Subject == message.Subject &&
 			message.BodyHTML == e.BodyHTML &&
 			strings.Contains(message.BodyPlain, e.BodyPlain) &&
