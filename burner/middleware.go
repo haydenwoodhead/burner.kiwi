@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/haydenwoodhead/burner.kiwi/token"
@@ -75,7 +74,7 @@ func Refresh(sec int) alice.Constructor {
 const self = "'self'"
 
 //SecurityHeaders sets a whole bunch of headers to secure the site
-func (s *Server) SecurityHeaders(extStyle bool) alice.Constructor {
+func (s *Server) SecurityHeaders() alice.Constructor {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// check to see if we are developing before forcing strict transport
@@ -83,30 +82,7 @@ func (s *Server) SecurityHeaders(extStyle bool) alice.Constructor {
 				w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
 			}
 
-			var styleSrc string
-			var imgSrc string
-			var fntSrc string
-
-			if strings.Compare(s.cfg.StaticURL, "/static") == 0 {
-				styleSrc = self
-				imgSrc = self
-				fntSrc = self
-			} else {
-				styleSrc = s.cfg.StaticURL
-				imgSrc = s.cfg.StaticURL
-				fntSrc = s.cfg.StaticURL
-			}
-
-			// if we're allowing external styles then override then csp
-			if extStyle {
-				styleSrc = "* 'unsafe-inline'"
-				imgSrc = "*"
-				fntSrc = "*"
-			}
-
-			csp := fmt.Sprintf("script-src 'none'; font-src %v https://fonts.gstatic.com/; style-src %v http://fonts.googleapis.com/; img-src %v; default-src 'self'", fntSrc, styleSrc, imgSrc)
-
-			w.Header().Set("Content-Security-Policy", csp)
+			w.Header().Set("Content-Security-Policy", "default-src *; img-src *; font-src *; style-src * 'unsafe-inline'; script-src 'none';")
 
 			w.Header().Set("X-Frame-Options", "DENY")
 			w.Header().Set("X-XSS-Protection", "1")

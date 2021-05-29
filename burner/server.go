@@ -98,7 +98,7 @@ func New(cfg Config, db Database, email EmailProvider) (*Server, error) {
 		alice.New( //Middleware below
 			Refresh(20),
 			SetVersionHeader,
-			s.SecurityHeaders(false),
+			s.SecurityHeaders(),
 		).ThenFunc(s.Index),
 	).Methods(http.MethodGet)
 
@@ -106,7 +106,7 @@ func New(cfg Config, db Database, email EmailProvider) (*Server, error) {
 		alice.New(
 			s.CheckSessionCookieExists,
 			SetVersionHeader,
-			s.SecurityHeaders(true),
+			s.SecurityHeaders(),
 		).ThenFunc(s.IndividualMessage),
 	).Methods(http.MethodGet)
 
@@ -114,7 +114,7 @@ func New(cfg Config, db Database, email EmailProvider) (*Server, error) {
 		alice.New(
 			s.CheckSessionCookieExists,
 			SetVersionHeader,
-			s.SecurityHeaders(false),
+			s.SecurityHeaders(),
 		).ThenFunc(s.EditInbox),
 	).Methods(http.MethodGet)
 
@@ -122,7 +122,7 @@ func New(cfg Config, db Database, email EmailProvider) (*Server, error) {
 		alice.New(
 			s.CheckSessionCookieExists,
 			SetVersionHeader,
-			s.SecurityHeaders(false),
+			s.SecurityHeaders(),
 		).ThenFunc(s.NewNamedInbox),
 	).Methods(http.MethodPost)
 
@@ -130,7 +130,7 @@ func New(cfg Config, db Database, email EmailProvider) (*Server, error) {
 		alice.New(
 			s.CheckSessionCookieExists,
 			SetVersionHeader,
-			s.SecurityHeaders(false),
+			s.SecurityHeaders(),
 		).ThenFunc(s.DeleteInbox),
 	).Methods(http.MethodGet)
 
@@ -138,7 +138,7 @@ func New(cfg Config, db Database, email EmailProvider) (*Server, error) {
 		alice.New(
 			s.CheckSessionCookieExists,
 			SetVersionHeader,
-			s.SecurityHeaders(false),
+			s.SecurityHeaders(),
 		).ThenFunc(s.ConfirmDeleteInbox),
 	).Methods(http.MethodPost)
 

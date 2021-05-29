@@ -2,7 +2,6 @@ package burner
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -157,80 +156,16 @@ func TestServer_SecurityHeaders_SelfServe(t *testing.T) {
 	rr := httptest.NewRecorder()
 	req := httptest.NewRequest("GET", "/", nil)
 
-	m := s.SecurityHeaders(false)
+	m := s.SecurityHeaders()
 	h := m(http.HandlerFunc(fakeHandler))
 
 	h.ServeHTTP(rr, req)
 
-	expectedCSP := "script-src 'none'; font-src 'self' https://fonts.gstatic.com/; style-src 'self' http://fonts.googleapis.com/; img-src 'self'; default-src 'self'"
-
-	if csp := rr.Header().Get("Content-Security-Policy"); csp != expectedCSP {
-		t.Fatalf("TestServer_SecurityHeaders_SelfServe: csp doesn't match expected. Got %v, expected %v", csp, expectedCSP)
-	}
-
-	if xframe := rr.Header().Get("X-Frame-Options"); xframe != "DENY" {
-		t.Fatalf("TestServer_SecurityHeaders_SelfServe: x frame options not as expected. Expected %v, got %v", "DENY", xframe)
-	}
-
-	if xss := rr.Header().Get("X-XSS-Protection"); xss != "1" {
-		t.Fatalf("TestServer_SecurityHeaders_SelfServe: xss protection not as expected. Expected %v, got %v", "1", xss)
-	}
-
-	if ctype := rr.Header().Get("X-Content-Type-Options"); ctype != "nosniff" {
-		t.Fatalf("TestServer_SecurityHeaders_SelfServe: content type protection not as expected. Expected %v, got %v", "nosniff", ctype)
-	}
-
-	if ref := rr.Header().Get("Referrer-Policy"); ref != "no-referrer" {
-		t.Fatalf("TestServer_SecurityHeaders_SelfServe: referrer protection not as expected. Expected %v, got %v", "no-referrer", ref)
-	}
-}
-
-func TestServer_SecurityHeaders_ExtServe(t *testing.T) {
-	s := Server{
-		cfg: Config{
-			Developing: false,
-			StaticURL:  "https://www.example.com/static",
-		},
-	}
-
-	rr := httptest.NewRecorder()
-	req := httptest.NewRequest("GET", "/", nil)
-
-	m := s.SecurityHeaders(false)
-	h := m(http.HandlerFunc(fakeHandler))
-
-	h.ServeHTTP(rr, req)
-
-	expectedCSP := "script-src 'none'; font-src https://www.example.com/static https://fonts.gstatic.com/; style-src https://www.example.com/static http://fonts.googleapis.com/; img-src https://www.example.com/static; default-src 'self'"
-
-	if csp := rr.Header().Get("Content-Security-Policy"); csp != expectedCSP {
-		t.Fatalf("TestServer_SecurityHeaders_ExtServe: csp doesn't match expected. Got %v, expected %v", csp, expectedCSP)
-	}
-}
-
-func TestServer_SecurityHeaders_AllowExt(t *testing.T) {
-	s := Server{
-		cfg: Config{
-			Developing: false,
-			StaticURL:  "https://www.example.com/static",
-		},
-	}
-
-	rr := httptest.NewRecorder()
-	req := httptest.NewRequest("GET", "/", nil)
-
-	m := s.SecurityHeaders(true)
-	h := m(http.HandlerFunc(fakeHandler))
-
-	h.ServeHTTP(rr, req)
-
-	expectedCSP := "script-src 'none'; font-src * https://fonts.gstatic.com/; style-src * 'unsafe-inline' http://fonts.googleapis.com/; img-src *; default-src 'self'"
-
-	if csp := rr.Header().Get("Content-Security-Policy"); csp != expectedCSP {
-		fmt.Println(expectedCSP)
-		fmt.Println(csp)
-		t.Fatalf("TestServer_SecurityHeaders_AllowExt: csp doesn't match expected. Got %v, expected %v", csp, expectedCSP)
-	}
+	assert.Equal(t, "default-src *; img-src *; font-src *; style-src * 'unsafe-inline'; script-src 'none';", rr.Header().Get("Content-Security-Policy"))
+	assert.Equal(t, "DENY", rr.Header().Get("X-Frame-Options"))
+	assert.Equal(t, "1", rr.Header().Get("X-XSS-Protection"))
+	assert.Equal(t, "nosniff", rr.Header().Get("X-Content-Type-Options"))
+	assert.Equal(t, "no-referrer", rr.Header().Get("Referrer-Policy"))
 }
 
 func TestRestoreRealIP(t *testing.T) {
