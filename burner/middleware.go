@@ -2,12 +2,12 @@ package burner
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
 	"github.com/haydenwoodhead/burner.kiwi/token"
 	"github.com/justinas/alice"
+	log "github.com/sirupsen/logrus"
 )
 
 // JSONContentType sets content type of request to json
@@ -24,7 +24,6 @@ func (s *Server) CheckPermissionJSON(h http.Handler) http.Handler {
 		k := r.Header.Get("X-Burner-Key")
 
 		id, err := s.tg.VerifyToken(k) // id from auth key
-
 		if err == token.ErrInvalidToken {
 			returnJSONError(w, r, http.StatusUnauthorized, "Unauthorized: given auth key invalid")
 			return
@@ -32,7 +31,7 @@ func (s *Server) CheckPermissionJSON(h http.Handler) http.Handler {
 			returnJSONError(w, r, http.StatusForbidden, "Forbidden: your token has expired")
 			return
 		} else if err != nil {
-			log.Printf("CheckPermissionJSON: failed to verify token: %v", err)
+			log.WithError(err).Warn("CheckPermissionJSON: failed to verify token")
 			returnJSONError(w, r, http.StatusInternalServerError, "Something went wrong")
 			return
 		}
@@ -95,13 +94,13 @@ func (s *Server) SecurityHeaders() alice.Constructor {
 //SetVersionHeader adds a header with the current version
 func SetVersionHeader(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("X-Burner-Kiwi-version", version)
+		w.Header().Set("X-Burner-Kiwi-Version", version)
 
 		h.ServeHTTP(w, r)
 	})
 }
 
-//RestoreRealIP uses the real ip of the request from theCF-Connecting-IP header
+//RestoreRealIP uses the real ip of the request from the CF-Connecting-IP header
 func RestoreRealIP(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ip := r.Header.Get("CF-Connecting-IP")
