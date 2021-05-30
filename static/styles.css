@@ -387,7 +387,7 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  width: 85%;
+  width: min(85%, 500px);
   height: 300px;
   margin: auto;
   background-color: white;
@@ -592,6 +592,11 @@ body {
 
   .message-content pre {
     height: 100%;
+  }
+
+  .modal-heading {
+    margin-left: var(--space-4);
+    margin-top: var(--space-7);
   }
 }
 
