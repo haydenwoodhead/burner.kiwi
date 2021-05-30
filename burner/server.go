@@ -69,11 +69,11 @@ func New(cfg Config, db Database, email EmailProvider) (*Server, error) {
 	}
 
 	// Setup Templates
-	indexTemplate = mustParseTemplates(templates, "base.html", "inbox.html")
+	indexTemplate = mustParseTemplates(templates, "base.html", "inbox.html", "emptyModal.html")
 	// messageHTMLTemplate = mustParseTemplates(templates, "base.html", "message-html.html")
 	// messagePlainTemplate = mustParseTemplates(templates, "base.html", "message-plain.html")
 	// editTemplate = mustParseTemplates(templates, "base.html", "edit.html")
-	// deleteTemplate = mustParseTemplates(templates, "base.html", "delete.html")
+	deleteTemplate = mustParseTemplates(templates, "base.html", "inbox.html", "delete.html")
 
 	s.sessionStore.MaxAge(86402) // set max cookie age to 24 hours + 2 seconds
 

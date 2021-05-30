@@ -1,0 +1,21 @@
+{{ define "modal" }}
+<a class="background-blur" href="/"></a>
+<div class="modal">
+    <div class="modal-top-row">
+        <h1 class="modal-heading">Do you really want to delete?</h1>
+        <a href="/">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636z" fill="rgba(0,0,0,1)"/></svg>
+        </a>
+    </div>
+    <div class="modal-content">
+        <p>If you delete this inbox you will no longer be able to access any emails you may have received.</p>
+    </div>
+    <div class="modal-button-row">
+        <a href="/"><button class="button skeleton" type="button">Cancel</button></a>
+        <form method="POST" action="/delete">
+            <input type="hidden" value="true" name="really-delete">
+            <button class="button danger" type="submit">Delete</button>
+        </form>
+    </div>
+</div>
+{{end}}

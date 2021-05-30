@@ -372,6 +372,92 @@ body {
   white-space: pre-wrap;
 }
 
+.background-blur {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 85%;
+  height: 300px;
+  margin: auto;
+  background-color: white;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-top-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.modal-top-row a {
+  margin-top: var(--space-2);
+  margin-right: var(--space-2);
+}
+
+.modal-heading {
+  margin-left: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.modal-content {
+  flex: 1;
+  margin-top: var(--space-4);
+  margin-left: var(--space-4);
+  margin-right: var(--space-8);
+}
+
+.modal-button-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: sp;
+  margin-bottom: var(--space-4);
+  margin-right: var(--space-4);
+  gap: var(--space-4);
+}
+
+.button {
+  cursor: pointer;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  width: 80px;
+  height: 50px;
+  font-weight: 500;
+}
+
+.button.danger {
+  background-color: white;
+  color: var(--red);
+  border-color: var(--red);
+}
+
+.button.danger:hover {
+  background-color: var(--red);
+  color: white;
+}
+
+.button.skeleton {
+  background-color: transparent;
+  text-decoration: underline;
+}
+
+.button.skeleton:hover {
+  border-color: var(--rather-light-grey);
+  text-decoration: none;
+}
+
+
 @media (min-width: 62rem) {
   .sidebar.hide,
   .email-display.hide {

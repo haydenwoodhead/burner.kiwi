@@ -278,12 +278,32 @@ func (s *Server) EditInbox(w http.ResponseWriter, r *http.Request) {
 
 //DeleteInbox prompts for a confirmation to delete from the user
 func (s *Server) DeleteInbox(w http.ResponseWriter, r *http.Request) {
-	err := deleteTemplate.ExecuteTemplate(w, "base", struct {
-		Static staticDetails
-	}{
-		Static: s.getStaticDetails(),
+	session := s.getSessionFromCookie(r)
+	i, err := s.db.GetInboxByID(session.InboxID)
+	if err != nil {
+		log.WithField("inboxID", session.InboxID).WithError(err).Error("DeleteInbox: failed to get inbox")
+		http.Error(w, "Failed to get inbox", http.StatusInternalServerError)
+		return
+	}
+
+	msgs, err := s.db.GetMessagesByInboxID(i.ID)
+	if err != nil {
+		log.WithField("inboxID", i.ID).WithError(err).Error("DeleteInbox: failed to get all messages for inbox")
+		http.Error(w, "Failed to get messages", http.StatusInternalServerError)
+		return
+	}
+
+	sort.SliceStable(msgs, func(i, j int) bool {
+		return msgs[i].ReceivedAt > msgs[j].ReceivedAt
 	})
 
+	vars := inboxOut{
+		Static:   s.getStaticDetails(),
+		Messages: transformMessagesForTemplate(msgs),
+		Inbox:    transformInboxForTemplate(i),
+	}
+
+	err = deleteTemplate.ExecuteTemplate(w, "base", vars)
 	if err != nil {
 		log.Printf("DeleteInbox: failed to execute template: %v", err)
 		http.Error(w, "Failed to execute template", http.StatusInternalServerError)
