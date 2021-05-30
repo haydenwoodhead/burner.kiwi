@@ -71,8 +71,6 @@ func Refresh(sec int) alice.Constructor {
 	}
 }
 
-const self = "'self'"
-
 //SecurityHeaders sets a whole bunch of headers to secure the site
 func (s *Server) SecurityHeaders() alice.Constructor {
 	return func(h http.Handler) http.Handler {

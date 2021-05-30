@@ -47,13 +47,6 @@ type inboxOut struct {
 	HasSelectedMessage bool
 }
 
-type messageOut struct {
-	Static           staticDetails
-	ReceivedTimeDiff string
-	ReceivedAt       string
-	Message          Message
-}
-
 type editOut struct {
 	Static staticDetails
 	Hosts  []string

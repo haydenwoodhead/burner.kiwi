@@ -2,11 +2,8 @@ package burner
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
-	"net/mail"
-	"strings"
 	"sync"
 	"time"
 
@@ -176,28 +173,4 @@ func returnJSON(w http.ResponseWriter, r *http.Request, status int, resp interfa
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-}
-
-func recombineFromField(from []*mail.Address) string {
-	var fromString strings.Builder
-	for i, f := range from {
-		if f == nil {
-			continue
-		}
-
-		if f.Name != "" {
-			if i == len(from)-1 {
-				fromString.WriteString(fmt.Sprintf("%s <%s>", f.Name, f.Address))
-			} else {
-				fromString.WriteString(fmt.Sprintf("%s <%s>, ", f.Name, f.Address))
-			}
-		} else {
-			if i == len(from)-1 {
-				fromString.WriteString(f.Address)
-			} else {
-				fromString.WriteString(f.Address)
-			}
-		}
-	}
-	return fromString.String()
 }

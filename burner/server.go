@@ -22,13 +22,10 @@ var staticFS = packr.NewBox("../static")
 
 // Templates
 var indexTemplate *template.Template
-var messageHTMLTemplate *template.Template
-var messagePlainTemplate *template.Template
 var editTemplate *template.Template
 var deleteTemplate *template.Template
 
 // Static asset vars - these are overridden at build time to inject a file w/ version info
-var logo = "roger.svg"
 var css = "styles.css"
 
 // version number - this is also overridden at build time to inject the commit hash

@@ -2,7 +2,7 @@ package burner
 
 import (
 	"fmt"
-	"io"
+	"io/ioutil"
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httptest"
@@ -34,7 +34,7 @@ func TestGetSessionFromCookie(t *testing.T) {
 	setCookieResp, err := client.Get(server.URL + "/setcookie")
 	require.NoError(t, err)
 
-	setCookieBody, err := io.ReadAll(setCookieResp.Body)
+	setCookieBody, err := ioutil.ReadAll(setCookieResp.Body)
 	require.NoError(t, err)
 	defer setCookieResp.Body.Close()
 
@@ -43,7 +43,7 @@ func TestGetSessionFromCookie(t *testing.T) {
 	getCookieResp, err := client.Get(server.URL + "/getcookie")
 	require.NoError(t, err)
 
-	getCookieBody, err := io.ReadAll(getCookieResp.Body)
+	getCookieBody, err := ioutil.ReadAll(getCookieResp.Body)
 	require.NoError(t, err)
 	defer getCookieResp.Body.Close()
 
