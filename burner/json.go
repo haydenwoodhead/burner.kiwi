@@ -2,13 +2,13 @@ package burner
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"sync"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
 )
 
 // Response is the root response for every api call
@@ -16,27 +16,12 @@ type Response struct {
 	Success bool        `json:"success"`
 	Errors  interface{} `json:"errors"`
 	Result  interface{} `json:"result"`
-	Meta    Meta        `json:"meta"`
 }
 
 // Errors is our error struct for if something goes wrong
 type Errors struct {
 	Code int    `json:"code"`
 	Msg  string `json:"msg"`
-}
-
-// Meta contains our version number and by
-type Meta struct {
-	Version string `json:"version"`
-	By      string `json:"by"`
-}
-
-// GetMeta returns meta info for json api responses
-func GetMeta() Meta {
-	return Meta{
-		Version: version,
-		By:      "Hayden Woodhead",
-	}
 }
 
 // NewInboxJSON generates a new email address and returns it to the caller
@@ -46,25 +31,18 @@ func (s *Server) NewInboxJSON(w http.ResponseWriter, r *http.Request) {
 
 	exists, err := s.db.EmailAddressExists(i.Address) // while it's VERY unlikely that the email already exists but lets check anyway
 	if err != nil {
-		log.Printf("JSON Index: failed to check if email exists: %v", err)
+		log.WithError(err).Error("JSON Index: failed to check if email exists")
 		returnJSONError(w, r, http.StatusInternalServerError, "Failed to generate email")
 		return
 	}
 
 	if exists {
-		log.Printf("JSON Index: email already exisists: %v", err)
+		log.Error("JSON Index: email already exists")
 		returnJSONError(w, r, http.StatusInternalServerError, "Failed to generate email")
 		return
 	}
 
-	id, err := uuid.NewRandom()
-	if err != nil {
-		log.Printf("JSON Index: failed to generate new random id: %v", err)
-		returnJSONError(w, r, http.StatusInternalServerError, "Failed to generate random id")
-		return
-	}
-
-	i.ID = id.String()
+	i.ID = uuid.Must(uuid.NewRandom()).String()
 	i.CreatedAt = time.Now().Unix()
 	i.TTL = time.Now().Add(time.Hour * 24).Unix()
 	i.CreatedBy = r.RemoteAddr
@@ -74,7 +52,6 @@ func (s *Server) NewInboxJSON(w http.ResponseWriter, r *http.Request) {
 	// lambda we need to make the request wait for this operation to finish. Otherwise the route will never
 	// get created.
 	var wg sync.WaitGroup
-
 	if s.cfg.UsingLambda {
 		wg.Add(1)
 		go s.lambdaCreateRouteAndUpdate(&wg, i)
@@ -84,7 +61,7 @@ func (s *Server) NewInboxJSON(w http.ResponseWriter, r *http.Request) {
 
 	err = s.db.SaveNewInbox(i)
 	if err != nil {
-		log.Printf("JSON Index: failed to save email: %v", err)
+		log.WithError(err).Error("JSON Index: failed to save email")
 		returnJSONError(w, r, http.StatusInternalServerError, "Failed to save email")
 		return
 	}
@@ -107,19 +84,17 @@ func (s *Server) NewInboxJSON(w http.ResponseWriter, r *http.Request) {
 
 	returnJSON(w, r, http.StatusOK, Response{
 		Result:  res,
-		Meta:    GetMeta(),
 		Success: true,
 	})
 }
 
 // GetInboxDetailsJSON returns details on a singular inbox by the given inbox id
 func (s *Server) GetInboxDetailsJSON(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id := vars["inboxID"]
+	id := mux.Vars(r)["inboxID"]
 
 	e, err := s.db.GetInboxByID(id)
 	if err != nil {
-		log.Printf("GetInboxDetailsJSON: failed to retrieve email from db: %v", err)
+		log.WithError(err).WithField("inboxID", id).Printf("GetInboxDetailsJSON: failed to retrieve email from db")
 		returnJSONError(w, r, http.StatusInternalServerError, "Failed to get email details")
 		return
 	}
@@ -127,19 +102,16 @@ func (s *Server) GetInboxDetailsJSON(w http.ResponseWriter, r *http.Request) {
 	returnJSON(w, r, http.StatusOK, Response{
 		Success: true,
 		Result:  e,
-		Meta:    GetMeta(),
 	})
 }
 
 // GetAllMessagesJSON returns all messages in json
 func (s *Server) GetAllMessagesJSON(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id := vars["inboxID"]
+	id := mux.Vars(r)["inboxID"]
 
 	m, err := s.db.GetMessagesByInboxID(id)
-
 	if err != nil {
-		log.Printf("GetAllMessagesJSON: failed to get messages with id %v: %v", id, err)
+		log.WithError(err).WithField("inboxID", id).Error("GetAllMessagesJSON: failed to get messages with id")
 		returnJSONError(w, r, http.StatusInternalServerError, "Failed to get messages")
 		return
 	}
@@ -147,7 +119,6 @@ func (s *Server) GetAllMessagesJSON(w http.ResponseWriter, r *http.Request) {
 	returnJSON(w, r, http.StatusOK, Response{
 		Success: true,
 		Result:  m,
-		Meta:    GetMeta(),
 	})
 }
 
@@ -156,7 +127,6 @@ func returnJSONError(w http.ResponseWriter, r *http.Request, status int, msg str
 	returnJSON(w, r, status, Response{
 		Success: false,
 		Result:  nil,
-		Meta:    GetMeta(),
 		Errors: Errors{
 			Code: 500,
 			Msg:  msg,
@@ -169,7 +139,7 @@ func returnJSON(w http.ResponseWriter, r *http.Request, status int, resp interfa
 	encoder := json.NewEncoder(w)
 	err := encoder.Encode(resp)
 	if err != nil {
-		log.Printf("returnJSON: failed to write response. err=%v", err)
+		log.WithError(err).Error("returnJSON: failed to write response")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
