@@ -423,7 +423,10 @@ body {
   justify-content: flex-end;
   margin-bottom: var(--space-4);
   margin-right: var(--space-4);
-  gap: var(--space-4);
+}
+
+.modal-button-row:first-child {
+  margin-right: var(--space-4);
 }
 
 .button {
