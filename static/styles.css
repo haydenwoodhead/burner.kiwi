@@ -412,7 +412,7 @@ body {
 }
 
 .modal-content {
-  flex: 1;
+  /* flex: 1; */
   margin-top: var(--space-4);
   margin-left: var(--space-4);
   margin-right: var(--space-8);
@@ -434,10 +434,18 @@ body {
   width: 80px;
   height: 50px;
   font-weight: 500;
+  background-color: white;
+
+  color: var(--blue);
+  border-color: var(--blue);
+}
+
+.button:hover {
+  background-color: var(--blue);
+  color: white;
 }
 
 .button.danger {
-  background-color: white;
   color: var(--red);
   border-color: var(--red);
 }
@@ -448,13 +456,61 @@ body {
 }
 
 .button.skeleton {
+  border-color: transparent;
   background-color: transparent;
   text-decoration: underline;
+  color: black;
 }
 
 .button.skeleton:hover {
-  border-color: var(--rather-light-grey);
+  border-color: black;
   text-decoration: none;
+}
+
+.address-builder-field {
+  display: flex;
+  border: 1px solid black;
+  border-radius: 8px;
+  margin-top: var(--space-4);
+  margin-bottom: var(--space-4);
+  overflow: hidden;
+}
+
+.address-builder-field input {
+  border: none;
+  margin-left: var(--space-4);
+}
+
+
+.address-builder-icon {
+  display: flex;
+  align-items: center;
+  padding: var(--space-1);
+  background-color: #9CA3AF;
+  /* border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px; */
+}
+
+.address-builder-icon svg {
+  fill: white;
+}
+
+.address-builder-field-select {
+  display: block;
+  cursor: pointer;
+  border: none;
+  background-color: white;
+  margin-left: 13px;
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+  width: 100%;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0Ij48cGF0aCBmaWxsPSJub25lIiBkPSJNMCAwaDI0djI0SDB6Ii8+PHBhdGggZD0iTTEyIDE1bC00LjI0My00LjI0MyAxLjQxNS0xLjQxNEwxMiAxMi4xNzJsMi44MjgtMi44MjkgMS40MTUgMS40MTR6IiBmaWxsPSJyZ2JhKDAsMCwwLDEpIi8+PC9zdmc+');
+  background-repeat: no-repeat;
+  background-position: right;
+  background-size: 24px;
 }
 
 
@@ -596,7 +652,7 @@ body {
 
   .modal-heading {
     margin-left: var(--space-4);
-    margin-top: var(--space-7);
+    margin-top: var(--space-5);
   }
 }
 

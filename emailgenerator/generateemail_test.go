@@ -92,7 +92,7 @@ func TestEmailGenerator_NewFromRouteAndHost(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
-			err := g.VerifyUser(test.In)
+			err := g.verifyUser(test.In)
 			if test.ExpectErr {
 				assert.NotNil(t, err)
 			} else {

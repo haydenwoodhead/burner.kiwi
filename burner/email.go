@@ -16,12 +16,8 @@ type EmailProvider interface {
 }
 
 type EmailGenerator interface {
-	GetHosts() []string
-	HostsContains(host string) bool
 	NewRandom() string
-	NewFromUserAndHost(r string, h string) (string, error)
-	VerifyUser(r string) error
-	VerifyHost(h string) error
+	NewFromUserAndHost(user string, host string) (string, error)
 }
 
 func (s *Server) isBlacklistedDomain(email string) bool {

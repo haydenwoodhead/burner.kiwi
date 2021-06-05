@@ -28,7 +28,7 @@ func (eg *EmailGenerator) GetHosts() []string {
 }
 
 // HostsContains tells whether host h is in eg.Hosts
-func (eg *EmailGenerator) HostsContains(h string) bool {
+func (eg *EmailGenerator) hostsContains(h string) bool {
 	for _, n := range eg.Hosts {
 		if h == n {
 			return true
@@ -52,17 +52,20 @@ func (eg *EmailGenerator) NewRandom() string {
 }
 
 // NewFromUserAndHost generates a new email address from a string and host. It is the callers responsibility to check for uniqueness
-func (eg *EmailGenerator) NewFromUserAndHost(r string, h string) (string, error) {
-	if eg.HostsContains(h) {
-		return string(r) + "@" + h, nil
+func (eg *EmailGenerator) NewFromUserAndHost(user string, host string) (string, error) {
+	if err := eg.verifyUser(user); err != nil {
+		return "", err
 	}
-	return "", fmt.Errorf("invalid host: %s", h)
+	if err := eg.verifyHost(host); err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s@%s", user, host), nil
 }
 
 var isAlphaNumeric = regexp.MustCompile(`^[a-zA-Z0-9]+$`).MatchString
 
 //VerifyUser verifies the local part of an email address is between 3 and 64 alphanumeric characters
-func (eg *EmailGenerator) VerifyUser(r string) error {
+func (eg *EmailGenerator) verifyUser(r string) error {
 	if len(r) < 3 {
 		return fmt.Errorf("route must be at least three characters: %s", r)
 	} else if len(r) > 64 {
@@ -76,10 +79,10 @@ func (eg *EmailGenerator) VerifyUser(r string) error {
 }
 
 //VerifyHost verifies the host part of an email address is not empty and is known to the application
-func (eg *EmailGenerator) VerifyHost(h string) error {
+func (eg *EmailGenerator) verifyHost(h string) error {
 	if h == "" {
 		return errors.New("host must not be an empty string")
-	} else if !eg.HostsContains(h) {
+	} else if !eg.hostsContains(h) {
 		return fmt.Errorf("host not in list of known Hosts: %s", h)
 	}
 	return nil

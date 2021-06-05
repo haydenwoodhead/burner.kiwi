@@ -102,26 +102,10 @@ func (s *Server) newRandomInbox(session *session, w http.ResponseWriter, r *http
 func (s *Server) NewNamedInbox(w http.ResponseWriter, r *http.Request) {
 	session := s.getSessionFromCookie(r)
 
-	errs := ""
-
-	route := r.PostFormValue("route")
-	err := s.eg.VerifyUser(route)
+	address, err := s.eg.NewFromUserAndHost(r.PostFormValue("user"), r.PostFormValue("host"))
 	if err != nil {
-		log.Printf("NewNamedInbox: failed to verify route: %v", err)
-		errs = err.Error()
-	}
-
-	host := r.PostFormValue("host")
-	err = s.eg.VerifyHost(host)
-	if err != nil {
-		log.Printf("NewNamedInbox: failed to verify host: %v", err)
-		errs = err.Error()
-	}
-
-	address, err := s.eg.NewFromUserAndHost(route, host)
-	if err != nil {
-		log.Printf("NewNamedInbox: failed to create new inbox address: %v", err)
-		http.Error(w, "Failed to generate email", http.StatusInternalServerError)
+		log.WithError(err).Info("NewNamedInbox: failed to create new inbox address")
+		s.editInbox(w, r, "Failed to create new inbox: bad address")
 		return
 	}
 
@@ -131,37 +115,24 @@ func (s *Server) NewNamedInbox(w http.ResponseWriter, r *http.Request) {
 	exists, err := s.db.EmailAddressExists(i.Address)
 	if err != nil {
 		log.Printf("NewNamedInbox: failed to check if email exists: %v", err)
-		http.Error(w, "Failed to generate email", http.StatusInternalServerError)
+		s.editInbox(w, r, "Failed to create new inbox: try again")
 		return
 	}
 
 	if exists {
-		log.Printf("NewNamedInbox: email already exists: %v", i.Address)
-		errs = fmt.Sprintf("address already in use: %v", i.Address)
+		log.WithField("address", address).Debug("NewNamedInbox: email already exists")
+		s.editInbox(w, r, "Failed to create new inbox: address in uses")
+		return
 	}
 
-	if errs != "" {
-		eo := editOut{
-			Static: s.getStaticDetails(),
-			Hosts:  s.eg.GetHosts(),
-			Error:  errs,
-		}
-
-		err := editTemplate.ExecuteTemplate(w, "base", eo)
-
-		if err != nil {
-			log.Printf("NewNamedInbox: failed to execute template: %v", err)
-			http.Error(w, "Failed to execute template", http.StatusInternalServerError)
-		}
-	} else {
-		err := s.createRouteFromInbox(session, i, r.RemoteAddr, w)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		http.Redirect(w, r, "/", http.StatusFound)
+	err = s.createRouteFromInbox(session, i, r.RemoteAddr, w)
+	if err != nil {
+		log.WithError(err).Info("NewNamedInbox: failed to create new inbox address")
+		http.Error(w, "Failed to create inbox. Please clear cookies and try again.", http.StatusInternalServerError)
+		return
 	}
+
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 // CreateRouteFromInbox creates a new route based on Inbox settings and writes out the new inbox
@@ -260,20 +231,46 @@ func getIndividualMsgById(id string, haystack []templateMessage) (templateMessag
 	return templateMessage{}, false
 }
 
-//EditInbox prompts the user for a new name for the inbox route
-func (s *Server) EditInbox(w http.ResponseWriter, r *http.Request) {
-	eo := editOut{
-		Static: s.getStaticDetails(),
-		Hosts:  s.eg.GetHosts(),
-		Error:  "",
+func (s *Server) editInbox(w http.ResponseWriter, r *http.Request, errMessage string) {
+	session := s.getSessionFromCookie(r)
+	i, err := s.db.GetInboxByID(session.InboxID)
+	if err != nil {
+		log.WithField("inboxID", session.InboxID).WithError(err).Error("DeleteInbox: failed to get inbox")
+		http.Error(w, "Failed to get inbox", http.StatusInternalServerError)
+		return
 	}
 
-	err := editTemplate.ExecuteTemplate(w, "base", eo)
+	msgs, err := s.db.GetMessagesByInboxID(i.ID)
+	if err != nil {
+		log.WithField("inboxID", i.ID).WithError(err).Error("DeleteInbox: failed to get all messages for inbox")
+		http.Error(w, "Failed to get messages", http.StatusInternalServerError)
+		return
+	}
 
+	sort.SliceStable(msgs, func(i, j int) bool {
+		return msgs[i].ReceivedAt > msgs[j].ReceivedAt
+	})
+
+	vars := inboxOut{
+		Static:   s.getStaticDetails(),
+		Messages: transformMessagesForTemplate(msgs),
+		Inbox:    transformInboxForTemplate(i),
+		ModalData: editModalData{
+			Hosts: s.cfg.Domains,
+			Err:   errMessage,
+		},
+	}
+
+	err = editTemplate.ExecuteTemplate(w, "base", vars)
 	if err != nil {
 		log.Printf("DeleteInbox: failed to execute template: %v", err)
 		http.Error(w, "Failed to execute template", http.StatusInternalServerError)
 	}
+}
+
+//EditInbox prompts the user for a new name for the inbox route
+func (s *Server) EditInbox(w http.ResponseWriter, r *http.Request) {
+	s.editInbox(w, r, "")
 }
 
 //DeleteInbox prompts for a confirmation to delete from the user

@@ -45,6 +45,12 @@ type inboxOut struct {
 	Inbox              templateInbox
 	SelectedMessage    templateMessage
 	HasSelectedMessage bool
+	ModalData          interface{}
+}
+
+type editModalData struct {
+	Hosts []string
+	Err   string
 }
 
 type editOut struct {
