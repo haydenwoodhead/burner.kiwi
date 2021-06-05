@@ -53,12 +53,6 @@ type editModalData struct {
 	Err   string
 }
 
-type editOut struct {
-	Static staticDetails
-	Hosts  []string
-	Error  string
-}
-
 func transformMessagesForTemplate(msgs []Message) []templateMessage {
 	transformedMsgs := make([]templateMessage, 0, len(msgs))
 

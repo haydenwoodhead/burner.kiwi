@@ -65,8 +65,8 @@ func TestGetAvatarDetails(t *testing.T) {
 }
 
 func TestMustParseTemplates(t *testing.T) {
-	indexFile := template.Must(template.New("index").ParseFiles("../templates/base.html", "../templates/inbox.html"))
-	indexPackr := mustParseTemplates(templates, "base.html", "inbox.html")
+	indexFile := template.Must(template.New("index").ParseFiles("../templates/base.html", "../templates/inbox.html", "../templates/emptyModal.html"))
+	indexPackr := mustParseTemplates(templates, "base.html", "inbox.html", "emptyModal.html")
 
 	out := inboxOut{}
 
