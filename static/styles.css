@@ -388,7 +388,7 @@ body {
   right: 0;
   bottom: 0;
   width: min(85%, 500px);
-  height: 300px;
+  height: 320px;
   margin: auto;
   background-color: white;
   border-radius: 8px;
@@ -412,7 +412,7 @@ body {
 }
 
 .modal-content {
-  /* flex: 1; */
+  flex: 1;
   margin-top: var(--space-4);
   margin-left: var(--space-4);
   margin-right: var(--space-8);
@@ -421,7 +421,6 @@ body {
 .modal-button-row {
   display: flex;
   justify-content: flex-end;
-  margin-top: sp;
   margin-bottom: var(--space-4);
   margin-right: var(--space-4);
   gap: var(--space-4);
@@ -513,6 +512,9 @@ body {
   background-size: 24px;
 }
 
+.address-builder-err {
+  color: var(--red);
+}
 
 @media (min-width: 62rem) {
   .sidebar.hide,
