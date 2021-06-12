@@ -172,6 +172,9 @@ body {
 
 .sidebar {
   padding: var(--space-3);
+  display: grid;
+  grid-template-rows: max-content auto 40px;
+  min-height: 100%;
 }
 
 .roger {
@@ -221,6 +224,14 @@ body {
 .no-emails {
   text-align: center;
   padding-top: var(--space-8);
+}
+
+.sidebar-info p {
+  text-align: center;
+}
+
+.sidebar-info a {
+  color: black;
 }
 
 .sidebar-emails {
@@ -520,9 +531,12 @@ body {
 }
 
 @media (min-width: 62rem) {
-  .sidebar.hide,
   .email-display.hide {
     display: block;
+  }
+
+  .sidebar.hide {
+    display: grid;
   }
 
   .message-details-container-mobile,

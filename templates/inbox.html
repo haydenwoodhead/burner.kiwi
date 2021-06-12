@@ -31,6 +31,9 @@
                 {{end}}
 
             </div>
+            <div class="sidebar-info">
+                <p><a href="https://github.com/haydenwoodhead/burner.kiwi/" target="_blank">Github</a> - <a href="https://about.burner.kiwi/" target="_blank">FAQ</a> - <a href="https://about.burner.kiwi/apidocs" target="_blank">API</a></p>
+            </div>
         </div>
         <div class="email-display {{ if not .HasSelectedMessage }}hide{{end}}">
             <a href="/" class="message-back"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="none" d="M0 0h24v24H0z"/><path d="M10.828 12l4.95 4.95-1.414 1.414L8 12l6.364-6.364 1.414 1.414z"/></svg> Back to messages</a>
@@ -43,7 +46,7 @@
                             <div class="email-avatar {{ .SelectedMessage.AvatarColor }}"><p>{{ .SelectedMessage.AvatarLetter }}</p></div>
                         </div>
                         <div>
-                            <div class="message-from">{{ .SelectedMessage.FromName }} &lt;{{ .SelectedMessage.FromAddress }}&gt;</div>
+                            <div class="message-from"><b>{{ .SelectedMessage.FromName }}</b> &lt;{{ .SelectedMessage.FromAddress }}&gt;</div>
                             <div class="message-time">Received: {{ .SelectedMessage.ReceivedAt }}</div>
                         </div>
                     </div>
@@ -53,7 +56,7 @@
                     <div class="email-avatar {{ .SelectedMessage.AvatarColor }}"><p>{{ .SelectedMessage.AvatarLetter }}</p></div>
                     <h2 class="message-subject">{{ .SelectedMessage.Subject }}</h2>
                     <div class="message-from-time-row">
-                        <div class="message-from">{{ .SelectedMessage.FromName }} &lt;{{ .SelectedMessage.FromAddress }}&gt;</div>
+                        <div class="message-from"><b>{{ .SelectedMessage.FromName }}</b> &lt;{{ .SelectedMessage.FromAddress }}&gt;</div>
                         <div class="message-time">{{ .SelectedMessage.ReceivedAt }}</div>
                     </div>
                     <div class="etc-dots">
