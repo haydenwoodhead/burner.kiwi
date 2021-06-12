@@ -1,108 +1,76 @@
 package burner
 
 import (
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"reflect"
-	"strings"
 	"testing"
 	"time"
 
-	"github.com/haydenwoodhead/burner.kiwi/notary"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
 	"github.com/gorilla/mux"
+	"github.com/haydenwoodhead/burner.kiwi/notary"
 	"github.com/justinas/alice"
+	"github.com/stretchr/testify/assert"
 )
 
 const FAKEHANDLERRESP = "fake handler"
 const NEWHANDLERRESP = "new handler"
-const PASSKEY = "pass key"
-const DONTCHECK = "string"
 
 func TestServer_CheckPermissionJSON(t *testing.T) {
 	tests := []struct {
-		Duration       time.Duration
-		AuthHeader     string
-		ExpectedStatus int
-		ExpectedMsg    string
+		Name               string
+		TokenToPass        string
+		ExpectedStatusCode int
 	}{
 		{
-			Duration:       time.Hour,
-			AuthHeader:     PASSKEY,
-			ExpectedStatus: http.StatusOK,
-			ExpectedMsg:    DONTCHECK,
+			Name:               "valid token",
+			TokenToPass:        "eyJhbGciOiJIUzI1NiJ9.eyJJbmJveElEIjoiZGFmZDU2MDYtOGFhOC00NzI0LWEyYzUtZjY2MTEwYWJhNTM2IiwiX19wdXJwb3NlIjoiYXV0aCIsImV4cCI6MTYxODkyOTcyMCwiaWF0IjoxNjE4OTI5NjYwLCJpc3MiOiJidXJuZXIua2l3aSJ9.jQdwYLV-7JdYNvvU7NX2jmnl5dORwad3LTS2ecLEWnI",
+			ExpectedStatusCode: http.StatusOK,
 		},
 		{
-			Duration:       time.Second,
-			AuthHeader:     PASSKEY,
-			ExpectedStatus: http.StatusForbidden,
-			ExpectedMsg:    "Forbidden: your token has expired",
+			Name:               "missing token",
+			TokenToPass:        "",
+			ExpectedStatusCode: http.StatusUnauthorized,
 		},
 		{
-			Duration:       time.Hour,
-			AuthHeader:     "not valid",
-			ExpectedStatus: http.StatusUnauthorized,
-			ExpectedMsg:    DONTCHECK,
+			Name:               "token modified",
+			TokenToPass:        "not-a-real-token",
+			ExpectedStatusCode: http.StatusUnauthorized,
+		},
+		{
+			Name:               "expired token",
+			TokenToPass:        "eyJhbGciOiJIUzI1NiJ9.eyJJbmJveElEIjoiZGFmZDU2MDYtOGFhOC00NzI0LWEyYzUtZjY2MTEwYWJhNTM2IiwiX19wdXJwb3NlIjoiYXV0aCIsImV4cCI6MTYxODkyOTU0MCwiaWF0IjoxNjE4OTI5NjYwLCJpc3MiOiJidXJuZXIua2l3aSJ9.rGzq4xvdbOA_NzeWAxJcYSr6YNDlT1EDBMfA95zxHv8",
+			ExpectedStatusCode: http.StatusForbidden,
+		},
+		{
+			Name:               "different inbox id",
+			TokenToPass:        "eyJhbGciOiJIUzI1NiJ9.eyJJbmJveElEIjoiZGFmZDU2MDYtOGFhOC00NzI0LWEyYzUtZjY2MTEwYWJhNTM1IiwiX19wdXJwb3NlIjoiYXV0aCIsImV4cCI6MTYxODkyOTcyMCwiaWF0IjoxNjE4OTI5NjYwLCJpc3MiOiJidXJuZXIua2l3aSJ9.VuPj2SZpqOVEAcrHyuIHiFmqx7lYmQUy8JhQ-eN0dhg",
+			ExpectedStatusCode: http.StatusForbidden,
 		},
 	}
 
-	for i, test := range tests {
-		s := Server{
-			notariser: notary.New("testexample12344"),
-		}
-
-		tk, err := s.notariser.Sign("token", jwtToken{"dafd5606-8aa8-4724-a2c5-f66110aba536"}, time.Now().Add(1*time.Hour).Unix())
-		require.NoError(t, err)
-
-		time.Sleep(2 * time.Second) // so we can test whether token expiration works correctly
-
-		rr := httptest.NewRecorder()
-
-		h := mux.NewRouter()
-		h.Handle("/{inboxID}", alice.New(JSONContentType, s.CheckPermissionJSON).ThenFunc(fakeHandler))
-
-		r := httptest.NewRequest(http.MethodGet, "/dafd5606-8aa8-4724-a2c5-f66110aba536", nil)
-
-		if strings.Compare(test.AuthHeader, PASSKEY) == 0 {
-			r.Header.Set("X-Burner-Key", tk)
-		} else {
-			r.Header.Set("X-Burner-Key", test.AuthHeader)
-		}
-
-		h.ServeHTTP(rr, r)
-
-		if rr.Code != test.ExpectedStatus {
-			t.Errorf("TestServer_CheckPermissionJSON: %v - Status code different. Expected %v, got %v", i, test.ExpectedStatus, rr.Code)
-		}
-
-		if test.ExpectedMsg != DONTCHECK {
-			resp := Response{}
-
-			err := json.Unmarshal(rr.Body.Bytes(), &resp)
-
-			if err != nil {
-				t.Errorf("TestServer_CheckPermissionJSON: %v - Failed to unmarshal json resp: %v", i, err)
+	for _, test := range tests {
+		t.Run(test.Name, func(t *testing.T) {
+			s := Server{
+				notariser: &notary.Notary{
+					SigningKey: "test",
+					Clock: func() time.Time {
+						return time.Date(2021, 04, 20, 14, 41, 0, 0, time.UTC)
+					},
+				},
 			}
 
-			errors, ok := resp.Errors.(map[string]interface{})
+			rr := httptest.NewRecorder()
 
-			if !ok {
-				t.Errorf("TestServer_CheckPermissionJSON: %v - failed to assert that resp.Errors is a map. It's actually: %v", i, reflect.TypeOf(resp.Errors))
-			}
+			h := mux.NewRouter()
+			h.Handle("/{inboxID}", alice.New(JSONContentType, s.CheckPermissionJSON).ThenFunc(fakeHandler))
 
-			msg, mOK := errors["msg"].(string)
+			r := httptest.NewRequest(http.MethodGet, "/dafd5606-8aa8-4724-a2c5-f66110aba536", nil)
+			r.Header.Set("X-Burner-Key", test.TokenToPass)
 
-			if !mOK {
-				t.Errorf("TestServer_CheckPermissionJSON: %v - failed to assert that Msg is a string. It's actually: %v", i, reflect.TypeOf(msg))
-			}
+			h.ServeHTTP(rr, r)
 
-			if msg != test.ExpectedMsg {
-				t.Errorf("TestServer_CheckPermissionJSON: %v - Message different. Expected %v, got %v", i, test.ExpectedMsg, msg)
-			}
-		}
+			assert.Equal(t, test.ExpectedStatusCode, rr.Result().StatusCode)
+		})
 	}
 }
 
@@ -114,7 +82,7 @@ func TestSetVersionHeader(t *testing.T) {
 
 	h.ServeHTTP(rr, req)
 
-	if rr.Header().Get("X-Burner-Kiwi-version") != version {
+	if rr.Header().Get("X-Burner-Kiwi-Version") != version {
 		t.Fatalf("TestSetVersionHeader: returned version header doesn't equal default header. Got %v, expected %v", rr.Header().Get("X-Burner-Kiwi-version"), version)
 	}
 }

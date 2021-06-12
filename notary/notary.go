@@ -64,10 +64,10 @@ func (c *Notary) Verify(signed string, out interface{}) error {
 		return fmt.Errorf("failed to get token claims: %w", err)
 	}
 
-	err = jwtClaims.Validate(jwt.Expected{
+	err = jwtClaims.ValidateWithLeeway(jwt.Expected{
 		Issuer: Iss,
 		Time:   c.Clock(),
-	})
+	}, 0)
 	if err != nil {
 		if err == jwt.ErrExpired {
 			return ErrExpired

@@ -113,12 +113,12 @@ func TestServer_GetInboxDetailsJSON(t *testing.T) {
 			Name:             "inbox exists",
 			ID:               "1234",
 			ExpectedCode:     200,
-			ExpectedResponse: `{"success":true,"errors":null,"result":{"address":"1234@example.com","id":"1234","created_at":1526186018,"ttl":1526189618},"meta":{"version":"dev","by":"Hayden Woodhead"}}`,
+			ExpectedResponse: `{"success":true,"errors":null,"result":{"address":"1234@example.com","id":"1234","created_at":1526186018,"ttl":1526189618}}`,
 		},
 		{
 			Name:             "inbox doesn't exist",
 			ID:               "Doesntexist",
-			ExpectedResponse: `{"success":false,"errors":{"code":500,"msg":"Failed to get email details"},"result":null,"meta":{"version":"dev","by":"Hayden Woodhead"}}`,
+			ExpectedResponse: `{"success":false,"errors":{"code":500,"msg":"Failed to get email details"},"result":null}`,
 			ExpectedCode:     500,
 		},
 	}
@@ -171,7 +171,7 @@ func TestServer_GetAllMessagesJSON(t *testing.T) {
 
 	router.ServeHTTP(rr, r)
 
-	var expected = `{"success":true,"errors":null,"result":[{"id":"91991919","received_at":1526186100,"sender":"bob@example.com","fromName":"Bobby Tables","fromAddress":"bob@example.com","subject":"DELETE FROM MESSAGES;","body_html":"\u003chtml\u003e\u003cbody\u003e\u003cp\u003eHello there how are you!\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e","body_plain":"Hello there how are you!","ttl":1526189618}],"meta":{"version":"dev","by":"Hayden Woodhead"}}`
+	var expected = `{"success":true,"errors":null,"result":[{"id":"91991919","received_at":1526186100,"sender":"bob@example.com","fromName":"Bobby Tables","fromAddress":"bob@example.com","subject":"DELETE FROM MESSAGES;","body_html":"\u003chtml\u003e\u003cbody\u003e\u003cp\u003eHello there how are you!\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e","body_plain":"Hello there how are you!","ttl":1526189618}]}`
 	assert.Equal(t, http.StatusOK, rr.Code)
 	assert.JSONEq(t, expected, rr.Body.String())
 

@@ -7,7 +7,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/haydenwoodhead/burner.kiwi/notary"
 	"github.com/justinas/alice"
-	log "github.com/sirupsen/logrus"
 )
 
 // JSONContentType sets content type of request to json
@@ -22,18 +21,18 @@ func JSONContentType(h http.Handler) http.Handler {
 func (s *Server) CheckPermissionJSON(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		k := r.Header.Get("X-Burner-Key")
+		if k == "" {
+			returnJSONError(w, r, http.StatusUnauthorized, "Unauthorized: missing auth key")
+			return
+		}
 
 		var token jwtToken
 		err := s.notariser.Verify(k, &token)
 		if err == notary.ErrExpired {
-			returnJSONError(w, r, http.StatusUnauthorized, "Unauthorized: given auth key invalid")
-			return
-		} else if err == notary.ErrInvalid {
 			returnJSONError(w, r, http.StatusForbidden, "Forbidden: your token has expired")
 			return
 		} else if err != nil {
-			log.WithError(err).Warn("CheckPermissionJSON: failed to verify token")
-			returnJSONError(w, r, http.StatusInternalServerError, "Something went wrong")
+			returnJSONError(w, r, http.StatusUnauthorized, "Unauthorized: given auth key invalid")
 			return
 		}
 
