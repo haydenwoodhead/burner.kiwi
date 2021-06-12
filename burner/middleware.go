@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/haydenwoodhead/burner.kiwi/token"
+	"github.com/haydenwoodhead/burner.kiwi/notary"
 	"github.com/justinas/alice"
 	log "github.com/sirupsen/logrus"
 )
@@ -23,11 +23,12 @@ func (s *Server) CheckPermissionJSON(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		k := r.Header.Get("X-Burner-Key")
 
-		id, err := s.tg.VerifyToken(k) // id from auth key
-		if err == token.ErrInvalidToken {
+		var token jwtToken
+		err := s.notariser.Verify(k, &token)
+		if err == notary.ErrExpired {
 			returnJSONError(w, r, http.StatusUnauthorized, "Unauthorized: given auth key invalid")
 			return
-		} else if err == token.ErrTokenExpired {
+		} else if err == notary.ErrInvalid {
 			returnJSONError(w, r, http.StatusForbidden, "Forbidden: your token has expired")
 			return
 		} else if err != nil {
@@ -38,8 +39,7 @@ func (s *Server) CheckPermissionJSON(h http.Handler) http.Handler {
 
 		vars := mux.Vars(r)
 		urlID := vars["inboxID"] // email id in url
-
-		if id != urlID {
+		if token.InboxID != urlID {
 			returnJSONError(w, r, http.StatusForbidden, "Forbidden: you do not have permission to access this resource")
 			return
 		}

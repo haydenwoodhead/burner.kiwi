@@ -7,11 +7,10 @@ import (
 	"net/http/httptest"
 	"reflect"
 	"testing"
-	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/haydenwoodhead/burner.kiwi/emailgenerator"
-	"github.com/haydenwoodhead/burner.kiwi/token"
+	"github.com/haydenwoodhead/burner.kiwi/notary"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -34,10 +33,10 @@ func TestServer_NewInboxJSON(t *testing.T) {
 	mEP.On("RegisterRoute", mock.Anything).Return("1234", nil)
 
 	s := Server{
-		db:    mDB,
-		tg:    token.NewGenerator("testexample12344", time.Hour),
-		email: mEP,
-		eg:    mEG,
+		db:        mDB,
+		email:     mEP,
+		eg:        mEG,
+		notariser: notary.New("testexample12344"),
 		cfg: Config{
 			UsingLambda: true,
 		}, // make sure the create route goroutine finishes before we check the result
@@ -93,9 +92,9 @@ func TestServer_GetInboxDetailsJSON(t *testing.T) {
 	mDB.On("GetInboxByID", "Doesntexist").Return(Inbox{}, errors.New("inbox doesn't exist"))
 
 	s := Server{
-		db: mDB,
-		tg: token.NewGenerator("testexample12344", time.Hour),
-		eg: emailgenerator.New([]string{"example.com"}, 8),
+		db:        mDB,
+		notariser: notary.New("testexample12344"),
+		eg:        emailgenerator.New([]string{"example.com"}, 8),
 		cfg: Config{
 			UsingLambda: true,
 		},
@@ -156,9 +155,9 @@ func TestServer_GetAllMessagesJSON(t *testing.T) {
 	}}, nil)
 
 	s := Server{
-		db: mDB,
-		tg: token.NewGenerator("testexample12344", time.Hour),
-		eg: emailgenerator.New([]string{"example.com"}, 8),
+		db:        mDB,
+		notariser: notary.New("testexample12344"),
+		eg:        emailgenerator.New([]string{"example.com"}, 8),
 		cfg: Config{
 			UsingLambda: true,
 		}, // make sure the create route goroutine finishes before we check the result

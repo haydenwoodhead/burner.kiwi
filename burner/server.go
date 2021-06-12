@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
-	"time"
 
 	"log"
 
@@ -12,7 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/haydenwoodhead/burner.kiwi/emailgenerator"
-	"github.com/haydenwoodhead/burner.kiwi/token"
+	"github.com/haydenwoodhead/burner.kiwi/notary"
 	"github.com/justinas/alice"
 )
 
@@ -38,7 +37,7 @@ type Server struct {
 	email        EmailProvider
 	db           Database
 	Router       *mux.Router
-	tg           *token.Generator
+	notariser    *notary.Notary
 
 	cfg Config
 }
@@ -62,7 +61,7 @@ func New(cfg Config, db Database, email EmailProvider) (*Server, error) {
 	s := Server{
 		sessionStore: sessions.NewCookieStore([]byte(cfg.Key)),
 		eg:           emailgenerator.New(cfg.Domains, 8),
-		tg:           token.NewGenerator(cfg.Key, 24*time.Hour),
+		notariser:    notary.New(cfg.Key),
 		cfg:          cfg,
 		db:           db,
 		email:        email,

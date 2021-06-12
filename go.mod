@@ -57,5 +57,6 @@ require (
 	golang.org/x/sys v0.0.0-20210426230700-d19ff857e887 // indirect
 	google.golang.org/appengine v1.6.1 // indirect
 	gopkg.in/mailgun/mailgun-go.v1 v1.1.1
+	gopkg.in/square/go-jose.v2 v2.5.1
 	gotest.tools v2.2.0+incompatible // indirect
 )

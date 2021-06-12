@@ -9,10 +9,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/haydenwoodhead/burner.kiwi/notary"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/gorilla/mux"
-	"github.com/haydenwoodhead/burner.kiwi/token"
 	"github.com/justinas/alice"
 )
 
@@ -50,10 +51,11 @@ func TestServer_CheckPermissionJSON(t *testing.T) {
 
 	for i, test := range tests {
 		s := Server{
-			tg: token.NewGenerator("test1234", test.Duration),
+			notariser: notary.New("testexample12344"),
 		}
 
-		tk := s.tg.NewToken("dafd5606-8aa8-4724-a2c5-f66110aba536")
+		tk, err := s.notariser.Sign("token", jwtToken{"dafd5606-8aa8-4724-a2c5-f66110aba536"}, time.Now().Add(1*time.Hour).Unix())
+		require.NoError(t, err)
 
 		time.Sleep(2 * time.Second) // so we can test whether token expiration works correctly
 

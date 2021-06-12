@@ -24,6 +24,10 @@ type Errors struct {
 	Msg  string `json:"msg"`
 }
 
+type jwtToken struct {
+	InboxID string
+}
+
 // NewInboxJSON generates a new email address and returns it to the caller
 func (s *Server) NewInboxJSON(w http.ResponseWriter, r *http.Request) {
 	i := NewInbox()
@@ -66,7 +70,12 @@ func (s *Server) NewInboxJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token := s.tg.NewToken(i.ID)
+	token, err := s.notariser.Sign("auth", jwtToken{InboxID: i.ID}, i.TTL)
+	if err != nil {
+		log.WithError(err).Error("JSON Index: failed to generate auth toke")
+		returnJSONError(w, r, http.StatusInternalServerError, "Failed to generate token")
+		return
+	}
 
 	res := struct {
 		Inbox Inbox  `json:"email"`
