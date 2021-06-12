@@ -647,6 +647,7 @@ body {
     height: 32px;
     grid-row: headline;
     grid-column: etc;
+    display: none;
   }
 
   .message-from-time-row {
