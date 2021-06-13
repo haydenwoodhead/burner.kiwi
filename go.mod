@@ -10,7 +10,6 @@ require (
 	github.com/PuerkitoBio/goquery v1.5.0
 	github.com/aws/aws-lambda-go v1.13.0 // indirect
 	github.com/aws/aws-sdk-go v1.23.8
-	github.com/bwmarrin/go-alone v0.0.0-20190806015146-742bb55d1631
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/cheekybits/is v0.0.0-20150225183255-68e9c0620927 // indirect
 	github.com/containerd/continuity v0.0.0-20190822154759-403b5be3d72b // indirect
@@ -43,7 +42,6 @@ require (
 	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/opencontainers/runc v0.1.1 // indirect
 	github.com/ory/dockertest v3.3.5+incompatible
-	github.com/pkg/errors v0.8.1
 	github.com/sirupsen/logrus v1.5.0
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.4.0

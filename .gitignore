@@ -6,7 +6,7 @@
 bin/
 
 #ignore build res
-build/
+burner/prodStatic/
 
 #ignore packr files
 *-packr.go

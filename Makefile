@@ -1,26 +1,15 @@
-# A whole bunch of helper stuff including building, testing and
-# pushing to docker hub.
-
 # This makefile has few dependencies which need to be installed before
 # you can use most of the functionality
 _dep_minify := $(shell which minify 2> /dev/null)
-_dep_packr := $(shell which packr 2> /dev/null)
-_dep_zip := $(shell which zip 2> /dev/null)
 _dep_golangci := $(shell which golangci-lint 2> /dev/null)
 
 check_deps:
 ifndef _dep_minify
 	$(error github.com/tdewolff/minify/tree/master/cmd/minify is required to build burner.kiwi)
 endif
-ifndef _dep_packr
-	$(error github.com/gobuffalo/packr is required to build burner.kiwi)
-endif
 
 git_commit = $(shell git rev-parse --short HEAD)
-custom_css = custom.$(shell md5sum ./static/custom.css | cut -c -32).min.css
-icons_css = icons.$(shell md5sum ./static/icons.css | cut -c -32).min.css
-milligram_css = milligram.$(shell md5sum ./static/milligram.css | cut -c -32).min.css
-normalize_css = normalize.$(shell md5sum ./static/normalize.css | cut -c -32).min.css
+custom_css = styles.$(shell md5sum ./burner/static/styles.css | cut -c -32).min.css
 
 lint:
 ifndef _dep_golangci
@@ -32,32 +21,28 @@ test:
 	go test -race ./...
 
 build_dir:
-	mkdir -p ./build/static
+	mkdir -p ./burner/prodStatic
 
 clean:
-	@rm -rf build/ 2> /dev/null || true
+	rm -rf ./burner/prodStatic
 
 minify:
-	minify -o ./static/${custom_css} ./static/custom.css
-	minify -o ./static/${icons_css} ./static/icons.css
-	minify -o ./static/${milligram_css} ./static/milligram.css
-	minify -o ./static/${normalize_css} ./static/normalize.css
+	minify -o ./burner/prodStatic/${custom_css} ./burner/static/styles.css
+	cp ./burner/static/*.ttf ./burner/prodStatic/
+	cp ./burner/static/roger.svg ./burner/prodStatic/
+
+static: clean build_dir minify
+	@echo "Static assets done"
 
 do-build: check_deps clean build_dir minify
-	CGO_ENABLED=0 packr build -ldflags "-X github.com/haydenwoodhead/burner.kiwi/burner.version=${git_commit} -X github.com/haydenwoodhead/burner.kiwi/burner.milligram=${milligram_css} -X github.com/haydenwoodhead/burner.kiwi/burner.custom=${custom_css} -X github.com/haydenwoodhead/burner.kiwi/burner.icons=${icons_css} -X github.com/haydenwoodhead/burner.kiwi/burner.normalize=${normalize_css}" -o "./build/burnerkiwi"
+	CGO_ENABLED=0 packr build -ldflags "-X github.com/haydenwoodhead/burner.kiwi/burner.version=${git_commit} -X github.com/haydenwoodhead/burner.kiwi/burner.custom=${custom_css}.gz -o "./burnerkiwi"
 
 do-build-sqlite: check_deps clean build_dir minify
-	CGO_ENABLED=1 packr build -ldflags "-X github.com/haydenwoodhead/burner.kiwi/burner.version=${git_commit} -X github.com/haydenwoodhead/burner.kiwi/burner.milligram=${milligram_css} -X github.com/haydenwoodhead/burner.kiwi/burner.custom=${custom_css} -X github.com/haydenwoodhead/burner.kiwi/burner.icons=${icons_css} -X github.com/haydenwoodhead/burner.kiwi/burner.normalize=${normalize_css}" -o "./build/burnerkiwi"
+	CGO_ENABLED=1 packr build -ldflags "-X github.com/haydenwoodhead/burner.kiwi/burner.version=${git_commit} -X github.com/haydenwoodhead/burner.kiwi/burner.custom=${custom_css}.gz -o "./burnerkiwi"
 
 # clean up static dir after build
-build build-sqlite:  %: do-%
-	mv ./static/${custom_css} ./build/static/
-	mv ./static/${icons_css} ./build/static/
-	mv ./static/${milligram_css} ./build/static/
-	mv ./static/${normalize_css} ./build/static/
-	cp ./static/roger-proportional.svg ./build/static
-	mkdir -p ./build/static/icons
-	cp -r ./static/icons/* ./build/static/icons/
+build build-sqlite:  %: do-% clean
+	@echo "Done"
 
 prepare-aws:
 ifndef _dep_zip
@@ -66,20 +51,3 @@ endif
 	mkdir -p ./build/cloudformation
 	cp cloudformation.json ./build/cloudformation/
 	zip ./build/cloudformation/burnerkiwi.zip ./build/burnerkiwi
-
-prepare-docker:
-	mv build/burnerkiwi .
-
-image: TAG ?= latest
-image: build prepare-docker
-image:
-	docker build -t haydensw/burner-kiwi:$(TAG) .
-
-push: TAG ?= latest
-push:
-	docker push haydensw/burner-kiwi:$(TAG)
-
-image-and-push: image push
-
-deploy:
-	kubectl apply -f kubernetes/service.yaml

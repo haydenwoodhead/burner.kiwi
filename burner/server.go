@@ -16,16 +16,12 @@ import (
 )
 
 // Packr boxes for static templates and assets
-var templates = packr.NewBox("../templates")
-var staticFS = packr.NewBox("../static")
+var templates = packr.NewBox("templates")
 
 // Templates
 var indexTemplate *template.Template
 var editTemplate *template.Template
 var deleteTemplate *template.Template
-
-// Static asset vars - these are overridden at build time to inject a file w/ version info
-var css = "styles.css"
 
 // version number - this is also overridden at build time to inject the commit hash
 var version = "dev"
@@ -141,8 +137,8 @@ func New(cfg Config, db Database, email EmailProvider) (*Server, error) {
 	s.Router.Handle("/api/v2/inbox/{inboxID}/", alice.New(JSONContentType, s.CheckPermissionJSON).ThenFunc(s.GetInboxDetailsJSON)).Methods(http.MethodGet)
 	s.Router.Handle("/api/v2/inbox/{inboxID}/messages/", alice.New(JSONContentType, s.CheckPermissionJSON).ThenFunc(s.GetAllMessagesJSON)).Methods(http.MethodGet)
 
-	// Static File Serving w/ Packr
-	fs := http.StripPrefix("/static/", http.FileServer(staticFS))
+	// Static File Serving
+	fs := http.StripPrefix("/static/", http.FileServer(s.getStaticFS()))
 
 	if cfg.Developing {
 		s.Router.PathPrefix("/static/").Handler(alice.New(CacheControl(0)).Then(fs))

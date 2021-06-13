@@ -8,20 +8,6 @@ import (
 	"github.com/haydenwoodhead/burner.kiwi/stringduration"
 )
 
-type staticDetails struct {
-	FontPath string
-	CSS      string
-	Logo     string
-}
-
-func (s *Server) getStaticDetails() staticDetails {
-	return staticDetails{
-		FontPath: s.cfg.StaticURL,
-		CSS:      fmt.Sprintf("%s/%s", s.cfg.StaticURL, css),
-		Logo:     fmt.Sprintf("%s/%s", s.cfg.StaticURL, "roger.svg"),
-	}
-}
-
 type templateMessage struct {
 	Message
 	ReceivedAt   string
