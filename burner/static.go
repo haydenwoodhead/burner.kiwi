@@ -19,18 +19,11 @@ var css = "styles.css"
 var staticFiles embed.FS
 
 func (s *Server) getStaticFS() http.FileSystem {
-	var static fs.FS
-	var subDir string
-
 	if s.cfg.Developing {
-		static = os.DirFS("./static")
-		subDir = "static"
-	} else {
-		static = staticFiles
-		subDir = "prodStatic"
+		return http.FS(os.DirFS("./burner/static"))
 	}
 
-	subFs, err := fs.Sub(static, subDir)
+	subFs, err := fs.Sub(staticFiles, "prodStatic")
 	if err != nil {
 		log.WithField("dev", s.cfg.Developing).WithError(err).Fatal("failed to get sub fs")
 		return nil
