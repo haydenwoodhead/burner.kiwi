@@ -547,7 +547,7 @@ body {
 
   .content {
     display: grid;
-    grid-template-columns: minmax(450px, 30%) minmax(500px, 70%);
+    grid-template-columns: minmax(460px, 30%) minmax(500px, 70%);
     overflow: hidden;
   }
 
@@ -580,7 +580,7 @@ body {
   }
 
   .inbox-address {
-    font-size: 2.5rem;
+    font-size: 2.25rem;
   }
 
   .email-display {
