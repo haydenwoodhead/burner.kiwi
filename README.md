@@ -98,13 +98,10 @@ Create an issue and outline your plans or bugs.
 
 ## To do
 
-* Code refactor/redo/cleanup
-* CSS refactor
 * More tests for server package
-* Night theme
-* Print html errors rather than just plain text
-* Better configuration
-* Noob friendly setup tutorial
+* Better documentation on how to self host
+* Proxy images to disrupt tracking pixels
+* Attachments
 
 If you think you can help, then create an issue and outline your plans.
 
