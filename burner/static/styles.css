@@ -436,7 +436,7 @@ body {
   margin-right: var(--space-4);
 }
 
-.modal-button-row:first-child {
+.modal-button-row > *:first-child {
   margin-right: var(--space-4);
 }
 
