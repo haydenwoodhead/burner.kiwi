@@ -64,7 +64,7 @@ func (s *Server) getInbox(session *session, w http.ResponseWriter, r *http.Reque
 		Inbox:    transformInboxForTemplate(i),
 	}
 
-	err = indexTemplate.ExecuteTemplate(w, "base", vars)
+	err = s.getIndexTemplate().ExecuteTemplate(w, "base", vars)
 	if err != nil {
 		log.WithField("inboxID", id).WithError(err).Error("Index: failed to write template response")
 		http.Error(w, "Failed to write response", http.StatusInternalServerError)
@@ -215,7 +215,7 @@ func (s *Server) IndividualMessage(w http.ResponseWriter, r *http.Request) {
 		HasSelectedMessage: true,
 	}
 
-	err = indexTemplate.ExecuteTemplate(w, "base", vars)
+	err = s.getIndexTemplate().ExecuteTemplate(w, "base", vars)
 	if err != nil {
 		log.WithError(err).WithFields(log.Fields{"inboxID": inboxID, "messageID": messageID}).Printf("IndividualMessage: failed to execute template: %v", err)
 		http.Error(w, "Failed to execute template", http.StatusInternalServerError)
@@ -261,7 +261,7 @@ func (s *Server) editInbox(w http.ResponseWriter, r *http.Request, errMessage st
 		},
 	}
 
-	err = editTemplate.ExecuteTemplate(w, "base", vars)
+	err = s.getEditTemplate().ExecuteTemplate(w, "base", vars)
 	if err != nil {
 		log.Printf("DeleteInbox: failed to execute template: %v", err)
 		http.Error(w, "Failed to execute template", http.StatusInternalServerError)
@@ -300,7 +300,7 @@ func (s *Server) DeleteInbox(w http.ResponseWriter, r *http.Request) {
 		Inbox:    transformInboxForTemplate(i),
 	}
 
-	err = deleteTemplate.ExecuteTemplate(w, "base", vars)
+	err = s.getDeleteTemplate().ExecuteTemplate(w, "base", vars)
 	if err != nil {
 		log.Printf("DeleteInbox: failed to execute template: %v", err)
 		http.Error(w, "Failed to execute template", http.StatusInternalServerError)

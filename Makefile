@@ -5,7 +5,7 @@ _dep_golangci := $(shell which golangci-lint 2> /dev/null)
 
 check_deps:
 ifndef _dep_minify
-	$(error github.com/tdewolff/minify/tree/master/cmd/minify is required to build burner.kiwi)
+	$(error github.com/tdewolff/minify is required to build burner.kiwi)
 endif
 
 git_commit = $(shell git rev-parse --short HEAD)
@@ -23,26 +23,18 @@ test:
 clean:
 	rm ./burner/static/*.min.css || true
 
-minify:
+minify: check_deps
 	minify -o ./burner/static/${custom_css} ./burner/static/styles.css
 
 static: clean minify
 	@echo "Static assets done"
 
-do-build: check_deps clean build_dir minify
-	CGO_ENABLED=0 packr build -ldflags "-X github.com/haydenwoodhead/burner.kiwi/burner.version=${git_commit} -X github.com/haydenwoodhead/burner.kiwi/burner.custom=${custom_css}.gz -o "./burnerkiwi"
+do-build: static
+	CGO_ENABLED=0 go build -ldflags "-X github.com/haydenwoodhead/burner.kiwi/burner.version=${git_commit} -X github.com/haydenwoodhead/burner.kiwi/burner.css=${custom_css}" -o "./burnerkiwi"
 
-do-build-sqlite: check_deps clean build_dir minify
-	CGO_ENABLED=1 packr build -ldflags "-X github.com/haydenwoodhead/burner.kiwi/burner.version=${git_commit} -X github.com/haydenwoodhead/burner.kiwi/burner.custom=${custom_css}.gz -o "./burnerkiwi"
+do-build-sqlite: static
+	CGO_ENABLED=1 go build -ldflags "-X github.com/haydenwoodhead/burner.kiwi/burner.version=${git_commit} -X github.com/haydenwoodhead/burner.kiwi/burner.css=${custom_css}" -o "./burnerkiwi"
 
 # clean up static dir after build
 build build-sqlite:  %: do-% clean
 	@echo "Done"
-
-prepare-aws:
-ifndef _dep_zip
-	$(error zip is required to prepare aws assets for burner.kiwi)
-endif
-	mkdir -p ./build/cloudformation
-	cp cloudformation.json ./build/cloudformation/
-	zip ./build/cloudformation/burnerkiwi.zip ./build/burnerkiwi

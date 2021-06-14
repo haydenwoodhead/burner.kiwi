@@ -2,26 +2,16 @@ package burner
 
 import (
 	"fmt"
-	"html/template"
 	"net/http"
 
-	"log"
+	log "github.com/sirupsen/logrus"
 
-	"github.com/gobuffalo/packr"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/haydenwoodhead/burner.kiwi/emailgenerator"
 	"github.com/haydenwoodhead/burner.kiwi/notary"
 	"github.com/justinas/alice"
 )
-
-// Packr boxes for static templates and assets
-var templates = packr.NewBox("templates")
-
-// Templates
-var indexTemplate *template.Template
-var editTemplate *template.Template
-var deleteTemplate *template.Template
 
 // version number - this is also overridden at build time to inject the commit hash
 var version = "dev"
@@ -63,10 +53,11 @@ func New(cfg Config, db Database, email EmailProvider) (*Server, error) {
 		email:        email,
 	}
 
-	// Setup Templates
-	indexTemplate = mustParseTemplates(templates, "base.html", "inbox.html", "emptyModal.html")
-	editTemplate = mustParseTemplates(templates, "base.html", "inbox.html", "edit.html")
-	deleteTemplate = mustParseTemplates(templates, "base.html", "inbox.html", "delete.html")
+	if !s.cfg.Developing {
+		s.getIndexTemplate()
+		s.getDeleteTemplate()
+		s.getEditTemplate()
+	}
 
 	s.sessionStore.MaxAge(86402) // set max cookie age to 24 hours + 2 seconds
 
@@ -161,25 +152,4 @@ func (s *Server) Ping(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("ping - failed to write out response: %v", err)
 	}
-}
-
-// mustParseTemplates parses string templates into one template
-// Function modified from: https://stackoverflow.com/questions/41856021/how-to-parse-multiple-strings-into-a-template-with-go
-func mustParseTemplates(box packr.Box, templs ...string) *template.Template {
-	t := template.New("templ")
-
-	for i, templ := range templs {
-		templateString, err := box.FindString(templ)
-		if err != nil {
-			log.Fatalf("MustParseTemplates: failed to find template: %v", err)
-		}
-
-		_, err = t.New(fmt.Sprintf("%v", i)).Parse(templateString)
-		if err != nil {
-			log.Fatalf("MustParseTemplates: failed to parse template: %v", err)
-
-		}
-	}
-
-	return t
 }

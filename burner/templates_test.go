@@ -1,8 +1,6 @@
 package burner
 
 import (
-	"html/template"
-	"net/http/httptest"
 	"testing"
 	"time"
 
@@ -61,27 +59,5 @@ func TestGetAvatarDetails(t *testing.T) {
 		outLetter, outColor := getAvatarDetails(test.In)
 		assert.Equal(t, test.ExpectedLetter, outLetter)
 		assert.Equal(t, test.ExpectedColor, outColor)
-	}
-}
-
-func TestMustParseTemplates(t *testing.T) {
-	indexFile := template.Must(template.New("index").ParseFiles("../templates/base.html", "../templates/inbox.html", "../templates/emptyModal.html"))
-	indexPackr := mustParseTemplates(templates, "base.html", "inbox.html", "emptyModal.html")
-
-	out := inboxOut{}
-
-	fRecorder := httptest.NewRecorder()
-	pRecorder := httptest.NewRecorder()
-
-	if err := indexFile.ExecuteTemplate(fRecorder, "base", out); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := indexPackr.ExecuteTemplate(pRecorder, "base", out); err != nil {
-		t.Fatal(err)
-	}
-
-	if fRecorder.Body.String() != pRecorder.Body.String() {
-		t.Fatal("rendered html doesn't match")
 	}
 }

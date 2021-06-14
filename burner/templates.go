@@ -1,11 +1,18 @@
 package burner
 
 import (
+	"embed"
+	_ "embed"
 	"fmt"
+	"html/template"
+	"io/fs"
+	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/haydenwoodhead/burner.kiwi/stringduration"
+	log "github.com/sirupsen/logrus"
 )
 
 type templateMessage struct {
@@ -112,4 +119,104 @@ func transformInboxForTemplate(i Inbox) templateInbox {
 			Minutes: m,
 		},
 	}
+}
+
+//go:embed templates
+var embeddedTemplatesDir embed.FS
+
+// Templates
+var indexTemplate *template.Template
+var indexTemplateOnce *sync.Once = &sync.Once{}
+
+var editTemplate *template.Template
+var editTemplateOnce sync.Once
+
+var deleteTemplate *template.Template
+var deleteTemplateOnce sync.Once
+
+func (s *Server) parseTemplate(name string, parts ...string) (*template.Template, error) {
+	t := template.New(name)
+
+	var templatesDir fs.FS
+	if s.cfg.Developing {
+		templatesDir = os.DirFS("./burner/templates")
+	} else {
+		subFs, err := fs.Sub(embeddedTemplatesDir, "templates")
+		if err != nil {
+			log.WithField("dev", s.cfg.Developing).WithError(err).Fatal("getTemplate: failed to get sub fs")
+			return nil, nil
+		}
+		templatesDir = subFs
+	}
+
+	return t.ParseFS(templatesDir, parts...)
+}
+
+func (s *Server) getIndexTemplate() *template.Template {
+	gen := func() *template.Template {
+		t, err := s.parseTemplate("index", "base.html", "inbox.html", "emptyModal.html")
+		if err != nil {
+			log.WithError(err).Fatal("getIndexTemplate: failed to get")
+			return nil
+		}
+		return t
+	}
+
+	if s.cfg.Developing {
+		t := gen()
+		return t
+	}
+
+	indexTemplateOnce.Do(func() {
+		t := gen()
+		indexTemplate = t
+	})
+
+	return indexTemplate
+}
+
+func (s *Server) getEditTemplate() *template.Template {
+	gen := func() *template.Template {
+		t, err := s.parseTemplate("index", "base.html", "inbox.html", "edit.html")
+		if err != nil {
+			log.WithError(err).Fatal("getEditTemplate: failed to get")
+			return nil
+		}
+		return t
+	}
+
+	if s.cfg.Developing {
+		t := gen()
+		return t
+	}
+
+	editTemplateOnce.Do(func() {
+		t := gen()
+		editTemplate = t
+	})
+
+	return editTemplate
+}
+
+func (s *Server) getDeleteTemplate() *template.Template {
+	gen := func() *template.Template {
+		t, err := s.parseTemplate("index", "base.html", "inbox.html", "delete.html")
+		if err != nil {
+			log.WithError(err).Fatal("getDeleteTemplate: failed to get")
+			return nil
+		}
+		return t
+	}
+
+	if s.cfg.Developing {
+		t := gen()
+		return t
+	}
+
+	deleteTemplateOnce.Do(func() {
+		t := gen()
+		deleteTemplate = t
+	})
+
+	return deleteTemplate
 }
