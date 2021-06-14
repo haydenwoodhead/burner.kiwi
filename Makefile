@@ -20,18 +20,13 @@ endif
 test:
 	go test -race ./...
 
-build_dir:
-	mkdir -p ./burner/prodStatic
-
 clean:
-	rm -rf ./burner/prodStatic
+	rm ./burner/static/*.min.css || true
 
 minify:
-	minify -o ./burner/prodStatic/${custom_css} ./burner/static/styles.css
-	cp ./burner/static/*.ttf ./burner/prodStatic/
-	cp ./burner/static/roger.svg ./burner/prodStatic/
+	minify -o ./burner/static/${custom_css} ./burner/static/styles.css
 
-static: clean build_dir minify
+static: clean minify
 	@echo "Static assets done"
 
 do-build: check_deps clean build_dir minify

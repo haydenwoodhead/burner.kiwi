@@ -6,7 +6,7 @@
 bin/
 
 #ignore build res
-burner/prodStatic/
+burner/static/*.min.css
 
 #ignore packr files
 *-packr.go

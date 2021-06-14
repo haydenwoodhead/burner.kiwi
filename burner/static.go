@@ -15,17 +15,17 @@ import (
 // CSS file name -- overridden by ldflags
 var css = "styles.css"
 
-//go:embed prodStatic
-var staticFiles embed.FS
+//go:embed static
+var embeddedStaticFiles embed.FS
 
 func (s *Server) getStaticFS() http.FileSystem {
 	if s.cfg.Developing {
 		return http.FS(os.DirFS("./burner/static"))
 	}
 
-	subFs, err := fs.Sub(staticFiles, "prodStatic")
+	subFs, err := fs.Sub(embeddedStaticFiles, "static")
 	if err != nil {
-		log.WithField("dev", s.cfg.Developing).WithError(err).Fatal("failed to get sub fs")
+		log.WithField("dev", s.cfg.Developing).WithError(err).Fatal("getStaticFS: failed to get sub fs")
 		return nil
 	}
 	return http.FS(subFs)
