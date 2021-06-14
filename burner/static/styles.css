@@ -231,7 +231,7 @@ body {
 }
 
 .sidebar-info a {
-  color: black;
+  color: var(--primary-text-color);
 }
 
 .sidebar-emails {
