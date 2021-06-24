@@ -105,12 +105,12 @@ Burner.kiwi styles
   --blue: #2563eb;
   --light-blue: #3b82f6;
   --red: #dc2626;
-  --yellow: #D97706;
+  --yellow: #d97706;
   --green: #059669;
-  --indigo: #4F46E5;
-  --purple: #7C3AED;
-  --pink: #DB2777;
-  --rather-light-grey: #6B7280;
+  --indigo: #4f46e5;
+  --purple: #7c3aed;
+  --pink: #db2777;
+  --rather-light-grey: #6b7280;
 
   --scrollbar-color: dark;
 }
@@ -127,27 +127,27 @@ Burner.kiwi styles
 }
 
 .bg-red {
-    background-color: var(--red);
+  background-color: var(--red);
 }
 
 .bg-yellow {
-    background-color: var(--yellow);
+  background-color: var(--yellow);
 }
 
 .bg-green {
-    background-color: var(--green);
+  background-color: var(--green);
 }
 
 .bg-indigo {
-    background-color: var(--indigo);
+  background-color: var(--indigo);
 }
 
 .bg-purple {
-    background-color: var(--purple);
+  background-color: var(--purple);
 }
 
 .bg-pink {
-    background-color: var(--pink);
+  background-color: var(--pink);
 }
 
 html {
@@ -178,7 +178,7 @@ body {
 }
 
 .roger {
-  width: 250px;
+  width: 200px;
 }
 
 .inbox-details {
@@ -494,12 +494,11 @@ body {
   margin-left: var(--space-4);
 }
 
-
 .address-builder-icon {
   display: flex;
   align-items: center;
   padding: var(--space-1);
-  background-color: #9CA3AF;
+  background-color: #9ca3af;
   /* border-top-left-radius: 8px;
   border-bottom-left-radius: 8px; */
 }
@@ -520,7 +519,7 @@ body {
   -moz-appearance: none;
   -webkit-appearance: none;
   appearance: none;
-  background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0Ij48cGF0aCBmaWxsPSJub25lIiBkPSJNMCAwaDI0djI0SDB6Ii8+PHBhdGggZD0iTTEyIDE1bC00LjI0My00LjI0MyAxLjQxNS0xLjQxNEwxMiAxMi4xNzJsMi44MjgtMi44MjkgMS40MTUgMS40MTR6IiBmaWxsPSJyZ2JhKDAsMCwwLDEpIi8+PC9zdmc+');
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0Ij48cGF0aCBmaWxsPSJub25lIiBkPSJNMCAwaDI0djI0SDB6Ii8+PHBhdGggZD0iTTEyIDE1bC00LjI0My00LjI0MyAxLjQxNS0xLjQxNEwxMiAxMi4xNzJsMi44MjgtMi44MjkgMS40MTUgMS40MTR6IiBmaWxsPSJyZ2JhKDAsMCwwLDEpIi8+PC9zdmc+");
   background-repeat: no-repeat;
   background-position: right;
   background-size: 24px;
@@ -552,7 +551,7 @@ body {
   }
 
   .roger {
-    width: 300px;
+    width: 250px;
   }
 
   .sidebar {
