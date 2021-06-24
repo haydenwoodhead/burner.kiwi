@@ -482,7 +482,7 @@ body {
 
 .address-builder-field {
   display: flex;
-  border: 1px solid black;
+  border: 1px solid#D1D5DB;
   border-radius: 8px;
   margin-top: var(--space-4);
   margin-bottom: var(--space-4);
@@ -498,9 +498,7 @@ body {
   display: flex;
   align-items: center;
   padding: var(--space-1);
-  background-color: #9ca3af;
-  /* border-top-left-radius: 8px;
-  border-bottom-left-radius: 8px; */
+  background-color: #d1d5db;
 }
 
 .address-builder-icon svg {
@@ -566,7 +564,6 @@ body {
 
   .sidebar-email:hover {
     box-shadow: 0 10px 24px hsla(0, 0%, 0%, 0.2);
-    transform: translateY(-6px);
   }
 
   .action-buttons {
@@ -639,6 +636,10 @@ body {
     grid-row: headline;
     grid-column: subject;
     margin-bottom: var(--space-3);
+  }
+
+  .message-content.html {
+    padding-left: var(--space-8);
   }
 
   .etc-dots {
