@@ -30,10 +30,10 @@ static: clean minify
 	@echo "Static assets done"
 
 do-build: static
-	CGO_ENABLED=0 go build -ldflags "-X github.com/haydenwoodhead/burner.kiwi/burner.version=${git_commit} -X github.com/haydenwoodhead/burner.kiwi/burner.css=${custom_css}" -o "./burnerkiwi"
+	GOOS=linux GOARCH=amd64 GO_ENABLED=0 go build -ldflags "-X github.com/haydenwoodhead/burner.kiwi/burner.version=${git_commit} -X github.com/haydenwoodhead/burner.kiwi/burner.css=${custom_css}" -o "./burnerkiwi"
 
 do-build-sqlite: static
-	CGO_ENABLED=1 go build -ldflags "-X github.com/haydenwoodhead/burner.kiwi/burner.version=${git_commit} -X github.com/haydenwoodhead/burner.kiwi/burner.css=${custom_css}" -o "./burnerkiwi"
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -ldflags "-X github.com/haydenwoodhead/burner.kiwi/burner.version=${git_commit} -X github.com/haydenwoodhead/burner.kiwi/burner.css=${custom_css}" -o "./burnerkiwi"
 
 # clean up static dir after build
 build build-sqlite:  %: do-% clean

@@ -124,9 +124,9 @@ func New(cfg Config, db Database, email EmailProvider) (*Server, error) {
 	).Methods(http.MethodPost)
 
 	// JSON API
-	s.Router.Handle("/api/v2/inbox/", alice.New(JSONContentType).ThenFunc(s.NewInboxJSON)).Methods(http.MethodGet)
-	s.Router.Handle("/api/v2/inbox/{inboxID}/", alice.New(JSONContentType, s.CheckPermissionJSON).ThenFunc(s.GetInboxDetailsJSON)).Methods(http.MethodGet)
-	s.Router.Handle("/api/v2/inbox/{inboxID}/messages/", alice.New(JSONContentType, s.CheckPermissionJSON).ThenFunc(s.GetAllMessagesJSON)).Methods(http.MethodGet)
+	s.Router.Handle("/api/v2/inbox", alice.New(JSONContentType).ThenFunc(s.NewInboxJSON)).Methods(http.MethodGet)
+	s.Router.Handle("/api/v2/inbox/{inboxID}", alice.New(JSONContentType, s.CheckPermissionJSON).ThenFunc(s.GetInboxDetailsJSON)).Methods(http.MethodGet)
+	s.Router.Handle("/api/v2/inbox/{inboxID}/messages", alice.New(JSONContentType, s.CheckPermissionJSON).ThenFunc(s.GetAllMessagesJSON)).Methods(http.MethodGet)
 
 	// Static File Serving
 	fs := http.StripPrefix("/static/", http.FileServer(s.getStaticFS()))
