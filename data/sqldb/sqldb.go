@@ -86,7 +86,7 @@ func (s *SQLDatabase) createTables() error {
 // SaveNewInbox saves a new inbox
 func (s *SQLDatabase) SaveNewInbox(i burner.Inbox) error {
 	_, err := s.NamedExec(
-		"INSERT INTO inbox (id, address, created_at, created_by, ep_routeid, ttl, failed_to_create) VALUES (:id, :address, :created_at, :created_by, :ep_routeid, :ttl, :failed_to_create)",
+		"INSERT INTO inbox (id, address, created_at, created_by, ep_routeid, ttl, failed_to_create) VALUES (:id, lower(:address), :created_at, :created_by, :ep_routeid, :ttl, :failed_to_create)",
 		map[string]interface{}{
 			"id":               i.ID,
 			"address":          i.Address,
@@ -111,14 +111,14 @@ func (s *SQLDatabase) GetInboxByID(id string) (burner.Inbox, error) {
 // GetInboxByAddress gets an inbox by address
 func (s *SQLDatabase) GetInboxByAddress(address string) (burner.Inbox, error) {
 	var i burner.Inbox
-	err := s.Get(&i, "SELECT id, address, created_at, created_by, ep_routeid, ttl, failed_to_create FROM inbox WHERE address = $1", address)
+	err := s.Get(&i, "SELECT id, address, created_at, created_by, ep_routeid, ttl, failed_to_create FROM inbox WHERE lower(address) = lower($1)", address)
 	return i, err
 }
 
 // EmailAddressExists checks if an address already exists
 func (s *SQLDatabase) EmailAddressExists(email string) (bool, error) {
 	var count int
-	err := s.Get(&count, "SELECT COUNT(*) FROM inbox WHERE address = $1", email)
+	err := s.Get(&count, "SELECT COUNT(*) FROM inbox WHERE lower(address) = lower($1)", email)
 	return count > 0, err
 }
 

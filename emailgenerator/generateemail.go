@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"regexp"
+	"strings"
 	"time"
 )
 
@@ -53,6 +54,9 @@ func (eg *EmailGenerator) NewRandom() string {
 
 // NewFromUserAndHost generates a new email address from a string and host. It is the callers responsibility to check for uniqueness
 func (eg *EmailGenerator) NewFromUserAndHost(user string, host string) (string, error) {
+	user = strings.ToLower(user)
+	host = strings.ToLower(host)
+
 	if err := eg.verifyUser(user); err != nil {
 		return "", err
 	}
