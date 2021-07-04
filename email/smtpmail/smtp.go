@@ -72,7 +72,7 @@ func (s *SMTPMail) Start(websiteAddr string, db burner.Database, r *mux.Router, 
 		} else {
 			err := s.server.ListenAndServe()
 			if err != nil {
-				log.WithError(err).Error("SMTP: failed to start server")
+				log.WithError(err).Fatal("SMTP: failed to start server")
 			}
 		}
 	}()
