@@ -99,6 +99,9 @@ Burner.kiwi styles
   --space-16: 64px;
   --space-24: 96px;
 
+  --weight-light: 300;
+  --weight-bold: 700;
+
   --btn-background-color: #181819;
   --btn-icon-color: white;
   --message-container-border-color: transparent;
@@ -187,7 +190,7 @@ body {
 
 .inbox-address {
   font-size: 2rem;
-  font-weight: 500;
+  font-weight: var(--weight-bold);
 }
 
 .action-buttons {
@@ -280,7 +283,7 @@ body {
 
 .email-avatar > p {
   color: white;
-  font-weight: 900;
+  font-weight: var(--weight-bold);
   font-size: 1.25rem;
 }
 
@@ -289,7 +292,7 @@ body {
 }
 
 .sidebar-email-from {
-  font-weight: 700;
+  font-weight: var(--weight-bold);
 }
 
 .sidebar-email-time {
@@ -351,7 +354,7 @@ body {
 }
 
 .message-time {
-  font-weight: 200;
+  font-weight: var(--weight-light);
 }
 
 .message-content {
@@ -446,7 +449,7 @@ body {
   border-radius: 8px;
   width: 80px;
   height: 50px;
-  font-weight: 500;
+  font-weight: var(--weight-bold);
   background-color: white;
 
   color: var(--blue);
