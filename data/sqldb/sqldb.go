@@ -19,6 +19,9 @@ type SQLDatabase struct {
 // New returns a new db or panics
 func New(dbType string, dbURL string) *SQLDatabase {
 	s := &SQLDatabase{sqlx.MustOpen(dbType, dbURL), dbType}
+	if dbType == "sqlite3" {
+		s.SetMaxOpenConns(1)
+	}
 	return s
 }
 
