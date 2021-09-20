@@ -21,9 +21,8 @@ type EmailGenerator interface {
 }
 
 func (s *Server) isBlacklistedDomain(email string) bool {
-	emailDomain := strings.Split(email, "@")[1]
 	for _, domain := range s.cfg.BlacklistedDomains {
-		if domain == emailDomain {
+		if strings.Contains(email, domain) {
 			return true
 		}
 	}

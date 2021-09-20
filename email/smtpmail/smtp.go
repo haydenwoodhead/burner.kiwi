@@ -25,18 +25,19 @@ type SMTPMail struct {
 }
 
 type smtpBackend struct {
-	handler *handler
+	handler             *handler
+	isBlacklistedDomain func(string) bool
 }
 
 type smtpSession struct {
-	conState    *smtp.ConnectionState
-	fromAddress string
-	handler     *handler
+	conState            *smtp.ConnectionState
+	fromAddress         string
+	handler             *handler
+	isBlacklistedDomain func(string) bool
 }
 
 type handler struct {
-	db                  burner.Database
-	isBlacklistedDomain func(string) bool
+	db burner.Database
 }
 
 func NewMailProvider(listenAddr string) *SMTPMail {
@@ -47,11 +48,10 @@ func NewMailProvider(listenAddr string) *SMTPMail {
 
 func (s *SMTPMail) Start(websiteAddr string, db burner.Database, r *mux.Router, isBlacklistedDomain func(string) bool) error {
 	h := &handler{
-		db:                  db,
-		isBlacklistedDomain: isBlacklistedDomain,
+		db: db,
 	}
 
-	be := &smtpBackend{handler: h}
+	be := &smtpBackend{handler: h, isBlacklistedDomain: isBlacklistedDomain}
 
 	server := smtp.NewServer(be)
 	server.WriteTimeout = 20 * time.Second
@@ -85,7 +85,7 @@ func (b *smtpBackend) Login(state *smtp.ConnectionState, username, password stri
 }
 
 func (b *smtpBackend) AnonymousLogin(state *smtp.ConnectionState) (smtp.Session, error) {
-	return &smtpSession{conState: state, handler: b.handler}, nil
+	return &smtpSession{conState: state, handler: b.handler, isBlacklistedDomain: b.isBlacklistedDomain}, nil
 }
 
 func (s *smtpSession) Reset() {
@@ -96,6 +96,9 @@ func (s *smtpSession) Logout() error {
 }
 
 func (s *smtpSession) Mail(from string, opts smtp.MailOptions) error {
+	if s.isBlacklistedDomain(from) {
+		return &smtp.SMTPError{Code: smtpMailBoxNotAvailableCode, Message: "To prevent abuse. We don't accept mail from you."}
+	}
 	s.fromAddress = from
 	return nil
 }
@@ -172,10 +175,6 @@ func (h *handler) handleMessage(from string, parsedEmail parsemail.Email) error 
 }
 
 func (h *handler) emailAddressExists(address string) bool {
-	if h.isBlacklistedDomain(address) {
-		return false
-	}
-
 	exists, err := h.db.EmailAddressExists(address)
 	if err != nil {
 		log.WithError(err).Error("SMTP: failed to query if email exists")
