@@ -12,7 +12,7 @@ import (
 func main() {
 	log.SetFormatter(&log.JSONFormatter{})
 
-	cfg, db, email := mustParseConfig()
+	cfg, db, email, listenAddr := mustParseConfig()
 	s, err := burner.New(cfg, db, email)
 	if err != nil {
 		log.Fatalf("Failed to setup new burner: %v", err)
@@ -22,6 +22,6 @@ func main() {
 	if cfg.UsingLambda {
 		log.Fatal(gateway.ListenAndServe("", context.ClearHandler(s.Router))) // wrap mux in ClearHandler as per docs to prevent leaking memory
 	} else {
-		log.Fatal(http.ListenAndServe(":8080", context.ClearHandler(s.Router)))
+		log.Fatal(http.ListenAndServe(listenAddr, context.ClearHandler(s.Router)))
 	}
 }

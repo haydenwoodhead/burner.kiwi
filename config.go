@@ -23,7 +23,7 @@ const sqLite3 = "sqlite3"
 const mailgunProvider = "mailgun"
 const smtpProvider = "smtp"
 
-func mustParseConfig() (burner.Config, burner.Database, burner.EmailProvider) {
+func mustParseConfig() (burner.Config, burner.Database, burner.EmailProvider, string) {
 	dbType := parseStringVarWithDefault("DB_TYPE", inMemory)
 
 	var db burner.Database
@@ -50,6 +50,8 @@ func mustParseConfig() (burner.Config, burner.Database, burner.EmailProvider) {
 		email = smtpmail.NewMailProvider(parseStringVarWithDefault("SMTP_LISTEN", ":25"))
 	}
 
+	listenAddr := parseStringVarWithDefault("LISTEN", ":8080")
+
 	return burner.Config{
 		Key:                mustParseStringVar("KEY"),
 		URL:                mustParseStringVar("WEBSITE_URL"),
@@ -59,7 +61,7 @@ func mustParseConfig() (burner.Config, burner.Database, burner.EmailProvider) {
 		UsingLambda:        parseBoolVarWithDefault("LAMBDA", false),
 		RestoreRealIP:      parseBoolVarWithDefault("RESTOREREALIP", false),
 		BlacklistedDomains: parseSliceVar("BLACKLISTED"),
-	}, db, email
+	}, db, email, listenAddr
 }
 
 func parseStringVar(key string) string {

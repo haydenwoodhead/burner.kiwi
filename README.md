@@ -48,7 +48,6 @@ If you wish to use SQLite3 you must run:
 ```bash
 make build-sqlite
 ```
-
 ## Configuration Parameters
 
 These are all set as environment variables.
@@ -57,6 +56,7 @@ These are all set as environment variables.
 
 Parameter | Type | Description
 ----------|------|-------------
+LISTEN | string | address to listen on. Default is ":8080" which is all interfaces, port 8080
 LAMBDA | Boolean | Whether or not the binary is being hosted on AWS Lambda
 KEY | String | Key used to sign cookies and keys. Make this something strong!
 WEBSITE_URL | String | The url where the binary is being hosted. This must be internet reachable as it is the destination for Mailgun routes
