@@ -29,9 +29,6 @@ minify: check_deps
 static: clean minify
 	@echo "Static assets done"
 
-export-custom-css-env:
-	@echo "export CUSTOM_CSS=${custom_css}"
-
 do-build: static
 	GOOS=linux GOARCH=amd64 GO_ENABLED=0 go build -ldflags "-X github.com/haydenwoodhead/burner.kiwi/burner.version=${git_commit} -X github.com/haydenwoodhead/burner.kiwi/burner.css=${custom_css}" -o "./burnerkiwi"
 

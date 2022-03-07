@@ -47,7 +47,7 @@ jobs:
         with:
           go-version: 1.17
       - run: sudo apt-get install minify
-      - run: $(make export-custom-css-env)
+      - run: ehco "CUSTOM_CSS=styles.$(md5sum ./burner/static/styles.css | cut -c -32).min.css"
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v2
         with:
@@ -56,3 +56,4 @@ jobs:
           args: release --rm-dist --snapshot
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CUSTOM_CSS: ${{ env.CUSTOM_CSS }}
