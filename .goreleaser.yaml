@@ -1,0 +1,44 @@
+before:
+  hooks:
+    - go mod tidy
+    - make static
+builds:
+  - id: burnerkiwi
+    binary: burnerkiwi
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    ldflags:
+      - -X "github.com/haydenwoodhead/burner.kiwi/burner.version={{ .ShortCommit }}"
+      - -X "github.com/haydenwoodhead/burner.kiwi/burner.css={{ .Env.CUSTOM_CSS }}"
+  - id: burnerkiwi-sqlite
+    binary: burnerkiwi
+    env:
+      - CGO_ENABLED=1
+    goos:
+      - linux
+      - windows
+      - darwin
+    ldflags:
+      - -X "github.com/haydenwoodhead/burner.kiwi/burner.version={{ .ShortCommit }}"
+      - -X "github.com/haydenwoodhead/burner.kiwi/burner.css={{ .Env.CUSTOM_CSS }}"
+archives:
+  - replacements:
+      darwin: Darwin
+      linux: Linux
+      windows: Windows
+      386: i386
+      amd64: x86_64
+checksum:
+  name_template: "checksums.txt"
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
