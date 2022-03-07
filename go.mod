@@ -19,7 +19,6 @@ require (
 	github.com/ory/dockertest v3.3.5+incompatible
 	github.com/sirupsen/logrus v1.5.0
 	github.com/stretchr/testify v1.4.0
-	github.com/tj/assert v0.0.0-20171129193455-018094318fb0
 	gopkg.in/mailgun/mailgun-go.v1 v1.1.1
 	gopkg.in/square/go-jose.v2 v2.5.1
 )
