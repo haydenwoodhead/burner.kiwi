@@ -30,10 +30,19 @@ static: clean minify
 	@echo "Static assets done"
 
 do-build: static
-	GOOS=linux GOARCH=amd64 GO_ENABLED=0 go build -ldflags "-X github.com/haydenwoodhead/burner.kiwi/burner.version=${git_commit} -X github.com/haydenwoodhead/burner.kiwi/burner.css=${custom_css}" -o "./burnerkiwi"
+	GO_ENABLED=0 go build -ldflags "-X github.com/haydenwoodhead/burner.kiwi/burner.version=${git_commit} -X github.com/haydenwoodhead/burner.kiwi/burner.css=${custom_css}" -o "./burnerkiwi"
 
 do-build-sqlite: static
-	GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -ldflags "-X github.com/haydenwoodhead/burner.kiwi/burner.version=${git_commit} -X github.com/haydenwoodhead/burner.kiwi/burner.css=${custom_css}" -o "./burnerkiwi"
+	CGO_ENABLED=1 go build -ldflags "-X github.com/haydenwoodhead/burner.kiwi/burner.version=${git_commit} -X github.com/haydenwoodhead/burner.kiwi/burner.css=${custom_css}" -o "./burnerkiwi"
+
+build-sqlite-linux-arm: 
+	CC=aarch64-linux-gnu-gcc GOOS=linux GOARCH=arm64 CGO_ENABLED=1 go build -ldflags "-X github.com/haydenwoodhead/burner.kiwi/burner.version=${git_commit} -X github.com/haydenwoodhead/burner.kiwi/burner.css=${custom_css}" -o "./burnerkiwi.arm64"
+
+build-sqlite-linux-amd64:
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -ldflags "-X github.com/haydenwoodhead/burner.kiwi/burner.version=${git_commit} -X github.com/haydenwoodhead/burner.kiwi/burner.css=${custom_css}" -o "./burnerkiwi.amd64"
+
+build-for-docker: static build-sqlite-linux-arm build-sqlite-linux-amd64
+	@echo "Binaries built"
 
 # clean up static dir after build
 build build-sqlite:  %: do-% clean
