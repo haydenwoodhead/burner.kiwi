@@ -36,6 +36,4 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
-          tags:
-            - ghcr.io/haydenwoodhead/burner.kiwi:latest
-            - ghcr.io/haydenwoodhead/burner.kiwi:${{ github.ref_name }}
+          tags: ghcr.io/haydenwoodhead/burner.kiwi:latest, ghcr.io/haydenwoodhead/burner.kiwi:${{ github.ref_name }}
