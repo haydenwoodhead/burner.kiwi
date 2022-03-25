@@ -10,9 +10,9 @@ Check it out here: https://burner.kiwi
 
 ## About
 
-Burner.kiwi is designed to be easy to use, fast, and lightweight temporary mail service. It purposefully doesn't include tracking code, analytics, or advertising and has a beautiful and responsive UI.
+Burner.kiwi is designed to be an easy to use, fast, and lightweight temporary mail service. It purposefully doesn't include tracking code, analytics, or advertising and has a beautiful and responsive UI.
 
-For those wanting to self-host,g burner.kiwi is designed to be able to run on both AWS Lambda and normal machines. It has several backing database implementations and can be flexibly configured.
+For those wanting to self-host, burner.kiwi is designed to be able to run on both AWS Lambda and normal machines. It has several backing database implementations and can be flexibly configured.
 
 There are three production-ready database implementations: DynamoDB, PostgreSQL and SQLite3.
 
