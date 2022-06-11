@@ -26,8 +26,8 @@ type Message struct {
 	ReceivedAt      int64  `dynamodbav:"received_at" json:"received_at" db:"received_at"`
 	EmailProviderID string `dynamodbav:"ep_id" json:"-" db:"ep_id"`
 	Sender          string `dynamodbav:"sender" json:"sender" db:"sender"`
-	FromName        string `dynamodbav:"fromName" json:"fromName" db:"from_name"`
-	FromAddress     string `dynamodbav:"fromEmail" json:"fromAddress" db:"from_address"`
+	FromName        string `dynamodbav:"fromName" json:"from_name" db:"from_name"`
+	FromAddress     string `dynamodbav:"fromEmail" json:"from_address" db:"from_address"`
 	Subject         string `dynamodbav:"subject" json:"subject" db:"subject"`
 	BodyHTML        string `dynamodbav:"body_html" json:"body_html" db:"body_html"`
 	BodyPlain       string `dynamodbav:"body_plain" json:"body_plain" db:"body_plain"`
