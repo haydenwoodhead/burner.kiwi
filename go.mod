@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/DusanKasan/parsemail v1.2.0
 	github.com/PuerkitoBio/goquery v1.5.0
-	github.com/aws/aws-sdk-go v1.23.8
+	github.com/aws/aws-sdk-go v1.33.0
 	github.com/emersion/go-smtp v0.15.0
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/context v1.1.1
@@ -38,10 +38,9 @@ require (
 	github.com/facebookgo/ensure v0.0.0-20160127193407-b4ab57deab51 // indirect
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
 	github.com/facebookgo/subset v0.0.0-20150612182917-8dac2c3c4870 // indirect
-	github.com/go-sql-driver/mysql v1.4.1 // indirect
 	github.com/gorilla/securecookie v1.1.1 // indirect
 	github.com/gotestyourself/gotestyourself v2.2.0+incompatible // indirect
-	github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af // indirect
+	github.com/jmespath/go-jmespath v0.3.0 // indirect
 	github.com/onsi/ginkgo v1.9.0 // indirect
 	github.com/onsi/gomega v1.6.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
@@ -53,7 +52,6 @@ require (
 	golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b // indirect
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
 	golang.org/x/sys v0.0.0-20220318055525-2edf467146b5 // indirect
-	google.golang.org/appengine v1.6.1 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
 	gotest.tools v2.2.0+incompatible // indirect
 )
