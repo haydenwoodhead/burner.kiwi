@@ -15,6 +15,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/haydenwoodhead/burner.kiwi/burner"
 	"github.com/haydenwoodhead/burner.kiwi/email"
+	"github.com/haydenwoodhead/burner.kiwi/metrics"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -181,6 +182,8 @@ func (h *handler) handleMessage(from string, parsedEmail parsemail.Email) error 
 			log.WithError(err).Error("SMTP: failed to save message to db")
 			return err
 		}
+
+		metrics.EmailsReceived.Inc()
 	}
 
 	return nil

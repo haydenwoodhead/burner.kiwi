@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/haydenwoodhead/burner.kiwi/burner"
 	"github.com/haydenwoodhead/burner.kiwi/email"
+	"github.com/haydenwoodhead/burner.kiwi/metrics"
 	log "github.com/sirupsen/logrus"
 	mailgun "gopkg.in/mailgun/mailgun-go.v1"
 )
@@ -180,4 +181,6 @@ func (m *MailgunMail) mailgunIncoming(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	metrics.EmailsReceived.Inc()
 }

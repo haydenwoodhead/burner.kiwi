@@ -61,6 +61,8 @@ func mustParseConfig() (burner.Config, burner.Database, burner.EmailProvider, st
 		UsingLambda:        parseBoolVarWithDefault("LAMBDA", false),
 		RestoreRealIP:      parseBoolVarWithDefault("RESTOREREALIP", false),
 		BlacklistedDomains: parseSliceVar("BLACKLISTED"),
+		EmitMetrics:        parseBoolVarWithDefault("METRICS", false),
+		MetricPort:         parseStringVarWithDefault("METRIC_PORT", ":9091"),
 	}, db, email, listenAddr
 }
 

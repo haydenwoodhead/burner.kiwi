@@ -1,0 +1,11 @@
+echo export DB_TYPE=sqlite3
+echo export DATABASE_URL="burner.db?mode=rwc&_timeout=5000&_journal=WAL&_foreign_keys=true"
+echo export LAMBDA=false
+echo export DEVELOPING=true
+echo export WEBSITE_URL=localhost:8080
+echo export STATIC_URL=/static
+echo export DOMAINS=foo.local
+echo export EMAIL_TYPE=smtp
+echo export SMTP_LISTEN=":25"
+echo export KEY=fakekey
+echo export METRICS=true

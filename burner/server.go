@@ -28,7 +28,7 @@ type Server struct {
 	cfg Config
 }
 
-//Config contains key configuration parameters to be passed to New()
+// Config contains key configuration parameters to be passed to New()
 type Config struct {
 	Key                string
 	URL                string
@@ -40,6 +40,8 @@ type Config struct {
 	RestoreRealIP      bool
 	Database           Database
 	BlacklistedDomains []string
+	EmitMetrics        bool
+	MetricPort         string
 }
 
 // New returns a burner with the given settings

@@ -17,5 +17,7 @@ burnerkiwi.test
 
 #ignore sqlite dbs
 *.db
+*.db-shm
+*.db-wal
 
 dist/

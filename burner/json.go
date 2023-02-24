@@ -8,6 +8,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/haydenwoodhead/burner.kiwi/metrics"
+	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -90,6 +92,8 @@ func (s *Server) NewInboxJSON(w http.ResponseWriter, r *http.Request) {
 	if s.cfg.UsingLambda {
 		wg.Wait()
 	}
+
+	metrics.InboxesCreated.With(prometheus.Labels{"content_type": "json", "style": "random"}).Inc()
 
 	returnJSON(w, r, http.StatusOK, Response{
 		Result:  res,

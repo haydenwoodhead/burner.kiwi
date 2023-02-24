@@ -10,6 +10,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/haydenwoodhead/burner.kiwi/metrics"
+	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -95,6 +97,8 @@ func (s *Server) newRandomInbox(session *session, w http.ResponseWriter, r *http
 		return
 	}
 
+	metrics.InboxesCreated.With(prometheus.Labels{"content_type": "html", "style": "random"}).Inc()
+
 	s.getInbox(session, w, r)
 }
 
@@ -131,6 +135,8 @@ func (s *Server) NewNamedInbox(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to create inbox. Please clear cookies and try again.", http.StatusInternalServerError)
 		return
 	}
+
+	metrics.InboxesCreated.With(prometheus.Labels{"content_type": "html", "style": "named"}).Inc()
 
 	http.Redirect(w, r, "/", http.StatusFound)
 }
@@ -268,12 +274,12 @@ func (s *Server) editInbox(w http.ResponseWriter, r *http.Request, errMessage st
 	}
 }
 
-//EditInbox prompts the user for a new name for the inbox route
+// EditInbox prompts the user for a new name for the inbox route
 func (s *Server) EditInbox(w http.ResponseWriter, r *http.Request) {
 	s.editInbox(w, r, "")
 }
 
-//DeleteInbox prompts for a confirmation to delete from the user
+// DeleteInbox prompts for a confirmation to delete from the user
 func (s *Server) DeleteInbox(w http.ResponseWriter, r *http.Request) {
 	session := s.getSessionFromCookie(r)
 	i, err := s.db.GetInboxByID(session.InboxID)
@@ -307,7 +313,7 @@ func (s *Server) DeleteInbox(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//ConfirmDeleteInbox removes the user session cookie
+// ConfirmDeleteInbox removes the user session cookie
 func (s *Server) ConfirmDeleteInbox(w http.ResponseWriter, r *http.Request) {
 	session := s.getSessionFromCookie(r)
 
