@@ -7,9 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"mime/quotedprintable"
-
-	"github.com/DusanKasan/parsemail"
+	"github.com/k3a/parsemail"
 	"github.com/emersion/go-smtp"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -148,16 +146,6 @@ func (h *handler) handleMessage(from string, parsedEmail parsemail.Email) error 
 	partialMsg.BodyPlain = strings.TrimSpace(parsedEmail.TextBody)
 
 	if parsedEmail.HTMLBody != "" {
-		if strings.ToLower(parsedEmail.Header.Get("Content-Transfer-Encoding")) == "quoted-printable" {
-			unquoted, err := io.ReadAll(quotedprintable.NewReader(strings.NewReader(parsedEmail.HTMLBody)))
-			if err != nil {
-				log.WithError(err).Error("SMTP: failed to decode quoted printable")
-				return err
-			}
-
-			parsedEmail.HTMLBody = string(unquoted)
-		}
-
 		modifiedHTML, err := email.AddTargetBlank(strings.TrimSpace(parsedEmail.HTMLBody))
 		if err != nil {
 			log.WithError(err).Error("SMTP: failed to AddTargetBlank")

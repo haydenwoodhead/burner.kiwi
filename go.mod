@@ -3,7 +3,6 @@ module github.com/haydenwoodhead/burner.kiwi
 go 1.17
 
 require (
-	github.com/DusanKasan/parsemail v1.2.0
 	github.com/PuerkitoBio/goquery v1.5.0
 	github.com/aws/aws-sdk-go v1.34.0
 	github.com/emersion/go-smtp v0.15.0
@@ -14,6 +13,7 @@ require (
 	github.com/haydenwoodhead/gateway v1.2.1
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/justinas/alice v0.0.0-20171023064455-03f45bd4b7da
+	github.com/k3a/parsemail v1.3.0
 	github.com/lib/pq v1.2.0
 	github.com/mattn/go-sqlite3 v1.11.0
 	github.com/ory/dockertest v3.3.5+incompatible
