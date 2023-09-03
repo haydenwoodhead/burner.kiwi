@@ -6,7 +6,6 @@ import (
 	"math/rand"
 	"regexp"
 	"strings"
-	"time"
 )
 
 const alphabet = "abcdefghijklmnopqrstuvwxyz1234567890"
@@ -19,7 +18,6 @@ type EmailGenerator struct {
 
 // New returns an email generator that creates emails with the given Hosts and minimum length user part
 func New(h []string, l int) *EmailGenerator {
-	rand.Seed(time.Now().UTC().UnixNano())
 	return &EmailGenerator{Hosts: h, L: l}
 }
 
@@ -68,7 +66,7 @@ func (eg *EmailGenerator) NewFromUserAndHost(user string, host string) (string, 
 
 var isAlphaNumeric = regexp.MustCompile(`^[a-zA-Z0-9]+$`).MatchString
 
-//VerifyUser verifies the local part of an email address is between 3 and 64 alphanumeric characters
+// VerifyUser verifies the local part of an email address is between 3 and 64 alphanumeric characters
 func (eg *EmailGenerator) verifyUser(r string) error {
 	if len(r) < 3 {
 		return fmt.Errorf("route must be at least three characters: %s", r)
@@ -82,7 +80,7 @@ func (eg *EmailGenerator) verifyUser(r string) error {
 	return nil
 }
 
-//VerifyHost verifies the host part of an email address is not empty and is known to the application
+// VerifyHost verifies the host part of an email address is not empty and is known to the application
 func (eg *EmailGenerator) verifyHost(h string) error {
 	if h == "" {
 		return errors.New("host must not be an empty string")
