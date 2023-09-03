@@ -85,6 +85,9 @@ func mustParseStringVar(key string) (v string) {
 
 func parseSliceVar(key string) (v []string) {
 	val := parseStringVar(key)
+	if len(val) == 0 {
+		return
+	}
 	split := strings.Split(val, ",")
 
 	for _, s := range split {
