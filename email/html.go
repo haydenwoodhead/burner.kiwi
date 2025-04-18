@@ -7,7 +7,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-//AddTargetBlank finds all a tags and add a target="_blank" attr to them so they
+// AddTargetBlank finds all a tags and add a target="_blank" attr to them so they
 // open links in a new tab rather than in the iframe
 func AddTargetBlank(html string) (string, error) {
 	sr := strings.NewReader(html)
@@ -20,6 +20,7 @@ func AddTargetBlank(html string) (string, error) {
 
 	doc.Find("a").Each(func(i int, s *goquery.Selection) {
 		s.SetAttr("target", "_blank")
+		s.SetAttr("rel", "noopener noreferrer")
 	})
 
 	var modifiedHTML string
