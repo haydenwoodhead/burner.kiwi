@@ -7,13 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/k3a/parsemail"
 	"github.com/emersion/go-smtp"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/haydenwoodhead/burner.kiwi/burner"
 	"github.com/haydenwoodhead/burner.kiwi/email"
 	"github.com/haydenwoodhead/burner.kiwi/metrics"
+	"github.com/haydenwoodhead/parsemail"
 	log "github.com/sirupsen/logrus"
 )
 

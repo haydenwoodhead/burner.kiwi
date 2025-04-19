@@ -1,6 +1,6 @@
 module github.com/haydenwoodhead/burner.kiwi
 
-go 1.21
+go 1.24
 
 require (
 	github.com/PuerkitoBio/goquery v1.5.0
@@ -11,9 +11,9 @@ require (
 	github.com/gorilla/mux v1.7.3
 	github.com/gorilla/sessions v1.2.0
 	github.com/haydenwoodhead/gateway v1.2.1
+	github.com/haydenwoodhead/parsemail v1.3.0
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/justinas/alice v0.0.0-20171023064455-03f45bd4b7da
-	github.com/k3a/parsemail v1.3.0
 	github.com/lib/pq v1.2.0
 	github.com/mattn/go-sqlite3 v1.11.0
 	github.com/ory/dockertest v3.3.5+incompatible
