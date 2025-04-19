@@ -67,7 +67,7 @@ func TestMailgun_MailgunIncoming_Verified(t *testing.T) {
 	assert.Equal(t, msg.FromName, "Hayden Woodhead")
 	assert.Equal(t, msg.Subject, "Subject line")
 	assert.Equal(t, msg.BodyPlain, "Hello there")
-	const expectedHTML = `<html><head></head><body><a href="https://example.com" target="_blank">Hello there</a></body></html>`
+	const expectedHTML = `<html><head></head><body><a href="https://example.com" target="_blank" rel="noopener noreferrer">Hello there</a></body></html>`
 	assert.Equal(t, expectedHTML, msg.BodyHTML)
 }
 
