@@ -14,7 +14,7 @@ func TestAddTargetBlank(t *testing.T) {
 	}{
 		{
 			in:  `<html><body><a href="https://example.com">Hello there</a></body></html>`,
-			out: `<html><head></head><body><a href="https://example.com" target="_blank">Hello there</a></body></html>`,
+			out: `<html><head></head><body><a href="https://example.com" target="_blank" rel="noopener noreferrer">Hello there</a></body></html>`,
 		},
 	}
 
